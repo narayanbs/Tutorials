@@ -1,0 +1,793 @@
+Element Styles
+---------------
+
+style property -- set or get inline style of element
+for ex:
+	element.style.color = 'red';
+	element.style.cssText = 'color:red;background-color:yellow';
+
+We can use the setAttribute() method:
+	element.setAttribute('style','color:red;background-color:yellow');	
+
+To get all styles applied to an element, you should use the window.getComputedStyle() method.
+
+	let link = document.querySelector('a');
+	let style = getComputedStyle(link,':hover');
+	console.log(style);
+
+ex: 	
+	<style type="text/css">
+		.message {
+		    background-color: #fff3d4;
+		    border: solid 1px #f6b73c;
+		    padding: 20px;
+		    color: black;
+		}
+	 </style>	
+	
+	<p class="message" style="color:red">
+	        This is a JS getComputedStyle() Demo!
+	</p>
+
+	let message = document.querySelector('.message');
+	let style = getComputedStyle(message);
+
+	console.log('color:', style.color);
+	console.log('background color:', style.backgroundColor);	
+
+	// output
+	color: rgb(255, 0, 0)
+	background color: rgb(255, 243, 212)
+
+The getComputedStyle() for pseudo-elements example
+
+
+	<style>
+	body {
+	    font: arial, sans-serif;
+	    font-size: 1em;
+	    line-height: 1.6;
+	}
+
+	p::first-letter {
+	    font-size: 1.5em;
+	    font-weight: normal
+	}
+	</style>
+
+	<p id='main'>JavaScript getComputedStyle() Demo for pseudo-elements</p>
+
+	let p = document.getElementById('main');
+	let style = getComputedStyle(p, '::first-letter');
+	console.log(style.fontSize);
+	
+	// output
+	24px
+
+
+className property: returns a space-separated list of CSS classes of the element as a string:
+
+	<ul id="menu" class="vertical main">
+	   <li>Homepage</li>
+	   <li>Services</li>
+	   <li>About</li>
+	   <li>Contact</li>
+	</ul>
+
+	let menu = document.querySelector('#menu');
+	console.log(menu.className);
+
+	//output
+	vertical main	
+
+
+To add a new class to an element using the className property, you can concatenate the existing class name with a new one:
+	element.className += newClassName; 
+
+	let menu = document.querySelector('#menu');
+	menu.className += ' new';
+	console.log(menu.className);	
+
+	//output
+	'vertical main new'
+	
+classList property:  is a read-only property of an element that returns a live collection of CSS classes:
+
+	<div id="content" class="main red">JavaScript classList</div>   
+
+	let div = document.querySelector('#content');
+	for (let cssClass of div.classList) {
+	    console.log(cssClass);
+	}		
+
+	//output
+	main
+	red
+
+To add one or more CSS classes to the class list of an element, you use the add() method of the classList.
+
+	let div = document.querySelector('#content');
+	div.classList.add('info');
+
+	let div = document.querySelector('#content');
+	div.classList.add('info','visible','block');
+	
+To remove a CSS class from the class list of an element, you use the remove() method:
+
+	let div = document.querySelector('#content');
+	div.classList.remove('visible');	
+	
+	let div = document.querySelector('#content');
+	div.classList.remove('block','red');	
+
+To replace an existing CSS class with a new one, you use the replace() method:
+
+	let div = document.querySelector('#content');
+	div.classList.replace('info','warning');
+	
+To check if the element has a specified class, you use the contains() method:
+
+	let div = document.querySelector('#content');
+	div.classList.contains('warning'); // true	
+
+Toggle a class
+
+	let div = document.querySelector('#content');
+	div.classList.toggle('visible');
+
+
+
+------------------------------------------------------------------------
+			JavaScript Events
+------------------------------------------------------------------------
+
+An event is an action that occurs in the web browser, which the web browser feedbacks to you so that you can respond to it.
+Each event may have an event handler which is a block of code that will execute when the event occurs. An event handler is also known as an 
+event listener. It listens to the event and executes when the event occurs.
+
+Event flow
+----------
+Assuming that you have the following HTML document:
+	<!DOCTYPE html>
+	<html>
+	<head>
+	    <title>JS Event Demo</title>
+	</head>
+	<body>
+	    <div id="container">
+		<button id='btn'>Click Me!</button>
+	    </div>
+	</body>
+
+When you click the button, you’re clicking not only the button but also the button’s container, the div, and the whole webpage.
+Event flow explains the order in which events are received on the page from the element where the event occurs and propagated through the DOM tree.
+
+Event models
+-------------
+There are two main event models: event bubbling and event capturing.
+
+In the event bubbling model, an event starts at the most specific element and then flows upward toward the least specific element (the document or even window). When you click the button, the click event occurs in the following order:
+
+	1.button
+	2.div with the id container
+	3.body
+	4.html
+	5.document
+
+The click event first occurs on the button which is the element that was clicked. Then the click event goes up the DOM tree, firing on each 
+node along its way until it reaches the document object.	
+
+In the event capturing model, an event starts at the least specific element and flows downward toward the most specific element.
+When you click the button, the click event occurs in the following order:
+
+	1.document
+	2.html
+	3.body
+	4.div with the id container
+	5.button
+
+DOM level 2 events specify that event flow has three phases:
+
+First, event capturing occurs, which provides the opportunity to intercept the event.
+Then, the actual target receives the event.
+Finally, event bubbling occurs, which allows a final response to the event.
+
+Event Object
+------------
+When the event occurs, the web browser passed an Event object to the event handler:
+	let btn = document.querySelector('#btn');
+
+	btn.addEventListener('click', function(event) {
+	    console.log(event.type);
+	});
+	// output: click
+	
+Common used methods of event object
+-------------------------------------
+preventDefault(): prevent the default behavior of an event
+for ex, when you click a link, the browser navigates you to the URL specified in the href attribute:
+<a href="https://www.javascripttutorial.net/">JS Tutorial</a>, you can prevent this behavior by using the preventDefault() method of the event object:
+	let link = document.querySelector('a');
+
+	link.addEventListener('click',function(event) {
+	    console.log('clicked');
+	    event.preventDefault();
+	});
+
+stopPropagation(): immediately stops the flow of an event through the DOM tree.	
+	let btn = document.querySelector('#btn');
+
+	btn.addEventListener('click', function(event) {
+	    console.log('The button was clicked!');
+	    event.stopPropagation();
+	});
+
+	document.body.addEventListener('click',function(event) {
+	    console.log('The body was clicked!');
+	});
+Without the stopPropagation() method, you would see two messages on the Console window.
+However, the click event never reaches the body because the stopPropagation() was called on the click event handler of the button.
+
+
+Event Handling
+---------------
+There are 3 ways to assign event handlers.
+1. HTML event handler attributes. 
+	<input type="button" value="Save" onclick="alert('Clicked!')">
+
+2. DOM Level 0 event handlers
+	let btn = document.querySelector('#btn');
+
+	btn.onclick = function() {
+	    alert('Clicked!');
+	};
+
+3. DOM Level 2 event handlers	
+	let btn = document.querySelector('#btn');
+
+	// add the event listener
+	let showAlert = function() {
+	    alert('Clicked!');
+	};
+	btn.addEventListener('click', showAlert);
+
+	// remove the event listener
+	btn.removeEventListener('click', showAlert);
+	
+-------------------------------------------
+	Events
+-------------------------------------------
+
+Page Load Events
+----------------
+1. DomContentLoaded -  the browser fully loaded HTML and completed building the DOM tree. However, it hasn’t loaded external resources like stylesheets and images. 
+2. load - the browser fully loaded the HTML and also external resources like images and stylesheets.
+3. beforeunload - – fires before the page and resources are unloaded. You can use this event to show a confirmation dialog to confirm if you really want to leave the page. 
+4. unload -  fires when the page has completely unloaded. You can use this event to send the analytic data or to clean up resources.
+
+	document.addEventListener('DOMContentLoaded',() => {
+	    // handle DOMContentLoaded event
+	});
+
+	document.addEventListener('load',() => {
+	    // handle load event
+	});
+
+	document.addEventListener('beforeunload',() => {
+	    // handle beforeunload event
+	});
+
+	document.addEventListener('unload',() => {
+	    // handle unload event
+	});
+	
+	
+Keyboard events
+---------------
+keydown – fires when you press a key on the keyboard and fires repeatedly while you’re holding down the key.
+keyup – fires when you release a key on the keyboard.
+keypress – fires when you press a character on the keyboard like a,b, or c, not the left arrow key, home, or end keyboard, 
+The keypress also fires repeatedly while you hold down the key on the keyboard.
+
+When you press a character key once on the keyboard, three keyboard events are fired in the following order:
+1. keydown
+2. keypress	-->(deprecated)
+3. keyup
+
+Handling keyboard events
+------------------------
+
+	<input type="text" id="message">
+
+	let msg = document.getDocumentById('#message');
+
+	msg.addEventListener("keydown", (event) => {
+	    // handle keydown
+	});
+
+	msg.addEventListener("keypress", (event) => {
+	    // handle keypress
+	});
+
+	msg.addEventListener("keyup", (event) => {
+	    // handle keyup
+	});
+
+
+keyboard event properties
+--------------------------
+The keyboard event has two important properties: key and code. The key property returns the character that has been pressed whereas the code property returns the physical key code. 
+For example, if you press the z character key, the event.key returns z and event.code returns KeyZ.
+
+	<!DOCTYPE html>
+	<html>
+	<head>
+	    <title>JavaScript Keyboard Events: Key/Code</title>
+	</head>
+	<body>
+	    <input type="text" id="message">
+
+	    <script>
+		let textBox = document.getElementById('message');
+		textBox.addEventListener('keydown', (event) => {
+		    console.log(`key=${event.key},code=${event.code}`);
+
+		});
+	    </script>
+	</body>
+	</html>
+
+	// output: key=z,code=KeyZ
+
+	
+
+Mouse events
+------------
+* mousedown, mouseup, and click: 
+
+When you click an element, there are no less than three mouse events fire in the following sequence:
+1. The mousedown fires when you depress (press down) the mouse button on the element.
+2. The mouseup fires when you release the mouse button on the element.
+3. The click fires when one mousedown and one mouseup detected on the element.
+
+If you depress the mouse button on an element and move your mouse off the element, and then release the mouse button. Only the mousedown event fires on the element.
+Likewise, if you depress the mouse button, move the mouse over the element, and release the mouse button, only the mouseup event fires on the element.
+In both cases, the click event never fires.
+
+* dblclick:
+
+In practice, you rarely use the dblclick event. The dblclick event fires when you double click over an element.
+It takes two click events to cause a dblclick event to fire. The dblclick event has four events fired in the following order:
+
+	 mousedown
+	 mouseup
+	 click
+	 mousedown
+	 mouseup
+	 click
+	 dblclick		
+	 
+As you can see, the click events always take place before the dblclick event. If you register both click and dblclick event handlers on the same element, you will not know exactly what user actually has clicked or double-clicked the element.
+
+* mousemove: 
+The mousemove event fires repeatedly when you move the mouse cursor around an element.	 
+
+* mouseover / mouseout: 
+The mouseover fires when the mouse cursor is outside of the element and then move to inside the boundaries of the element.
+The mouseout fires when the mouse cursor is over an element and then moves another element
+
+* mouseenter / mouseleave
+The mouseenter fires when the mouse cursor is outside of an element and then moves to inside the boundaries of the element.
+The mouseleave fires when the mouse cursor is over an element and then moves to the outside of the element’s boundaries.
+
+Difference b/w mouseover/mouseenter and mouseout/mouseleave is that both mouseenter and mouseleave does not bubble 
+and does not fire when the mouse cursor moves over descendant elements, while mouseover/mouseout fires when 
+cursor moves over descendent elements.
+
+Registering event handlers
+Example:
+	<button id="btn">Click Me!</button>
+	let btn = document.querySelector('#btn');
+
+	btn.addEventListener('click',(event) => {
+	    console.log('clicked');
+	});
+	
+Detecting mouse buttons
+The event object passed to the mouse event handler has a property called button that indicates which mouse button was pressed on the mouse to trigger the event.
+
+The mouse button is represented by a number:
+
+0: the main mouse button is pressed, usually the left button.
+1: the auxiliary button is pressed, usually the middle button or the wheel button.
+2: the secondary button is pressed, usually the right button.
+3: the fourth button is pressed, usually the Browser Back button.
+4: the fifth button is pressed, usually the Browser Forward button.
+
+ex:
+	<!DOCTYPE html>
+	<html>
+	<head>
+	    <title>JS Mouse Events - Button Demo</title>
+	</head>
+	<body>
+	    <button id="btn">Click me with any mouse button: left, right, middle, ...</button>
+	    <p id="message"></p>
+	    <script>
+		let btn = document.querySelector('#btn');
+
+		// disable context menu when right-mouse clicked
+		btn.addEventListener('contextmenu', (e) => {
+		    e.preventDefault();
+		});
+
+		// show the mouse event message
+		btn.addEventListener('mouseup', (e) => {
+		    let msg = document.querySelector('#message');
+		    switch (e.button) {
+		        case 0:
+		            msg.textContent = 'Left mouse button clicked.';
+		            break;
+		        case 1:
+		            msg.textContent = 'Middle mouse button clicked.';
+		            break;
+		        case 2:
+		            msg.textContent = 'Right mouse button clicked.';
+		            break;
+		        default:
+		            msg.textContent = `Unknown mouse button code: ${event.button}`;
+		    }
+		});
+	    </script>
+	</body>
+	</html>
+		
+Similarly we have Scroll events, Focus Events – cover the focus events ... reference for more information.
+
+----------------------------------
+Forms and event handling
+----------------------------------
+Referencing forms: 
+-----------------
+	<form action="/signup" method="post" id="signup"> 
+	</form>
+
+
+	const form = document.getElementById('signup');
+or 	document.forms[0], document.forms[1]....
+	
+The HTMLFormElement element also provides the following useful methods:
+submit() – submit the form.
+reset() – reset the form.		
+
+When you submit the form, the submit event is fired, we can attach an event listener to the submit event,		
+	const form  = document.getElementById('signup');
+	form.addEventListener('submit', (event) => {
+	    // handle the form data
+	    	or 
+	    // stop form submission
+	    event.preventDefault();
+	});	
+To stop the form from being submitted, you call the preventDefault() method of the event object
+Typically, you call the event.preventDefault() method if the form data is invalid
+
+You can submit a form in JavaScript, using form.submit();Note that the form.submit() does not fire the submit event. 
+Therefore, you should always validate the form before calling this method.
+
+Accessing form fields
+---------------------
+
+To access form fields, you can use DOM methods like getElementsByName(), getElementById(), querySelector(), etc.
+Also, you can use the elements property of the form object. 
+
+	<form action="signup.html" method="post" id="signup">
+		<h1>Sign Up</h1>
+		<div class="field">
+			<label for="name">Name:</label>
+			<input type="text" id="name" name="name" placeholder="Enter your fullname" />
+			<small></small>
+		</div>
+		<div class="field">
+			<label for="email">Email:</label>
+			<input type="text" id="email" name="email" placeholder="Enter your email address" />
+			<small></small>
+		</div>
+		<button type="submit">Subscribe</button>
+	</form>
+
+	const form = document.getElementById('signup');
+	
+	form.elements[0]; // by index
+	form.elements['name']; // by name
+	form.elements['name']; // by id (name & id are the same in this case)
+
+you can use the value property to access its value,
+
+	const form = document.getElementById('signup');
+	const name = form.elements['name'];
+	const email = form.elements['email'];
+
+	// getting the element's value
+	let fullName = name.value;
+	let emailAddress = email.value;		
+
+Input Event
+-------------
+The input event fires every time whenever the value of the <input>, <select>, or <textarea> element changes.
+Unlike the change event that only fires when the value is committed, the input event fires whenever the value changes.
+For example, if you’re typing on the <input> element, the element fire the input event continuously. However, the change event only fires when the <input> element loses focus.
+
+	<!DOCTYPE html>
+	<html lang="en">
+	<head>
+	    <meta charset="UTF-8">
+	    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+	    <title>JavaScript input Event Demo</title>
+	</head>
+	<body>
+	    <label for="message">Message</label>
+	    <input placeholder="Enter some text" id="message" name="message">
+	    <p id="result"></p>
+	    <script>
+		const message = document.querySelector('#message');
+		const result = document.querySelector('#result');
+		message.addEventListener('input', function () {
+		    result.textContent = this.value;
+		});
+	    </script>
+	</body>
+	</html>
+
+	
+	
+Radio button
+--------------	
+
+	<body>
+	    <p>Select your size:</p>
+	    <div>
+		<input type="radio" name="size" value="XS" id="xs">
+		<label for="xs">XS</label>
+	    </div>
+	    <div>
+		<input type="radio" name="size" value="S" id="s">
+		<label for="s">S</label>
+	    </div>
+	    <div>
+		<input type="radio" name="size" value="M" id="m">
+		<label for="m">M</label>
+	    </div>
+	    <div>
+		<input type="radio" name="size" value="L" id="l">
+		<label for="l">L</label>
+	    </div>
+	    <div>
+		<input type="radio" name="size" value="XL" id="xl">
+		<label for="xl">XL</label>
+	    </div>
+	    <div>
+		<input type="radio" name="size" value="XXL" id="xxl">
+		<label for="xxl">XXL</label>
+	    </div>
+	    <p>
+		<button id="btn">Show Selected Value</button>
+	    </p>
+
+	    <p id="output"></p>
+
+	    <script>
+		const btn = document.querySelector('#btn');        
+		const radioButtons = document.querySelectorAll('input[name="size"]');
+		btn.addEventListener("click", () => {
+		    let selectedSize;
+		    for (const radioButton of radioButtons) {
+		        if (radioButton.checked) {
+		            selectedSize = radioButton.value;
+		            break;
+		        }
+		    }
+		    // show the output:
+		    output.innerText = selectedSize ? `You selected ${selectedSize}` : `You haven't selected any size`;
+		});
+	    </script>
+	</body>
+
+Radio button’s change event: When you check or uncheck a radio button, it fires the change event. To listen to the change event, you use the
+ addEventListener() method like this:
+ 
+	<body>
+	    <p>Select your size:</p>
+	    <div id="group">
+	    </div>
+
+	    <p id="output"></p>
+
+	    <script>
+		const sizes = ['XS', 'S', 'M', 'L', 'XL', 'XXL'];
+
+		// generate the radio groups        
+		const group = document.querySelector("#group");
+		group.innerHTML = sizes.map((size) => `<div>
+		        <input type="radio" name="size" value="${size}" id="${size}">
+		         <label for="${size}">${size}</label>
+		    </div>`).join(' ');
+		
+		// add an event listener for the change event
+		const radioButtons = document.querySelectorAll('input[name="size"]');
+		for(const radioButton of radioButtons){
+		    radioButton.addEventListener('change', showSelected);
+		}        
+		
+		function showSelected(e) {
+		    console.log(e);
+		    if (this.checked) {
+		        document.querySelector('#output').innerText = `You selected ${this.value}`;
+		    }
+		}
+	    </script>
+	</body>
+
+
+CheckBox
+-----------
+
+	<label for="accept">
+	   <input type="checkbox" id="accept" name="accept" value="yes">  Accept 
+	</label>
+	 <button id="btn">Submit</button>
+	
+Checking if a checkbox is checked
+
+	const cb = document.querySelector('#accept');
+        console.log(cb.checked); // false	
+        	or
+        const checked = document.querySelector('#accept:checked') !== null;
+        console.log(checked); // false
+        
+Getting checkbox values
+
+	const cb = document.querySelector('#accept');
+        const btn = document.querySelector('#btn');
+        btn.onclick = () => {
+           alert(cb.value);
+        };
+
+Getting values of multiple selected checkboxes
+
+	const btn = document.querySelector('#btn');
+        btn.addEventListener('click', (event) => {
+            let checkboxes = document.querySelectorAll('input[name="color"]:checked');
+            let values = [];
+            checkboxes.forEach((checkbox) => {
+                values.push(checkbox.value);
+            });
+            alert(values);
+        });                            
+
+Check / Uncheck all checkboxes
+
+	function check(checked = true) {
+            const checkboxes = document.querySelectorAll('input[name="color"]');
+            checkboxes.forEach((checkbox) => {
+                checkbox.checked = checked;
+            });
+        }
+
+        function checkAll() {
+            check();
+            this.onclick = uncheckAll;
+        }
+
+        function uncheckAll() {
+            check(false);
+            this.onclick = checkAll;
+        }
+
+        const btn = document.querySelector('#btn');
+        btn.onclick = checkAll;        
+        
+create checkboxes dynamically
+
+	const colors = ["Red","Green","Blue"];
+	const html = colors.map(color => `<label for="color-${color}">
+		<input type="checkbox" name="color" id="color-${color}" value="${color}"> ${color}
+	    </label>`
+	).join(' ');
+	document.querySelector("#root").innerHTML = html;	
+
+
+Select 
+---------------
+
+Get selected index
+
+	<form>
+	<label for="framework">Select a JS Framework</label>
+	<select id="framework">
+	    <option value="1">Angular</option>
+	    <option value="2">React</option>
+	    <option value="3">Vue.js</option>
+	    <option value="4">Ember.js</option>
+	</select>
+	<button id="btn">Get the Selected Index</button>
+	</form>
+	<script>
+	const btn = document.querySelector('#btn');
+	const sb = document.querySelector('#framework')
+	btn.onclick = (event) => {
+	    event.preventDefault();
+	    // show the selected index
+	    alert(sb.selectedIndex);
+	};
+	</script>	
+	
+Get value
+
+    <div id="container">
+        <form>
+            <label for="framework">Select a JS Framework:</label>
+            <select id="framework">
+                <option value="">Angular</option>
+                <option value="1">React</option>
+                <option value="2">Vue.js</option>
+                <option>Ember.js</option>
+            </select>
+            <button id="btn">Get the Selected Value</button>
+        </form>
+    </div>
+    <script>
+        const btn = document.querySelector('#btn');
+        const sb = document.querySelector('#framework')
+        btn.onclick = (event) => {
+            event.preventDefault();
+            alert(sb.value);
+        };
+    </script>
+
+Options
+
+The <select> element has the options property that allows you to access the collection options: selectBox.options
+
+The HTMLOptionElement type has the following handy properties:
+
+index – the index of the option inside the collection of options.
+selected – returns true when the option is selected. You set this property to true to select an option.
+text – returns the option’s text.
+value – returns the HTML value attribute.
+
+
+For example, to access the text and value of the second option, you use the following:
+
+	const text = selectBox.options[1].text;
+	const value = selectBox.options[1].value;
+
+
+Ex:
+
+	<body>
+	    <div id="container">
+		<form>
+		    <label for="framework">Select one or more JS Frameworks:</label>
+		    <select id="framework" multiple>
+		        <option value="1">Angular</option>
+		        <option value="2">React</option>
+		        <option value="3">Vue.js</option>
+		        <option value="4">Ember.js</option>
+		    </select>
+		    <button id="btn">Get Selected Frameworks</button>
+		</form>
+	    </div>
+	    <script>
+		const btn = document.querySelector('#btn');
+		const sb = document.querySelector('#framework');
+
+		btn.onclick = (e) => {
+		    e.preventDefault();
+		    const selectedValues = [].filter
+		        .call(sb.options, option => option.selected)
+		        .map(option => option.text);
+		    alert(selectedValues);
+		};
+	    </script>
+	</body>
+

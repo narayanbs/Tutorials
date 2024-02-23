@@ -1,0 +1,669 @@
+Arrays
+--------
+An array is an object that can store multiple values at once. For example,
+const words = ['hello', 'world', 'welcome'];
+
+Create an Array -- You can create an array using two ways:
+Note: It is recommended to use array literal to create an array.
+
+1. Using an array literal
+The easiest way to create an array is by using an array literal []. For example,
+const array1 = ["eat", "sleep"];
+
+2. Using the new keyword
+const array2 = new Array("eat", "sleep");
+
+Examples of arrays:
+
+// empty array
+const myList = [];
+
+// array of numbers
+const numberArray = [ 2, 4, 6, 8];
+
+// array of strings
+const stringArray = [ 'eat', 'work', 'sleep'];
+
+// array with mixed data types
+const newData = ['work', 'exercise', 1, true];
+
+You can also store arrays, functions and other objects inside an array. For example,
+const newData = [
+    {'task1': 'exercise'},
+    [1, 2 ,3],
+    function hello() { console.log('hello')}
+];
+
+You can access elements of an array using indices (0, 1, 2 …). For example,
+const myArray = ['h', 'e', 'l', 'l', 'o'];
+
+// first element
+console.log(myArray[0]);  // "h"
+// second element
+console.log(myArray[1]); // "e"
+
+You can use the built-in method push() and unshift() to add elements to an array.
+The push() method adds an element at the end of the array. For example,
+
+let dailyActivities = ['eat', 'sleep'];
+// add an element at the end
+dailyActivities.push('exercise');
+console.log(dailyActivities); //  ['eat', 'sleep', 'exercise']
+
+The unshift() method adds an element at the beginning of the array. For example,
+let dailyActivities = ['eat', 'sleep'];
+//add an element at the start
+dailyActivities.unshift('work'); 
+console.log(dailyActivities); // ['work', 'eat', 'sleep']
+
+You can also add elements or change the elements by accessing the index value.
+
+let dailyActivities = [ 'eat', 'sleep'];
+// this will add the new element 'exercise' at the 2 index
+dailyActivities[2] = 'exercise';
+console.log(dailyActivities); // ['eat', 'sleep', 'exercise']
+
+Suppose, an array has two elements. If you try to add an element at index 3 (fourth element), 
+the third element will be undefined. For example,
+
+let dailyActivities = [ 'eat', 'sleep'];
+// this will add the new element 'exercise' at the 3 index
+dailyActivities[3] = 'exercise';
+console.log(dailyActivities); // ["eat", "sleep", undefined, "exercise"]
+
+
+You can use the pop() method to remove the last element from an array. The pop() method also returns the returned value. For example,
+
+let dailyActivities = ['work', 'eat', 'sleep', 'exercise'];
+
+// remove the last element
+dailyActivities.pop();
+console.log(dailyActivities); // ['work', 'eat', 'sleep']
+
+// remove the last element from ['work', 'eat', 'sleep']
+const removedElement = dailyActivities.pop();
+
+//get removed element
+console.log(removedElement); // 'sleep'
+console.log(dailyActivities);  // ['work', 'eat']
+
+If you need to remove the first element, you can use the shift() method. 
+The shift() method removes the first element and also returns the removed element. For example,
+
+let dailyActivities = ['work', 'eat', 'sleep'];
+// remove the first element
+dailyActivities.shift();
+console.log(dailyActivities); // ['eat', 'sleep']
+
+// Add/remove elements at a particular position
+const fruits = ["Banana", "Orange", "Lemon", "Apple", "Mango"];
+
+// go to 2nd index and remove 2 elements
+fruits.splice(2, 2)	// ["Banana", "Orange", "Mango"]
+
+// go to 2nd index, remove none, but add 2 elements at that index
+fruits.splice(2, 0, "Chikku", "Guava"); // ["Banana", "Orange", "Chikku", "Guava", "Lemon", "Apple", "Mango"]
+
+// go to 2nd index, remove 1 element and add at that index
+fruits.splice(2, 1, "Pineapple"); // ["Banana", "Orange", "Pineapple", "Apple", "Mango"];
+
+
+// return selected items from array using slice
+const fruits = ["Banana", "Orange", "Lemon", "Apple", "Mango"];
+fruits.slice(1, 3); // ["Orange", "Lemon"]
+
+fruits.slice(-3, -1); // ["Lemon", "Apple"]
+
+You can find the length of an element (the number of elements in an array) using the length property. For example,
+const dailyActivities = [ 'eat', 'sleep'];
+// this gives the total number of elements in an array
+console.log(dailyActivities.length); // 2
+
+One of the oldest ways to cycle array items is the for loop over indexes:
+
+let arr = ["Apple", "Orange", "Pear"];
+for (let i = 0; i < arr.length; i++) {
+  alert( arr[i] );
+}
+
+But for arrays there is another form of loop, for..of:
+The for..of doesn’t give access to the number of the current element, just its value.
+
+let fruits = ["Apple", "Orange", "Plum"];
+// iterates over array elements
+for (let fruit of fruits) {
+  alert( fruit );
+}
+
+forEach method enables you to invoke a function for each element you iterate over.
+
+forEach((element) => { /* … */ })
+forEach((element, index) => { /* … */ })
+forEach((element, index, array) => { /* … */ })
+
+const array1 = ['a', 'b', 'c'];
+array1.forEach(element => console.log(element));
+// Expected output: "a"
+// Expected output: "b"
+// Expected output: "c"
+
+you can use the second version incase you have to use the index.
+
+map() creates a new array from calling a function for every array element.
+
+const numbers = [65, 44, 12, 4];
+const newArr = numbers.map((num) => num * 10)	// [650, 440, 120, 40]
+
+
+Array Methods
+-------------
+
+concat()	joins two or more arrays and returns a result
+indexOf()	searches an element of an array and returns its position
+find()		returns the first value of an array element that passes a test
+findIndex()	returns the first index of an array element that passes a test
+forEach()	calls a function for each element
+map() 		creates a new array from calling a function for every array element.
+includes()	checks if an array contains a specified element
+push()		adds a new element to the end of an array and returns the new length of an array
+pop()		removes the last element of an array and returns the removed element
+unshift()	adds a new element to the beginning of an array and returns the new length of an array
+shift()		removes the first element of an array and returns the removed element
+sort()		sorts the elements alphabetically in strings and in ascending order
+slice()		selects the part of an array and returns the new array
+splice()	removes or replaces existing elements and/or adds new elements
+
+
+Iterables --> a concept that allows us to make any object usable in a for..of loop.
+----------
+Arrays and strings are iterable. But there are many other built-in objects, that are iterable as well.
+if an object represents a collection/list, then it is suitable for for..of.
+
+let range = {
+  from: 1,
+  to: 5
+};
+
+// We want the for..of to work:
+// for(let num of range) ... num=1,2,3,4,5
+
+To make the range object iterable we need to add a method to the object named Symbol.iterator
+This method must return an iterator – an object with the method next. 
+The result of next() must have the form {done: Boolean, value: any}, where done=true means that 
+the iteration is finished, otherwise value is the next value.
+
+Here is the complete implementation
+
+let range = {
+  from: 1,
+  to: 5
+};
+
+// 1. call to for..of initially calls this
+range[Symbol.iterator] = function() {
+
+  // ...it returns the iterator object:
+  // 2. Onward, for..of works only with the iterator object below, asking it for next values
+  return {
+    current: this.from,
+    last: this.to,
+
+    // 3. next() is called on each iteration by the for..of loop
+    next() {
+      // 4. it should return the value as an object {done:.., value :...}
+      if (this.current <= this.last) {
+        return { done: false, value: this.current++ };
+      } else {
+        return { done: true };
+      }
+    }
+  };
+};
+
+// now it works!
+for (let num of range) {
+  alert(num); // 1, then 2, 3, 4, 5
+}
+
+Note: The range itself does not have the next() method.
+Instead, another object, a so-called “iterator” is created by the call to range[Symbol.iterator](), 
+and its next() generates values for the iteration. So, the iterator object is separate from the object it iterates over.
+
+we may merge them and use range itself as the iterator, to make the code simpler.
+
+let range = {
+  from: 1,
+  to: 5,
+
+  [Symbol.iterator]() {
+    this.current = this.from;
+    return this;
+  },
+
+  next() {
+    if (this.current <= this.to) {
+      return { done: false, value: this.current++ };
+    } else {
+      return { done: true };
+    }
+  }
+};
+
+for (let num of range) {
+  alert(num); // 1, then 2, 3, 4, 5
+}
+
+
+We’ll iterate over a string in exactly the same way as for..of, but with direct calls. This code creates a string iterator and gets values from it “manually”:
+
+let str = "Hello";
+
+// does the same as
+// for (let char of str) alert(char);
+
+let iterator = str[Symbol.iterator]();
+
+while (true) {
+  let result = iterator.next();
+  if (result.done) break;
+  alert(result.value); // outputs characters one by one
+} 
+
+Let's iterate over an array the same way as for..of.
+const x = [1,2,3,4,6];
+let iterator = x[Symbol.iterator]();
+while(true) {
+ let result = iterator.next();
+ if(result.done) break;
+ console.log(result.value);
+}
+
+To recap, Iterables are objects that implement the Symbol.iterator method, as described above.
+
+
+Array-Like Objects --> Array-likes are objects that have indexes and length, so they look like arrays. 
+------------------
+let arrayLike = { // has indexes and length => array-like
+  0: "Hello",
+  1: "World",
+  length: 2
+};
+
+we may meet objects that are iterables or array-likes, or both. For instance, strings and Array are both iterable (for..of works on them) 
+and array-like (they have numeric indexes and length). But an iterable may be not array-like. And vice versa an array-like may be not iterable.
+
+For example, the range in the example above is iterable, but not array-like, because it does not have indexed properties and length.
+and the arrayLike object is not iterable. 
+
+So if we try 
+for (let item of arrayLike) {} 	// Error (no Symbol.iterator)
+
+Array.from
+-------------
+Both iterables and array-likes are usually not arrays, they don’t have push, pop etc. 
+There’s a universal method Array.from that takes an iterable or array-like value and makes a “real” Array from it. Then we can call array methods on it.
+
+For instance:
+
+let arrayLike = {
+  0: "Hello",
+  1: "World",
+  length: 2
+};
+
+let arr = Array.from(arrayLike); // (*)
+alert(arr.pop()); // World (method works)
+Array.from at the line (*) takes the object, examines it for being an iterable or array-like, then makes a new array and copies all items to it.
+
+The same happens for an iterable:
+
+// assuming that range is taken from the example above
+let arr = Array.from(range);
+alert(arr); // 1,2,3,4,5 (array toString conversion works)
+The full syntax for Array.from also allows us to provide an optional “mapping” function:
+
+Array.from(obj[, mapFn, thisArg])
+The optional second argument mapFn can be a function that will be applied to each element before adding it to the array, and thisArg 
+is the value of this in mapFn. 
+
+Examples:
+
+// assuming that range is taken from the example above
+
+// using arrow function 
+// square each number
+let arr = Array.from(range, num => num * num);
+alert(arr); // 1,4,9,16,25
+
+let arr = Array.from(range, (num, index) => num * index);
+
+	or
+
+let arr= Array.from(range, function(elem, index){...}); 
+
+Here we use Array.from to turn a string into an array of characters:
+
+let str = '𝒳😂';
+
+// splits str into array of characters
+let chars = Array.from(str);
+
+alert(chars[0]); // 𝒳
+alert(chars[1]); // 😂
+alert(chars.length); // 2
+Unlike str.split, it relies on the iterable nature of the string and so, just like for..of, correctly works with surrogate pairs.
+
+Technically here it does the same as:
+
+let str = '𝒳😂';
+
+let chars = []; // Array.from internally does the same loop
+for (let char of str) {
+  chars.push(char);
+}
+
+alert(chars);
+…But it is shorter.
+
+We can even build surrogate-aware slice on it:
+
+function slice(str, start, end) {
+  return Array.from(str).slice(start, end).join('');
+}
+
+let str = '𝒳😂𩷶';
+
+alert( slice(str, 1, 3) ); // 😂𩷶
+
+// the native method does not support surrogate pairs
+alert( str.slice(1, 3) ); // garbage (two pieces from different surrogate pairs
+
+
+-----------------------------------------------
+		Map and Set
+------------------------------------------------
+Map is a collection of keyed data items, just like an Object. But the main difference is that Map allows keys of any type.
+
+new Map() – creates the map.
+map.set(key, value) – stores the value by the key.
+map.get(key) – returns the value by the key, undefined if key doesn’t exist in map.
+map.delete(key) – removes the value by the key.
+map.has(key) – returns true if the key exists, false otherwise.
+map.clear() – removes everything from the map.
+map.size – returns the current element count.
+
+let map = new Map();
+
+map.set('1', 'str1');   // a string key
+map.set(1, 'num1');     // a numeric key
+map.set(true, 'bool1'); // a boolean key
+
+// remember the regular Object? it would convert keys to string
+// Map keeps the type, so these two are different:
+alert( map.get(1)   ); // 'num1'
+alert( map.get('1') ); // 'str1'
+
+alert( map.size ); // 3
+
+Note: It is better to use map.set/get than map[key].
+
+Map can also be created using array of key,value pairs, 
+
+let map = new Map([
+  ['1',  'str1'],
+  [1,    'num1'],
+  [true, 'bool1']
+]);
+
+alert( map.get('1') ); // str1
+
+Map can also use objects as keys.
+For instance:
+
+let john = { name: "John" };
+
+// for every user, let's store their visits count
+let visitsCountMap = new Map();
+
+// john is the key for the map
+visitsCountMap.set(john, 123);
+
+alert( visitsCountMap.get(john) ); // 123
+
+Iteration over map
+------------------ 
+
+map.keys() – returns an iterable for keys,
+map.values() – returns an iterable for values,
+map.entries() – returns an iterable for entries [key, value], it’s used by default in for..of.
+For instance:
+
+let recipeMap = new Map([
+  ['cucumber', 500],
+  ['tomatoes', 350],
+  ['onion',    50]
+]);
+
+// iterate over keys (vegetables)
+for (let vegetable of recipeMap.keys()) {
+  alert(vegetable); // cucumber, tomatoes, onion
+}
+
+// iterate over values (amounts)
+for (let amount of recipeMap.values()) {
+  alert(amount); // 500, 350, 50
+}
+
+// iterate over [key, value] entries
+for (let entry of recipeMap) { // the same as of recipeMap.entries()
+  alert(entry); // cucumber,500 (and so on)
+}
+
+The iteration goes in the same order as the values were inserted. Map preserves this order, unlike a regular Object.
+
+Map has a built-in forEach method, similar to Array:
+
+// runs the function for each (key, value) pair
+recipeMap.forEach( (value, key, map) => {
+  alert(`${key}: ${value}`); // cucumber: 500 etc
+});
+
+Map from Object
+----------------
+Object.entries
+
+let obj = {
+  name: "John",
+  age: 30
+};
+
+let map = new Map(Object.entries(obj));
+alert( map.get('name') ); // John
+
+Object from Map
+----------------
+let prices = Object.fromEntries([
+  ['banana', 1],
+  ['orange', 2],
+  ['meat', 4]
+]);
+
+// now prices = { banana: 1, orange: 2, meat: 4 }
+alert(prices.orange); // 2
+
+since map.entries is associated array, we can do
+let map = new Map();
+map.set('banana', 1);
+map.set('orange', 2);
+map.set('meat', 4);
+
+let obj = Object.fromEntries(map.entries()); // make a plain object (*)
+
+// done!
+// obj = { banana: 1, orange: 2, meat: 4 }
+alert(obj.orange); // 2
+
+
+Set 
+-----
+new Set(iterable) – creates the set, and if an iterable object is provided (usually an array), copies values from it into the set.
+set.add(value) – adds a value, returns the set itself.
+set.delete(value) – removes the value, returns true if value existed at the moment of the call, otherwise false.
+set.has(value) – returns true if the value exists in the set, otherwise false.
+set.clear() – removes everything from the set.
+set.size – is the elements count.
+
+let set = new Set();
+
+let john = { name: "John" };
+let pete = { name: "Pete" };
+let mary = { name: "Mary" };
+
+// visits, some users come multiple times
+set.add(john);
+set.add(pete);
+set.add(mary);
+set.add(john);
+set.add(mary);
+
+// set keeps only unique values
+alert( set.size ); // 3
+
+for (let user of set) {
+  alert(user.name); // John (then Pete and Mary)
+}
+
+We can loop over a set either with for..of or using forEach:
+
+let set = new Set(["oranges", "apples", "bananas"]);
+
+for (let value of set) alert(value);
+
+// the same with forEach:
+set.forEach((value, valueAgain, set) => {
+  alert(value);
+});
+
+Similar to map, iterating over set involves three methods
+set.keys() – returns an iterable object for values,
+set.values() – same as set.keys(), for compatibility with Map,
+set.entries() – returns an iterable object for entries [value, value], exists for compatibility with Map.
+
+WeakMap and WeakSet
+---------------------
+if we use an object as the key in a regular Map, then while the Map exists, that object exists as well. 
+It occupies memory and may not be garbage collected.
+
+For instance:
+
+let john = { name: "John" };
+
+let map = new Map();
+map.set(john, "...");
+
+john = null; // overwrite the reference
+
+// john is stored inside the map,
+// we can get it by using map.keys()
+
+WeakMap is fundamentally different in this aspect. It doesn’t prevent garbage-collection of key objects.
+The first difference between Map and WeakMap is that keys must be objects, not primitive values:
+
+let weakMap = new WeakMap();
+let obj = {};
+weakMap.set(obj, "ok"); // works fine (object key)
+// can't use a string as the key
+weakMap.set("test", "Whoops"); // Error, because "test" is not an object
+
+Now, if we use an object as the key in it, and there are no other references to that object – 
+it will be removed from memory (and from the map) automatically.
+
+let john = { name: "John" };
+let weakMap = new WeakMap();
+weakMap.set(john, "...");
+john = null; // overwrite the reference
+// john is removed from memory!
+
+WeakMap does not support iteration and methods keys(), values(), entries(), so there’s no way to get all keys or values from it.
+WeakMap has only the following methods:
+weakMap.get(key)
+weakMap.set(key, value)
+weakMap.delete(key)
+weakMap.has(key)
+
+The main area of application for WeakMap is an additional data storage, like caching
+// 📁 cache.js
+let cache = new WeakMap();
+
+// calculate and remember the result
+function process(obj) {
+  if (!cache.has(obj)) {
+    let result = /* calculate the result for */ obj;
+
+    cache.set(obj, result);
+  }
+
+  return cache.get(obj);
+}
+
+// 📁 main.js
+let obj = {/* some object */};
+
+let result1 = process(obj);
+let result2 = process(obj);
+
+// ...later, when the object is not needed any more:
+obj = null;
+
+// Can't get cache.size, as it's a WeakMap,
+// but it's 0 or soon be 0
+// When obj gets garbage collected, cached data will be removed as well
+
+WeakSet behaves similarly:
+
+It is analogous to Set, but we may only add objects to WeakSet (not primitives).
+An object exists in the set while it is reachable from somewhere else.
+Like Set, it supports add, has and delete, but not size, keys() and no iterations.
+Being “weak”, it also serves as additional storage. But not for arbitrary data, rather for “yes/no” facts. A membership in WeakSet may mean something about the object.
+
+For instance, we can add users to WeakSet to keep track of those who visited our site:
+
+let visitedSet = new WeakSet();
+
+let john = { name: "John" };
+let pete = { name: "Pete" };
+let mary = { name: "Mary" };
+
+visitedSet.add(john); // John visited us
+visitedSet.add(pete); // Then Pete
+visitedSet.add(john); // John again
+
+// visitedSet has 2 users now
+
+// check if John visited?
+alert(visitedSet.has(john)); // true
+
+// check if Mary visited?
+alert(visitedSet.has(mary)); // false
+
+john = null;
+
+// visitedSet will be cleaned automatically
+
+
+Object key, values and entries
+-------------------------------
+Like Map, Set and arrays, 
+
+Object.keys(obj) – returns an array of keys.
+Object.values(obj) – returns an array of values.
+Object.entries(obj) – returns an array of [key, value] pairs.
+
+let user = {
+  name: "John",
+  age: 30
+};
+Object.keys(user) = ["name", "age"]
+Object.values(user) = ["John", 30]
+Object.entries(user) = [ ["name","John"], ["age",30] ]
+

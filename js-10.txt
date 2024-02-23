@@ -1,0 +1,341 @@
+Modules
+---------
+Module is a file that can group functions and variables into its namespace, and can export or import them to/from other modules.
+
+* export keyword labels variables and functions that should be accessible from outside the current module.
+* import keyword allows the import of functionality from other modules.
+
+// 📁 sayHi.js
+export function sayHi(user) {
+  alert(`Hello, ${user}!`);
+}
+
+.. another file may import and use it
+
+// 📁 main.js
+import {sayHi} from './sayHi.js';
+
+alert(sayHi); // function...
+sayHi('John'); // Hello, John
+
+The import directive loads the module by path ./sayHi.js relative to the current file, and assigns exported function sayHi to the corresponding variable.
+
+
+Export and Import Syntaxes
+-----------------------------
+// export an array
+export let months = ['Jan', 'Feb', 'Mar','Apr', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+// export a constant
+export const MODULES_BECAME_STANDARD_YEAR = 2015;
+
+// export a class
+export class User {
+  constructor(name) {
+    this.name = name;
+  }
+}
+
+Also we can put an export seperately.
+
+// 📁 say.js
+function sayHi(user) {
+  alert(`Hello, ${user}!`);
+}
+
+function sayBye(user) {
+  alert(`Bye, ${user}!`);
+}
+
+export {sayHi, sayBye}; // a list of exported variables
+
+export {sayHi as hi, sayBye as bye};
+
+
+Import * ---> Usually, we put a list of what to import in curly braces import {...}
+
+// 📁 main.js
+import {sayHi, sayBye} from './say.js';
+
+sayHi('John'); // Hello, John!
+sayBye('John'); // Bye, John!
+
+// 📁 main.js
+import {sayHi as hi, sayBye as bye} from './say.js';
+
+hi('John'); // Hello, John!
+bye('John'); // Bye, John!
+
+
+If there is a lot to import, we can use
+
+// 📁 main.js
+import * as say from './say.js';
+
+say.sayHi('John');
+say.sayBye('John');
+
+suppose we have 
+
+// 📁 say.js
+...
+export {sayHi as hi, sayBye as bye};
+
+then
+
+import * as say from './say.js';
+
+say.hi('John'); // Hello, John!
+say.bye('John'); // Bye, John!
+
+
+Default Export
+---------------------
+In practice, there are mainly two kinds of modules.
+
+* Modules that contain a library, pack of functions, like say.js above.
+* Modules that declare a single entity, e.g. a module user.js exports only class User.
+
+Mostly, the second approach is preferred, so that every “thing” resides in its own module.
+Modules provide a special export default (“the default export”) syntax to make the “one thing per module” way look better.
+Put export default before the entity to export:
+
+// 📁 user.js
+export default class User { // just add "default"
+  constructor(name) {
+    this.name = name;
+  }
+}
+
+There may be only one export default per file.
+
+And then import it without curly braces:
+
+// 📁 main.js
+import User from './user.js'; // not {User}, just User
+
+new User('John');
+
+
+Named export			Default export
+------------			---------------
+export class User {...}		export default class User {...}
+import {User} from ...		import User from ...
+
+
+To export a function separately from its definition:
+
+function sayHi(user) {
+  alert(`Hello, ${user}!`);
+}
+
+// same as if we added "export default" before the function
+export {sayHi as default};
+
+let’s say a module user.js exports one main “default” thing, and a few named ones (rarely the case, but it happens):
+// 📁 user.js
+export default class User {
+  constructor(name) {
+    this.name = name;
+  }
+}
+
+export function sayHi(user) {
+  alert(`Hello, ${user}!`);
+}
+
+Here’s how to import the default export along with a named one:
+
+// 📁 main.js
+import {default as User, sayHi} from './user.js';
+
+new User('John');
+And, finally, if importing everything * as an object, then the default property is exactly the default export:
+
+// 📁 main.js
+import * as user from './user.js';
+
+let User = user.default; // the default export
+new User('John');
+
+
+Re-export
+-----------------------
+Re-export” syntax export ... from ... allows to import things and immediately export them (possibly under another name), like this:
+
+export {sayHi} from './say.js'; // re-export sayHi
+export {default as User} from './user.js'; // re-export default
+
+ Let’s see a practical use case.
+
+Imagine, we’re writing a “package”: a folder with a lot of modules, with some of the functionality exported outside (tools like NPM allow us to publish and distribute such packages, but we don’t have to use them), and many modules are just “helpers”, for internal use in other package modules.
+
+The file structure could be like this:
+
+auth/
+    index.js
+    user.js
+    helpers.js
+    tests/
+        login.js
+    providers/
+        github.js
+        facebook.js
+        ...
+        
+We’d like to expose the package functionality via a single entry point.
+In other words, a person who would like to use our package, should import only from the “main file” auth/index.js.
+
+Like this:
+
+import {login, logout} from 'auth/index.js'
+
+The idea is that outsiders, other programmers who use our package, should not meddle with its internal structure, search for files inside our package folder. We export only what’s necessary in auth/index.js and keep the rest hidden from prying eyes.
+
+As the actual exported functionality is scattered among the package, we can import it into auth/index.js and export from it:
+
+// 📁 auth/index.js
+
+// import login/logout and immediately export them
+import {login, logout} from './helpers.js';
+export {login, logout};
+
+// import default as User and export it
+import User from './user.js';
+export {User};
+...
+Now users of our package can import {login} from "auth/index.js".
+
+The syntax export ... from ... is just a shorter notation for such import-export:
+
+// 📁 auth/index.js
+// re-export login/logout
+export {login, logout} from './helpers.js';
+
+// re-export the default export as User
+export {default as User} from './user.js';
+...
+The notable difference of export ... from compared to import/export is that re-exported modules aren’t available in the current file. So inside the above example of auth/index.js we can’t use re-exported login/logout functions.
+
+Re-exporting the default export
+---------------------------------
+The default export needs separate handling when re-exporting.
+
+Let’s say we have user.js with the export default class User and would like to re-export it:
+
+// 📁 user.js
+export default class User {
+  // ...
+}
+We can come across two problems with it:
+
+export User from './user.js' won’t work. That would lead to a syntax error.
+
+To re-export the default export, we have to write export {default as User}, as in the example above.
+
+export * from './user.js' re-exports only named exports, but ignores the default one.
+
+If we’d like to re-export both named and default exports, then two statements are needed:
+
+export * from './user.js'; // to re-export named exports
+export {default} from './user.js'; // to re-export the default export
+Such oddities of re-exporting a default export are one of the reasons why some developers don’t like default exports and prefer named ones.
+
+
+Modules and browsers
+----------------------
+As modules use special keywords (import, export) and features, the browser needs to load the script by using the attribute type="module".
+
+<!doctype html>
+<script type="module">
+    import { sayhi } from './sayHi.js';
+    document.body.innerHTML = sayHi('John');
+</script>
+
+Note: Modules only work via HTTP not locally.
+Note: "this" keyword is undefined in scripts with type "module"
+
+Module is evaluated only the first time it is imported
+
+// 📁 alert.js
+alert("Module is evaluated!");
+
+// Import the same module from different files
+
+// 📁 1.js
+import `./alert.js`; // Module is evaluated!
+// 📁 2.js
+import `./alert.js`; // (shows nothing)
+
+Another example
+
+// 📁 admin.js
+export let admin = {
+  name: "John"
+};
+
+All importers get exactly the one and only admin object:
+
+// 📁 1.js
+import {admin} from './admin.js';
+admin.name = "Pete";
+
+// 📁 2.js
+import {admin} from './admin.js';
+alert(admin.name); // Pete
+
+// Both 1.js and 2.js reference the same admin object
+// Changes made in 1.js are visible in 2.js
+
+Note: Module scripts are deferred (same as defer attribute) for both external and internal scripts.
+
+In other words:
+
+* downloading external module scripts <script type="module" src="..."> doesn’t block HTML processing, they load in parallel with other resources.
+* module scripts wait until the HTML document is fully ready (even if they are tiny and load faster than HTML), and then run.
+* relative order of scripts is maintained: scripts that go first in the document, execute first.
+
+No “bare” modules allowed
+In the browser, import must get either a relative or absolute URL. Modules without any path are called “bare” modules. 
+Such modules are not allowed in import.
+
+For instance, this import is invalid:
+
+import {sayHi} from 'sayHi'; // Error, "bare" module
+// the module must have a path, e.g. './sayHi.js' or wherever the module is
+
+Old browsers do not understand type="module". Scripts of an unknown type are just ignored. For them, it’s possible to provide a fallback using the nomodule attribute:
+
+<script type="module">
+  alert("Runs in modern browsers");
+</script>
+
+<script nomodule>
+  alert("Modern browsers know both type=module and nomodule, so skip this")
+  alert("Old browsers ignore script with unknown type=module, but execute this.");
+</script>
+
+
+In real-life, browser modules are rarely used in their “raw” form. Usually, we bundle them together with a special tool such as Webpack and 
+deploy to the production server.
+
+One of the benefits of using bundlers – they give more control over how modules are resolved, allowing bare modules and much more, like CSS/HTML modules.
+
+Build tools do the following:
+
+Take a “main” module, the one intended to be put in <script type="module"> in HTML.
+Analyze its dependencies: imports and then imports of imports etc.
+Build a single file with all modules (or multiple files, that’s tunable), replacing native import calls with bundler functions, so that it works. “Special” module types like HTML/CSS modules are also supported.
+In the process, other transformations and optimizations may be applied:
+Unreachable code removed.
+Unused exports removed (“tree-shaking”).
+Development-specific statements like console and debugger removed.
+Modern, bleeding-edge JavaScript syntax may be transformed to older one with similar functionality using Babel.
+The resulting file is minified (spaces removed, variables replaced with shorter names, etc).
+If we use bundle tools, then as scripts are bundled together into a single file (or few files), import/export statements inside those scripts are replaced by special bundler functions. So the resulting “bundled” script does not contain any import/export, it doesn’t require type="module", and we can put it into a regular script:
+
+<!-- Assuming we got bundle.js from a tool like Webpack -->
+<script src="bundle.js"></script>
+
+
+

@@ -1,0 +1,150 @@
+// Reading file in bytes
+
+package main
+
+import (
+    "os"
+    "fmt"
+    "log"
+    "io"
+)
+
+func main() {
+    file, err := os.Open("hello.txt")
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    b := make([]byte, 3)
+    var n int
+    for {
+        if n, err = file.Read(b); err != nil {
+            if err == io.EOF {
+                break
+            }
+            log.Fatal(err)
+        }
+        fmt.Printf("%s", string(b[0:n]))
+    }
+
+    if err = file.Close(); err != nil {
+        log.Fatal(err)
+    }
+}
+
+
+ex: 2
+
+package main
+import (  
+  "bufio"
+  "flag"
+  "fmt"
+  "log"
+  "os"
+)
+
+func main() {  
+  fptr := flag.String("fpath", "file.txt", "file path to read from")
+  flag.Parse()
+
+  f, err := os.Open(*fptr)
+  if err != nil {
+    log.Fatal(err)
+  }
+  defer func() {
+    if err = f.Close(); err != nil {
+      log.Fatal(err)
+    }
+  }()
+  r := bufio.NewReader(f)
+  b := make([]byte, 3)
+  for {
+    n, err := r.Read(b)
+    if err != nil {
+      fmt.Println("Error reading file:", err)
+      break
+    }
+    fmt.Println(string(b[0:n]))
+  }
+}
+
+
+// Reading Entire file into memory
+
+package main
+import (
+  "fmt"
+  "os"
+)
+
+func main() {
+  data, err := os.ReadFile("file.txt")
+  if err != nil {
+    fmt.Println("File reading error", err)
+    return
+  }
+  fmt.Println("Contents of file:")
+  fmt.Println(string(data))
+}
+
+// Reading file line by line
+
+import (  
+  "bufio"
+  "flag"
+  "fmt"
+  "log"
+  "os"
+)
+
+func main() {  
+  fptr := flag.String("fpath", "file.txt", "file path to read from")
+  flag.Parse()
+
+  f, err := os.Open(*fptr)
+  if err != nil {
+    log.Fatal(err)
+  }
+  defer func() {
+    if err = f.Close(); err != nil {
+    log.Fatal(err)
+  }
+  }()
+  s := bufio.NewScanner(f)
+  for s.Scan() {
+    fmt.Println(s.Text())
+  }
+  err = s.Err()
+  if err != nil {
+    log.Fatal(err)
+  }
+}
+
+// Append to a file
+
+import(
+  "fmt"
+  "os"
+) 
+
+func main() {
+
+    file,err = os.OpenFile("example.txt", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+    
+    if err != nil {
+		  fmt.Println("Could not open example.txt")
+      return
+	  }
+
+	  defer file.Close()
+	 
+    _, err2 := file.WriteString("Appending some text to example.txt")
+
+	  if err2 != nil {
+		  fmt.Println("Could not write text to example.txt")
+      
+	  }else{
+      fmt.Println("Operation successful! Text has been appended to example.txt")
+    }
+}

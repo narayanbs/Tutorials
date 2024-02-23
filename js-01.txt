@@ -1,0 +1,853 @@
+========================================================================
+			Javascript revision
+========================================================================
+
+strict mode
+------------------------
+
+"use strict" --> to enable new features and fixes to legacy operations
+Make sure that it's present at the top of a script, the whole script works in the modern way.
+Only comments may appear above "use strict".
+ex: 
+alert("some code");
+// "use strict" below is ignored--it must be at the top
+
+"use strict";
+
+// strict mode is not activated	
+
+Modern JavaScript supports “classes” and “modules” – advanced language structures (we’ll surely get to them), that enable use 
+strict automatically. So we don’t need to add the "use strict" directive, if we use them.
+
+
+Variables
+------------------
+
+variable names can have a-zA-Z0-9$_, but it shouldn't start with a digit.  
+There are three ways of variable declaration: let, const, var (not used in modern scripts. It is a legacy keyword).
+
+let and const respect code blocks, while var has no block scope. 
+
+if (true) {
+  var test = true; // use "var" instead of "let"
+}
+alert(test); // true, the variable lives after if
+
+but 
+if (true) {
+  let test = true;
+}
+alert(test); // undefined 
+
+similarly in loops like for, var cannot be loop local 
+for(var i=0;..;..) 
+
+Hoisting
+--------
+Hoisting in JavaScript is a behavior in which a function or a variable can be used before declaration. 
+
+* Variable Hoisting -- variables declared with var are hoisted, but not if declared with "let" keyword.  
+	// program to display value
+	
+	a = 5;
+	console.log(a);
+	var a; // 5
+
+	==> 
+	
+	var a;
+	a = 5;
+	console.log(a); // 5
+
+However initializations are not hoisted
+	// program to display value
+	
+	console.log(a); // undefined
+	var a = 5;
+	
+	==>
+	
+	var a;
+	console.log(a);
+	a = 5;
+
+when the variable is used inside the function, the variable is hoisted only to the top of the function.
+	// program to display value
+	var a = 4;
+
+	function greet() {
+	    b = 'hello';
+	    console.log(b); // hello
+	    var b;
+	}
+
+	greet(); // hello
+	console.log(b);
+
+output
+	hello
+	Uncaught ReferenceError: b is not defined
+
+If a variable is used with the let keyword, that variable is not hoisted. For example,
+
+	// program to display value
+	a = 5;
+	console.log(a);
+	let a; // error
+	
+output
+	Uncaught ReferenceError: Cannot access 'a' before initialization
+
+* Function hoisting -- function declarations are hoisted, but function expressions are not. 
+
+	// program to print the text
+	greet();
+
+	function greet() {
+	    console.log('Hi, there.');
+	}
+	
+output
+	Hi, there.
+
+However, when a function is used as an expression, an error occurs because only declarations are hoisted. For example;
+	// program to print the text
+	greet();
+
+	let greet = function() {
+	    console.log('Hi, there.');
+	}
+	
+output	
+	Uncaught ReferenceError: greet is not defined
+	
+If var was used in the above program, the error would be:
+	Uncaught TypeError: greet is not a function
+	
+	
+Data types
+-----------------
+
+Boolean, Number, BigInt, String, null, undefined, Object, Symbol, Everything except Object is a primitive (having single value)
+
+Boolean --> true or false
+Number --> floating point double (values also include Infinity,-Infinity,NaN)
+BigInt --> To represent arbitrary large numbers without loss of precision
+String --> Unicode code points
+null --> placeholder similar to None in python
+undefined --> uninitialized variable
+Object --> Everything in Javascript that is not a primitive are objects, ex: function, array, Map.. etc
+Symbol --> represents a unique identifier
+
+Check the type of an object using typeof() function
+
+Type Conversion
+-------------------------
+Boolean --> Those that are intuitively empty like 0,"",[],null,undefined,NaN are false, rest are true
+Ex: Boolean(0) - false, Boolean(null) - false
+
+String --> Relatively straightforward, null becomes "null", 4 becomes "4" .. etc
+ex: String(null) - "null", String(40) - "40"
+
+Number --> null becomes 0, "4" becomes 4, false becomes 0, true becomes 1, "hello" becomes NaN, undefined becomes NaN
+ex: Number(null) - 0, Number(undefined) - NaN ..
+
+Math operators
+--------------------------
+All operators except + convert operands into numbers. for +, if one of the operand is a string then it becomes string concatenation. 
+
+ex: "2" * "4" = 8,  but "2" + "2" = "22",  similarly "2" + 20 = "220", 
+
+Unary operators turn a operand into a number
+ex: +"6" = 6, it is similar to using Number("+6")
+-"6" = -6, Number(-6)
+
+Comparison operators  <, >, <=, >=, ==, !=
+---------------------------------------------
+When both the operands are string, then comparison is based on lexicographic order
+Else javascript converts operators into numbers and then compares them.
+
+ex: "abc" > "cde" --> false. "2" > 1 --> true, "01" == 1 --> true, 
+
+Note: Comparison with NaN is always false. ex: "hello" < 1 --> false
+
+strict comparison --> comparison without conversion of operands
+--------------------------------------------------------------
+=== --> strict equality
+!== --> strict inequality
+
+ex: 0 === false --> false, 0 !== false --> true
+
+case of null and undefined
+---------------------------
+Javascript always assigns undefined  to indicate absence of a value by default. null is similar to None in python, a programmer can specify a 
+null explicity to indicate a non-initialized value. Both are loosely equal to each other i.e (null == undefined) but strictly unequal 
+i.e  null !== undefined
+
+In a boolean context null and undefined evaluates to false, and in a numerical context null is 0 and undefined is NaN.
+
+so null > 0 --> false, null >= 0 --> true, null == 0 --> false (because of special rule null can only be equal to undefined)
+similarly undefined > 0 --> false, undefined < 0 --> false, undefined == 0 --> false (because of special rule)
+
+Object comparison
+---------------------------------------
+Objects are always converted to primitives before comparison. In the case of Boolean context, objects are always true.
+for other conversions, there are 2 cases, 
+1) where hints for conversion are provided 
+    for ex: (string hints)--> alert(obj) or x[obj]  or (number hints) -->  +obj1 or  obj1 - obj2 or Number(obj).  
+2) default hint (when operator is not sure what to expect)
+    for ex: obj1 + obj2 (operands could be number or string)
+            or
+            if(obj1 == obj2) (again could be string or number or Symbol) (objects use default hint for ==) 
+likewise  obj1 < obj2 or obj1 > obj2, but for historical reasons < and > are considered number hints for objects and hence are converted
+to numbers
+
+Javascript does the following during conversion
+1. if a method obj[Symbol.toPrimitive](hint){} exists, then it is called, by passing the hint as the parameter
+2. if hint is a string, then obj.toString() is called or obj.valueOf() is called, if former doesn't exist
+3. if hint is a number or default hint, then obj.valueOf() is called or obj.toString(), if former doesn't exist
+
+
+Note: So bottom line, if hints are explicit (string or numerical context) and method obj[Symbol.toPrimitive(hint)] is not present
+	* call toString() or valueOf() whichever is present in that order for string context
+	* call valueOf() or toString() in that order, for everything else i.e default hints and numerical context
+
+
+ex:
+// An object without Symbol.toPrimitive property.
+const obj1 = {};
+console.log(+obj1); // NaN
+console.log(`${obj1}`); // "[object Object]"
+console.log(obj1 + ""); // "[object Object]"
+
+// An object with Symbol.toPrimitive property.
+const obj2 = {
+  [Symbol.toPrimitive](hint) {
+    if (hint === "number") {
+      return 10;
+    }
+    if (hint === "string") {
+      return "hello";
+    }
+    return true;
+  },
+};
+console.log(+obj2); // 10        — hint is "number"
+console.log(`${obj2}`); // "hello"   — hint is "string"
+console.log(obj2 + ""); // "true"    — hint is "default"
+
+
+Functions
+---------------------------
+function hi() {
+    console.log("hello")
+}
+Default return type is undefined
+
+function parameters can have default values 
+function hello(first, message=" welcome") {
+    console.log(first + message);
+}
+
+Arrow functions are like lambda in python, but can be multiline
+let sayhi = function(one, two) {
+                return one + two;
+            }
+
+can be written as 
+let sayhi = (one, two) => one + two;
+
+
+arrow function returning an object can skip the return and just use parantheses, like this
+() => ({name: 'amanda'}) 
+
+This is equivalent to 
+() => {
+	return {name: 'amanda'}
+}
+
+
+Objects
+--------
+They are like dict in python, except that the keys can be only string or symbol. 
+They can be defined in two ways
+
+1) literal
+x = {} 
+
+2) constructor "new"
+let x = new Object();
+
+
+1. Literal
+------------
+
+The keys of an object should be string or symbol. if we use anything else , it is converted to string
+ex:
+    let x = {
+            name: "John", 
+            age: 55,
+            sayHi: function() { console.log(this.name +":"+this.age); }
+    };
+    x.sayHi() --> John:55
+
+we could also use sayHi() { console.log(this.name + ":" + this.age); } instead of the anonymous function.. 
+    x.sayHi() --> John:55
+
+we can delete a property using delete
+    ex: delete x.name;
+        delete x.sayHi;
+
+dot notation and square bracket notation access
+-----------------------------------------------
+
+dot notation: property identifiers should be string and only contain (a-zA-Z0-9$_), and should not start with a digit. 
+x.prop --> prop refers to a property  inside the object 
+
+bracket notation: property identifiers can be a string or variable that references a string. it can be an expression too.
+x[prop] --> prop refers to a variable that identifies a property inside the object
+ 
+let prop = "name"
+x[prop] --> prop refers to "name" property inside the object
+x["prop"] --> refers to "prop" property inside the object
+
+ex:
+
+let x = { prop: "john" };
+console.log(x.prop) --> john, console.log(x[prop]) --> undefined, console.log(x["prop"]) --> john
+
+let prop = "name";
+let x = { [prop]: "john" };
+console.log(x.prop) --> undefined, console.log(x.name) --> john, 
+console.log(x[prop]) --> john, console.log(x["name"]) --> john
+
+if keys are multiword like "likes birds", then we can use square brackets instead of dot to retrieve the property
+    ex: x["likes birds"] 
+if keys start with numbers like 1, then we can use square brackets to retrieve the property x[1].
+
+computed property
+-----------------
+let fruit = prompt("which fruit to buy?")
+let x = {
+    [fruit]: 5,
+}
+ex: if fruit="banana", then x[fruit] -- 5,  x["banana"] or x.banana -- 5, we can't use x.fruit 
+
+let animal = "monkey";
+x[animal] = "eats fruit";
+
+then x[animal] -- eats fruit, x["monkey"] or x.monkey -- eats fruit, we can't use x.animal 
+
+
+We use for..in loop to walk over all the keys of an object
+ex: for (let key in x) { console.log(key + ": " + x[key]); }
+
+getting list of properties
+--------------------------
+for(let key in obj) {
+ console.log(key, obj[key]);
+}
+
+or
+
+for(let key of Object.keys(obj)) {
+ console.log(key, obj[key]);
+}
+
+
+Object cloning
+---------------
+let x = {
+    name: "John",
+    age: 55,
+}
+
+let y = {}
+for(let key in x) {
+    y[key] = x[key];
+}
+
+or we could use Object.assign(y, x);
+
+
+this keyword
+---------------
+Unlike other languages, this is not bound, this is evaluated at runtime, depending on the context.
+this can be used in a function, even if it is not the method of an object
+
+for ex:
+
+function sayHi() {
+  alert( this.name );
+}
+
+let user = { name: "John" };
+let admin = { name: "Admin" };
+
+// use the same function in two objects
+user.f = sayHi;
+admin.f = sayHi;
+
+// these calls have different this
+// "this" inside the function is the object "before the dot"
+user.f(); // John  (this == user)
+admin.f(); // Admin  (this == admin)
+
+admin['f'](); // Admin (dot or square brackets access the method – doesn't matter)
+
+
+this === undefined when a function is called without an object
+
+function sayHi() {
+  alert(this);
+}
+
+sayHi(); // undefined
+
+
+this in methods
+---------------
+
+let user = {
+  name: "John",
+  age: 30,
+
+  sayHi() {
+    // "this" is the "current object"
+    alert(this.name);
+  }
+
+};
+
+user.sayHi(); // John
+during the execution of user.sayHi(), the value of this will be user.
+
+Arrow functions are special: they don’t have their “own” this. 
+If we reference this from such a function, it’s taken from the outer “normal” function (lexical scope)
+
+For instance, here arrow() uses this from the outer user.sayHi() method:
+
+let user = {
+  firstName: "Ilya",
+  sayHi() {
+    let arrow = () => alert(this.firstName);
+    arrow();
+  }
+};
+
+user.sayHi(); // Ilya
+
+but if we had used a normal function, as in
+
+let user = {
+  firstName: "Ilya",
+  sayHi() {
+    let arrow = function() { alert(this.firstNaame); }
+    arrow();
+  }
+};  
+
+user.sayHi(); // undefined
+
+
+2. constructor operator "new"
+--------------------------
+
+The literal {...} syntax allows us to create one object. 
+But often we need to create many similar objects, like multiple users or menu items and so on.
+That can be done using constructor functions and the "new" operator.
+
+Constructor functions technically are regular functions. There are two conventions though:
+
+They are named with capital letter first.
+They should be executed only with "new" operator.
+
+function User(name) {
+  this.name = name;
+  this.isAdmin = false;
+}
+
+let user = new User("Jack");
+
+alert(user.name); // Jack
+alert(user.isAdmin); // false
+
+When a function is executed with new, it does the following steps:
+
+A new empty object is created and assigned to this.
+The function body executes. Usually it modifies this, adds new properties to it.
+The value of this is returned.
+In other words, new User(...) does something like:
+
+function User(name) {
+  // this = {};  (implicitly)
+
+  // add properties to this
+  this.name = name;
+  this.isAdmin = false;
+
+  // return this;  (implicitly)
+}
+
+So let user = new User("Jack") gives the same result as:
+
+let user = {
+  name: "Jack",
+  isAdmin: false
+};
+
+Now if we want to create other users, we can call new User("Ann"), new User("Alice") and so on. 
+Much shorter than using literals every time, and also easy to read.
+
+That’s the main purpose of constructors – to implement reusable object creation code.
+
+we can also use functions inside Constructor functions. 
+
+function User(name) {
+  this.name = name;
+  this.isAdmin = false;
+  this.sayHi = function() { alert(this.name); }
+  // this is not allowed
+  this.sayHi() { alert(this.name); }
+}
+
+u = new User("Jack");
+u.sayHi(); // Jack 
+
+
+Optional chaining?
+------------------
+The optional chaining ?. is a safe way to access nested object properties, even if an intermediate property doesn’t exist.
+
+let user = {}; // a user without "address" property
+alert(user.address.street); // Error!
+
+The optional chaining ?. stops the evaluation if the value before ?. is undefined or null and returns undefined.
+
+In other words, value?.prop:
+
+* works as value.prop, if value exists,
+* otherwise (when value is undefined/null) it returns undefined.
+
+Here’s the safe way to access user.address.street using ?.:
+
+let user = {}; // user has no address
+alert( user?.address?.street ); // undefined (no error)
+
+Please note: the ?. syntax makes optional the value before it, but not any further.
+
+E.g. in user?.address.street.name the ?. allows user to safely be null/undefined (and returns undefined in that case), 
+but that’s only for user. 
+Further properties are accessed in a regular way. If we want some of them to be optional, then we’ll need to replace more . with ?.
+
+Note:
+We should use ?. only where it’s ok that something doesn’t exist.
+
+For example, if according to our code logic user object must exist, but address is optional, 
+then we should write user.address?.street, but not user?.address?.street.
+
+If there’s no variable user at all, then user?.anything triggers an error:
+
+// ReferenceError: user is not defined
+user?.address;
+
+The variable must be declared (e.g. let/const/var user or as a function parameter). 
+The optional chaining works only for declared variables.
+
+The optional chaining ?. is not an operator, but a special syntax construct, that also works with functions and square brackets.
+
+For example, ?.() is used to call a function that may not exist.
+
+In the code below, some of our users have admin method, and some don’t:
+
+let userAdmin = {
+  admin() {
+    alert("I am admin");
+  }
+};
+
+let userGuest = {};
+
+userAdmin.admin?.(); // I am admin
+userGuest.admin?.(); // nothing happens (no such method)
+
+Here, in both lines we first use the dot (userAdmin.admin) to get admin property, 
+because we assume that the user object exists, so it’s safe read from it.
+
+Then ?.() checks the left part: if the admin function exists, then it runs (that’s so for userAdmin). 
+Otherwise (for userGuest) the evaluation stops without errors.
+
+The ?.[] syntax also works, if we’d like to use brackets [] to access properties instead of dot . 
+Similar to previous cases, it allows to safely read a property from an object that may not exist.
+
+let key = "firstName";
+
+let user1 = {
+  firstName: "John"
+};
+
+let user2 = null;
+
+alert( user1?.[key] ); // John
+alert( user2?.[key] ); // undefined
+Also we can use ?. with delete:
+
+delete user?.name; // delete user.name if user exists
+
+Symbol
+---------
+
+A “symbol” represents a unique identifier.
+
+A value of this type can be created using Symbol():
+
+let id = Symbol();
+
+// id is a symbol with the description "id"
+let id = Symbol("id");
+console.log(id.toString());
+console.log(id.description)  // "id"
+
+let id1 = Symbol("id");
+let id2 = Symbol("id");
+
+alert(id1 == id2); // false
+
+Symbols allow us to create “hidden” properties of an object, that no other part of code can accidentally access or overwrite.
+For instance, if we’re working with user objects, that belong to a third-party code. We’d like to add identifiers to them.
+
+Let’s use a symbol key for it:
+
+let user = { // belongs to another code
+  name: "John"
+};
+
+let id = Symbol("id");
+
+user[id] = 1;
+
+alert( user[id] ); // 
+
+There will be no conflict between our and their identifiers, because symbols are always different, even if they have the same name.
+
+But if we used a string "id" instead of a symbol for the same purpose, then there would be a conflict:
+
+let user = { name: "John" };
+
+// Our script uses "id" property
+user.id = "Our id value";
+
+// ...Another script also wants "id" for its purposes...
+
+user.id = "Their id value"
+// Boom! overwritten by another script!
+
+If we want to use a symbol in an object literal {...}, we need square brackets around it.
+
+Like this:
+
+let id = Symbol("id");
+
+let user = {
+  name: "John",
+  [id]: 123 // not "id": 123
+
+
+Symbolic properties do not participate in for..in loop.
+
+For instance:
+
+let id = Symbol("id");
+let user = {
+  name: "John",
+  age: 30,
+  [id]: 123
+};
+
+for (let key in user) alert(key); // name, age (no symbols)
+
+// the direct access by the symbol works
+alert( "Direct: " + user[id] );
+
+Object.keys(user) also ignores them. That’s a part of the general “hiding symbolic properties” principle. If another script or a library loops over our object, it won’t unexpectedly access a symbolic property.
+
+In contrast, Object.assign copies both string and symbol properties:
+
+let id = Symbol("id");
+let user = {
+  [id]: 123
+};
+
+let clone = Object.assign({}, user);
+
+alert( clone[id] ); // 123
+
+Global symbols
+----------------
+As we’ve seen, usually all symbols are different, even if they have the same name. 
+But sometimes we want same-named symbols to be same entities. 
+For instance, different parts of our application want to access symbol "id" meaning exactly the same property.
+
+To achieve that, there exists a global symbol registry. We can create symbols in it and access them later, and it guarantees that repeated accesses by the same name return exactly the same symbol.
+
+In order to read (create if absent) a symbol from the registry, use Symbol.for(key).
+
+That call checks the global registry, and if there’s a symbol described as key, then returns it, otherwise creates a new symbol Symbol(key) and stores it in the registry by the given key.
+
+For instance:
+
+// read from the global registry
+let id = Symbol.for("id"); // if the symbol did not exist, it is created
+
+// read it again (maybe from another part of the code)
+let idAgain = Symbol.for("id");
+
+// the same symbol
+alert( id === idAgain ); // true
+
+Symbols inside the registry are called global symbols. If we want an application-wide symbol, 
+accessible everywhere in the code – that’s what they are for.
+
+Symbol.keyFor
+For global symbols, not only Symbol.for(key) returns a symbol by name, but there’s a reverse call: Symbol.keyFor(sym), that does the reverse: returns a name by a global symbol.
+
+For instance:
+
+// get symbol by name
+let sym = Symbol.for("name");
+let sym2 = Symbol.for("id");
+
+// get name by symbol
+alert( Symbol.keyFor(sym) ); // name
+alert( Symbol.keyFor(sym2) ); // id
+The Symbol.keyFor internally uses the global symbol registry to look up the key for the symbol. So it doesn’t work for non-global symbols. If the symbol is not global, it won’t be able to find it and returns undefined.
+
+That said, any symbols have description property.
+
+For instance:
+
+let globalSymbol = Symbol.for("name");
+let localSymbol = Symbol("name");
+
+alert( Symbol.keyFor(globalSymbol) ); // name, global symbol
+alert( Symbol.keyFor(localSymbol) ); // undefined, not global
+
+alert( localSymbol.description ); // name
+
+System symbols:
+There exist many “system” symbols that JavaScript uses internally, and we can use them to fine-tune various aspects of our objects.
+
+They are listed in the specification in the Well-known symbols table:
+
+Symbol.hasInstance
+Symbol.isConcatSpreadable
+Symbol.iterator
+Symbol.toPrimitive
+…and so on.
+
+Strings
+---------
+Strings can be enclosed in 'single quote', "double quote" or `backtick`.
+Single and double quotes are essentially the same. Backticks, however, allow us to embed any expression into the string, 
+by wrapping it in ${…}. 
+
+function sum(a, b) {
+  return a + b;
+}
+alert(`1 + 2 = ${sum(1, 2)}.`); // "1 + 2 = 3"
+
+Another advantage of using backticks is that they allow a string to span multiple lines:
+let guestList = `Guests:
+ * John
+ * Pete
+ * Mary
+`;
+
+length of a string is stored in the length property. 
+let s = "Johnny". 
+s.length -->  6  // Returns the number of characters in a string
+
+
+Primitive Wrappers
+----------------------
+Javascript has 7 primitive types: boolean, number, bigint, string, symbol, null and undefined.
+To allow operations on primitives object wrappers are provided. Boolean, Number, BigInt, String, Symbol.
+let str = "Hello";
+alert( str.toUpperCase() ); // HELLO
+
+str is a primitive. So in the moment of accessing its property, a special object is created that 
+knows the value of the string, and has useful methods, like toUpperCase().
+That method runs and returns a new string (shown by alert). The special object is destroyed, 
+leaving the primitive str alone. So primitives can provide methods, but they still remain lightweight.
+
+
+String methods
+--------------
+1. change case of characters
+toUpperCase() - Returns uppercase of a string
+toLowerCase() - Returns lowercase representation of a string
+
+2. search
+indexOf() - Returns the first index of occurrence of a value or -1
+lastIndexOf() - Returns the last index of occurrence of a value or -1
+search() - Returns the index of the first match b/w Regular expr and the string or -1 if not found
+match() - Returns result of matching string with a regex
+matchAll() - Returns iterator of results matching with a regex
+
+3. get value at
+charAt() - Returns string representing the character at a specified index in string
+charCodeAt() - Returns UTF-16 value of the character at given index
+codePointAt() - Returns the Unicode point value at given index
+
+4. check
+endsWith() - Checks if a string ends with a specified string - true/false
+startsWith() - Checks if a string begins with a specified string
+includes() - Checks if given string is found inside a string
+
+5. replace
+replace() - replace a substring/pattern in the string
+replaceAll() - Returns string by replacing all matching patterns
+trim() - Removes whitespace from both ends of a string
+padStart() - Pads a string at the start to a given length
+padEnd() - Pads a string at the end to a given length
+
+6. portion of a string
+substring() - Returns a specified part of the string
+split() - Returns the string divided into list of substring
+slice() - Extracts and returns a section of the string
+
+7. create/concat
+repeat() - Returns a string by repeating it given times
+concat() - Concatenates the arguments to the calling string
+fromCharCode() - Returns a string from the given UTF-16 code units
+fromCodePoint() - Returns a string using the given code points
+
+localeCompare() - Compares two strings in the current locale
+
+ex:
+
+let str="manage";
+console.log(str.length) -- 6
+
+str.replace("age", "eag") -- "maneag"
+
+str.toUpperCase() -- "MANAGE"
+	
+Number methods
+----------------
+let x = 255
+console.log(x.toString(16)) -- "ff"
+Number.isInteger(x) -- true
+Number.parseInt("ff", 16) -- 255
+
+
+Number.isNaN()	determines whether the passed value is NaN
+Number.isFinite()	determines whether the passed value is a finite number
+Number.isInteger()	determines whether the passed value is an integer
+Number.isSafeInteger()	determines whether the passed value is a safe integer
+Number.parseFloat(string)	converts the numeric floating string to floating-point number
+Number.parseInt(string, [radix])	converts the numeric string to integer
+let num = 123;
+num.toString([radix])	returns a string value in a specified radix(base)
+num.valueof()	returns the numbers value
+num.toLocaleString()	returns a string with a language sensitive representation of a number

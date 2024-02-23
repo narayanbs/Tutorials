@@ -1,0 +1,240 @@
+Find examples
+--------------
+
+name
+------
+find . -name tecmint.txt --> find file in current directory (and sub-directories)
+find /home -name tecmint.txt --> find file in home directory (and sub-directories)
+find /home -iname tecmint.txt --> find file ignoring case in home dir (and sub-dir)
+
+name and type
+-------------
+find . -type f -name "*.php" --> all php files in current directory recursively (quotes around *.php because shell expands * wildcard)
+find . -type f -name tecmint.php --> find php files whose name is tecmint.php 
+find . -type d -name Tecmint --> find all directories with name Tecmint recursively in current directory
+find /home -type d -name "*" --> find all directories recursively inside /home directory
+
+find /home -maxdepth 1 -type d -name Revision --> find directories with name Revision only in home directory
+find . -maxdepth 1 -name *.mkv --> search mkv files in current directory
+
+
+permissions
+------------
+find . -type f -perm 0777 -print 
+find . -type f ! -perm 777 --> find files without permission 777
+find / -perm 2644 --> SGID file with permission 644
+find / -perm 1551 --> Sticky Bit with permission 551
+find / -perm /u=s --> find all suid set files
+find / -perm /g=s --> find all guid set files
+find / -perm /u=r --> find read only files
+find / -perm /a=x --> find all executable files
+
+# find files with 777 permission and chmod it to 644
+find / -type f -perm 0777 -print -exec chmod 644 {} \; 
+
+# find directories with 777 permission and chmod it to 755
+find / -type d -perm 777 -print -exec chmod 755 {} \;
+
+Remove
+---------
+# remove a single file
+find . -type f -name "techmint.txt" -exec rm -f {} \;
+
+# remove multiple files
+find . -type f -name "*.txt" -exec rm -f {} \;
+find . -type f -name "*.mp3" -exec rm -f {} \;
+
+empty (file and directory)
+------
+find /tmp -type f -empty
+find /tmp -type d -empty 
+
+hidden
+--------
+find /tmp -type f -name ".*"
+
+Users and groups
+-----------------
+find / -user root -name tecmint.txt --> find file based on user
+
+find /home -user mordor --> find all files that belong to mordor under /home
+
+find / -group developer --> group
+
+find /home -user mordor -iname "*.txt" --> all txt files of user
+
+Date and Time 
+-------------
+find / -mtime 50 --> all files modified 50 days back
+find / -atime 50 --> all files accessed 50 days back
+find / -mtime +50 -mtime -100 --> last 50 - 100 days modified files
+find / -cmin -60 --> changed files in last 1 hour
+find / -mmin -60 --> modified files in last 1 hour
+find / -amin -60 --> accessed files in last 1 hour
+
+Size
+-----
+find / -size 50M --> all files with size 50 MB
+find / -size +50M -size -100M --> between 50 and 100 MB
+
+find / -type f -size +100M -exec rm -f {} \; --> find and delete 100MB files
+find / -type f -name *.mp3 -size +10M -exec rm {} \; --> find all mp3 files that are more than 10Mb in size and delete them
+
+-----------------------------------------------------
+Grep Examples
+--------------
+By default grep will show the line which matches the given pattern/string,
+
+grep "this" demo_file --> search for string in given file
+grep "this" demo_* --> search for string in multiple files
+grep -i "this" demo_file --> case-insensitive search
+grep -n "this" demo_file --> displays line number along with the line
+
+# counting number of matches
+grep -c "this" demo_file --> 6
+
+# invert search -- results that don't match the pattern
+grep -v "go" demo_text --> return all the lines without go in it.
+
+find . -name "*.mp3" | grep -i JayZ | grep -vi "remix" --> find all of the *.mp3 files from the artist JayZ, but you don’t want any of the remixed tracks
+
+# count number of lines without a match
+grep -v -c this demo_file
+
+# display only file names rather than lines
+grep -l this demo_* --> demo_file
+
+# regex
+grep "regex" filename
+grep "this.*valid" demo_file --> search "this{anything in-between}valid" in demo_file
+
+a regex can be followed by any repetition operators
+
+? The preceding item is optional and matched at most once.
+* The preceding item will be matched zero or more times.
++ The preceding item will be matched one or more times.
+{n} The preceding item is matched exactly n times.
+{n,} The preceding item is matched n or more times.
+{,m} The preceding item is matched at most m times.
+{n,m} The preceding item is matched at least n times, but not more than m times.
+
+# check full words, entire pattern
+grep -w "word" --> search entire pattern
+grep -iw "is" demo_file --> only returns lines with "is"
+
+Lines After/Before/Around a match
+---------------------------------
+ifconfig | grep -A 4 eth0 --> 4 lines after the line with eth0
+ifconfig | grep -B 2 UP --> 2 lines before UP
+ifconfig | grep -C 2 lo --> 2 lines before and 2 lines after lo
+
+
+# recursive search
+grep -r "narayan" Desktop --> search for narayan in all files in the current directory and all its sub-directories
+
+# Show only the matched string instead of the full line
+grep -o "is.*line" demo_file 
+--> 
+is line
+is is the last line
+
+--------------------------------------
+find and replace using sed
+---------------------------------------
+# find all files having the word "draft: false"
+find . -type f -print | xargs grep -i draft
+
+# replace the word "draft: false" with "draft: true"
+find . -type f -print | xargs sed -i 's/draft: false/draft: true/g'
+
+
+diff command
+------------
+diff file1 file2
+
+suppose file1 is
+
+Ubuntu
+Arch Linux
+Debian
+CentOS
+Fedora
+
+file 2 is 
+
+Kubuntu
+Ubuntu
+Debian
+Arch Linux
+Centos
+Fedora
+
+diff file1 file2 is 
+
+0a1
+> Kubuntu
+2d2
+< Arch Linux
+4c4,5
+< CentOS
+---
+> Arch Linux
+> Centos
+
+The normal output format consists of one or more sections that describe the differences. Each section looks like this:
+
+change-command
+< from-file-line...
+---
+> to-file-line...
+
+
+0a1, 2d2 and 4c4,5 are change commands. Each change command contains the following, from left to right:
+
+The line number or range of lines in the first file.
+A special change character.
+The line number or range of lines in the second file.
+The change character can be one of the following:
+
+a - Add the lines.
+c - Change the lines.
+d - Delete the lines.
+The change command is followed by the complete lines that are removed (<) and added to the file (>).
+
+Let’s explain the output:
+
+0a1 - Add line 1 of the second file at the beginning of the file1 (after the line 0).
+> Kubuntu - The line from the second line that is added to the first file as described above.
+2d2 - Delete line 2 in the first file. The 2 after the d symbol means that if the line is not deleted it would appear on line 2 in the second file.
+< Arch Linux - the deleted line.
+4c4,5 - Replace (change) line 5 in the first file with lines 4-5 from the second file.
+< CentOS - The line in the first file to be replaced.
+--- - Separator.
+> Arch Linux and > Centos - Lines from the second file replacing the line in the first file.
+
+The -c option tells diff to produce output in the context format.
+
+diff -c file1 file2
+
+*** file1	2019-11-25 21:00:26.422426523 +0100
+--- file2	2019-11-25 21:00:36.342231668 +0100
+***************
+*** 1,6 ****
+  Ubuntu
+- Arch Linux
+  Debian
+! CentOS
+  Fedora
+  
+--- 1,7 ----
++ Kubuntu
+  Ubuntu
+  Debian
+! Arch Linux
+! Centos
+  Fedora
+
+
+
+
+

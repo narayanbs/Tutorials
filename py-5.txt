@@ -1,0 +1,229 @@
+There are two primary modules for working with paths in python. The first is the os module. Together with glob and shutil, 
+os provides powerful functionality for manipulating paths as strings.
+The second is pathlib, where paths are treated as objects. pathlib has support for glob internally.
+
+We will explore os and pathlib here. glob and shutil will be covered in the next chapter. 
+
+Files, directories and Path
+-----------------------------
+os.sep --> path seperator
+os.extsep --> seperator between filename and extension
+os.pardir --> parent dir
+os.curdir --> current dir
+os.getcwd() --> current working directory for ex:/home/mordor
+os.chdir("Desktop") --> os.getcwd() changes to /home/mordor/Desktop
+os.listdir('dir_name') --> list all the files inside the directory
+os.scandir('dir_name') --> return all files and folders inside dir_name as an iterable
+ex:     for it in os.scandir(os.getenv("HOME")):
+            print(it.name, it.path, it.is_file(), it.is_dir())
+
+os.environ --> mapping object that represents the user’s environmental variables
+ex: 
+  os.environ["HOME"] --> '/home/phoenix'
+	os.environ.get("HOME") --> '/home/phoenix'
+	os.environ['API_KEY'] = 'YOUR_API_KEY' --> To set environmental variable
+	
+os.environ.items() --> To get all environmental variables
+os.getenv() --> for getting specific environmental variable
+ex: 
+  os.getenv("HOME") --> '/home/phoenix'
+
+Absolute path (complete path from root to dir) -->   /usr/bin, /home/mordor/Desktop, /usr/bin/../app 
+Relative path (relative to current working dir, it never starts with /) --> ., .., ./src, ../project, src/workspace   
+
+Paths in python can be string/bytes or pathlike objects 
+
+Note: pathlike objects inherit from os.PathLike - overrides __fspath__ method and returns path as str/bytes
+We can use os.fspath(<pathlikeobj>) --> returns string that is a path.
+
+os.path --> for low-level manipulation of paths as strings
+--------
+
+os.path.join() --> returns paths that are not normalized (path name with redundant seperators and up-level references)
+------------
+os.path.join('usr','bin') --> usr/bin
+os.path.join('/usr','bin') --> /usr/bin
+os.path.join('/usr','/bin') --> /bin	(since /usr and /bin are at the same level, choose the right most)
+os.path.join('/usr','/etc', 'bin) --> /etc/bin
+os.path.join('/usr','/etc', '/bin) --> /bin
+os.path.join('/usr', 'bin', '..') --> /usr/bin/..	(not normalized)
+os.path.join('/usr', 'bin', '..', 'etc') --> /usr/bin/../etc (not normalized)
+os.path.join('/usr', 'bin', '..', '/etc') --> /etc
+
+os.path.normpath() --> normalizes a path name by collapsing redundant seperators and up-level references, 
+----------------
+so A//B, A/B/, A/./B and A/foo/../B all become A/B. 
+This string manipulation may change the meaning of a path that contains symbolic links because A/../B will be turned to B but
+if A is a symlink then it is wrong. pathlib fixes this.
+
+os.path.normpath('/usr/bin/..') --> '/usr'
+os.path.normpath('/usr/bin/../etc') --> '/usr/etc'
+os.path.normpath('one//two//three') --> 'one/two/three'
+os.path.normpath('one/./two/./three') --> 'one/two/three'
+os.path.normpath('one/../alt/two/three') --> 'alt/two/three'
+
+os.path.abspath() --> returns normalized absolutized version of the pathname path. for normalizing it defers to normpath() internally.
+---------------
+Any relative path is considered from os.getcwd() the current working directory.
+Here we assume that os.getcwd() is /home/mordor
+
+os.path.abspath('/usr/bin/../src') --> /usr/src 
+os.path.abspath('.') --> /home/mordor 
+os.path.abspath('..') --> /home 
+os.path.abspath('./src') --> /home/mordor/src 
+os.path.abspath('src/workspace/bin') --> /home/mordor/src/workspace/bin 
+
+os.path.relpath() --> returns normalized relative paths
+---------------
+os.path.relpath('/src') --> ../../src (since / is root and we are in /home/mordor)
+os.path.relpath('/usr') --> ../../usr
+
+
+os.path.exists() --> check if path exists 
+--------------
+
+A path can be split into dirname and basename
+
+path = "/home/phoenix/Code/core/pyland/iorev/Mute_swan.jpg"
+
+os.path.split(path)  --> ('/home/phoenix/Code/core/pyland/iorev/','Mute_swan.jpg')
+os.path.dirname(path) --> '/home/phoenix/Code/core/pyland/iorev/'
+os.path.basename(path) --> 'Mute_swan.jpg'
+
+os.path.split('/one/two/three') --> ('/one/two', 'three')
+os.path.split('/one/two/three/') --> ('/one/two/three', '')
+os.path.dirname('/one/two/three') --> '/one/two'
+os.path.basename('/one/two/three') --> 'three'
+os.path.dirname('/one/two/three/') --> ('/one/two/three')
+os.path.basename('/one/two/three/') --> ('')
+
+Similary a filename can be split into path and extension
+
+path = "/home/phoenix/Code/core/pyland/iorev/Mute_swan.jpg"
+
+os.path.splitext(path) --> ("/home/phoenix/Code/core/pyland/iorev/Mute_swan", ".jpg")
+
+os.path.splitext('filename.txt') --> ('filename', '.txt')
+os.path.splitext('filename') --> ('filename', '')
+os.path.splitext('/path/to/filename.txt') --> ('/path/to/filename', '.txt')
+os.path.splitext('/') --> ('/', '')
+os.path.splitext('') --> ('', '')
+os.path.splitext('noextension.') --> ('noextension', '.')
+os.path.splitext('idea.tar.gz') --> ('idea.tar', '.gz')
+
+paths = ['/one/two/three/four',
+         '/one/two/threefold',
+         '/one/two/three/',
+         ]
+os.path.commonprefix(paths) --> /one/two/three
+os.path.commonpath(paths) --> /one/two
+
+os.path.expanduser('~') --> /home/mordor
+os.path.expandvars('$USER') --> 'mordor'
+os.path.expandvars('$HOME') --> /home/mordor
+os.path.expandvars("$PWD") --> /home/mordor
+
+------------------------------------------------
+pathlib - pathlib offers filesystem paths as objects. (remember - os.path treated paths as strings/bytes)
+-------
+Creating Path
+
+usr = pathlib.Path('/usr') 
+print(usr) --> /usr
+	or 
+pathlib.PosixPath('/usr')
+print(usr) --> /usr
+
+we can use joinpath() to build path
+
+root = pathlib.Path('/')
+usr_local = root.joinpath('usr', 'local')
+print(usr_local) --> /usr/local
+
+usr / 'local' --> /usr/local 
+usr / '..' --> /usr/..		(Not Normalized)
+usr / '/etc' --> /etc 
+
+
+To normalize and produce an absolute path we use resolve()
+
+usr_local = pathlib.Path('/usr/local')
+share = usr_local / '..' / 'share' --> /usr/local/../share --> Not normalized
+print(share.resolve()) --> /usr/share
+
+
+Parsing a path
+
+p = pathlib.Path('/usr/local')
+print(p.parts) --> ('/', 'usr', 'local')
+
+print(p.parent) --> /usr
+print(p.parent.parent) --> /
+print(p.root) --> /
+print(p.anchor) --> /
+print(p.drive) --> "" or posix , probably (C: or D: on windows)
+
+p = pathlib.Path('./source/pathlib/pathlib_name.py')
+print(p) --> source/pathlib/patlib_name.py
+print(p.name) --> pathlib_name.py
+print(p.stem) --> pathlib_name
+print(p.suffix) --> .py
+
+Concrete paths
+home = pathlib.Path.home() --> /home/mordor
+cwd = pathlib.Path.cwd() --> /homw/mordor/Desktop
+
+Listing current directory contents
+p = pathlib.Path('.')
+for f in p.iterdir():
+	print(f)
+	
+list only specific files that match a pattern in the current dir
+p = pathlib.Path('.')
+for f in p.glob('*.py'):
+	print(f)
+
+for listing files in sub-directories as well
+for f in p.glob('**/*.py'):
+	print(f)
+	or
+for f in p.rglob('*.py'):
+	print(f)
+
+
+
+pathlib and os/os.path common methods
+------------------------------------------------------------------------
+	os & os.path			| 		pathlib		  						|	
+------------------------------------------------------------------------
+	os.path.abspath()		| Path.resolve()	
+	os.path.relpath()		| Path.relative_to()
+	os.path.isdir()			| Path.is_dir()
+	os.path.isfile()		| Path.is_file()
+	os.path.islink()		| Path.is_symlink()
+	os.path.exists()		| Path.exists()
+	os.path.expanduser()		| Path.expanduser() and Path.home()
+	os.path.isabs()			| PurePath.is_absolute()
+	os.path.join()			| PurePath.joinpath()
+	os.path.basename()		| PurePath.name
+	os.path.dirname()		| PurePath.parent
+	os.path.samefile()		| PurePath.samefile()
+	os.path.splitext()		| PurePath.suffix
+					|
+	os.chmod()			| Path.chmod()
+	os.mkdir()			| Path.mkdir()
+	os.makedirs()			| Path.mkdir()
+	os.rename()			| Path.rename()
+	os.replace()			| Path.replace()
+	os.rmdir()			| Path.rmdir()
+	os.remove(), os.unlink()	| Path.unlink()
+	os.getcwd()			| Path.cwd()
+	os.listdir()			| Path.iterdir()
+	os.link()			| Path.hardlink_to()
+	os.symlink() 			| Path.symlink_to()
+	os.readlink()			| Path.readlink()
+	os.stat()			| Path.stat(), Path.owner(), Path.group()
+	
+--------------------------------------------------------------------------
+
+

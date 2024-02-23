@@ -1,0 +1,509 @@
+
+Selecting a single element
+--------------------------
+
+document.getElementById() – if an element has the id attribute, select no matter where it is or null if no element is found. 
+	ex: <p id="message">A paragraph</p> 
+	const p = document.getElementById("message");
+This method is available only on the document object. 	
+
+querySelector()  – allows you to select the first element that matches one or more CSS selectors. If the selector is not valid CSS syntax, the method will raise a SyntaxError exception. If no element matches the CSS selectors, the querySelector() returns null.
+The querySelector() method is available on the document object or any Element object.
+	ex: let element = parentNode.querySelector(selector);
+
+Selecting multiple elements
+----------------------------
+
+querySelectorAll() -- returns a static NodeList of elements that match the CSS selector. If no element matches, it returns an empty NodeList.	
+The querySelectorAll() method is available on the document object or any Element object.
+	ex: let elementList = parentNode.querySelectorAll(selector);
+	
+
+The following methods are history. querySelectorAll is more preferred now. 
+
+All getElementsBy... methods return a live collection. Such collections always reflect the current state of the document and auto update when it changes.
+
+for ex: 
+	<div>First div</div>
+
+	<script>
+	  let divs = document.getElementsByTagName('div');
+	  alert(divs.length); // 1
+	</script>
+
+	<div>Second div</div>
+
+	<script>
+	  alert(divs.length); // 2
+	</script>
+
+
+The first one creates a reference to the collection of <div>. As of now, its length is 1.
+The second scripts runs after the browser meets one more <div>, so its length is 2.
+
+In contrast, querySelectorAll returns a static collection. It’s like a fixed array of elements. both scripts below output 1:
+
+
+	<div>First div</div>
+
+	<script>
+	  let divs = document.querySelectorAll('div');
+	  alert(divs.length); // 1
+	</script>
+
+	<div>Second div</div>
+
+	<script>
+	  alert(divs.length); // 1
+	</script>
+	
+
+document.getElementsByName() – select elements by name and returns NodeList of elements
+
+	ex:  Unlike id, multiple HTML elements can have the same name attribute
+	<input type="radio" name="language" value="JavaScript">
+	<input type="radio" name="language" value="TypeScript">
+
+	let elements = document.getElementsByName("language");
+	elements.forEach((elem) => {
+                if (elem.checked) {
+                    console.log = `You selected: ${elem.value}`;
+                }
+        });
+
+
+
+getElementsByTagName()  – It select elements by a tag name and returns a live HTMLCollection. This method is available on the  document object or a specific DOM element. In the case of document, it will search the whole document and returns matched descendent elements of the document. 
+
+	ex: 	<ul id="menu">
+		     <li class="item">HTML</li>
+		     <li class="item">CSS</li>
+                </ul>
+	
+	      let menu = document.getElementById('menu');
+	      let items = menu.getElementsByTagName('li');
+
+
+
+getElementsByClassName() – select elements by one or more class names and returns a live HTMLCollection. This method is available on the document element or any other elements. If used on document, it searches the entire document and returns the matched descendent elements of the document:                
+
+	ex: 	<ul id="menu">
+		     <li class="item">HTML</li>
+		     <li class="item">CSS</li>
+                </ul>
+                
+                let menu = document.getElementById('menu');
+		let items = menu.getElementsByClassName('item');
+
+
+Note: 
+While getElementsByName() and querySelectorAll() return a NodeList, getElementByTagName() and getElementsByClassName() return HTMLCollection object
+
+---------------------
+	Traversing 
+---------------------
+1. Parent node.
+
+	<body>
+	    <div id="main">
+		<p class="note">This is a note!</p>
+	    </div>
+	</body>
+	
+        let note = document.querySelector('.note');
+        console.log(note.parentNode);
+
+2. Children
+
+	<body>
+	  <ul id="menu">
+	    <li class="first">Home</li>
+	    <li>Products</li>
+	    <li class="current">Customer Support</li>
+	    <li>Careers</li>
+	    <li>Investors</li>
+	    <li>News</li>
+	    <li class="last">About Us</li>
+	  </ul>
+	</body>
+	
+	//first child node
+	let content = document.getElementById('menu');
+	let firstChild = content.firstChild.nodeName;
+	console.log(firstChild); // output is #text
+	
+	// first child element 
+	let content = document.getElementById('menu');
+	console.log(content.firstElementChild); // output is li
+	
+	// last child node
+	let menu = document.getElementById('menu');
+	console.log(menu.lastChild);
+	
+	// last child element 
+	let menu = document.getElementById('menu');
+	console.log(main.lastElementChild);
+	
+	// all child nodes
+	let menu = document.getElementById('menu');
+	let children = menu.childNodes;
+	console.log(children);
+	
+	// all child elements
+	let menu = document.getElementById('menu');
+	let children = menu.children;
+	console.log(children);
+
+-----------------------
+	Creation 
+-----------------------
+To create DOM nodes, there are two methods: 
+
+document.createElement(tag) -- Creates a new element node with the given tag:
+ex:
+	let div = document.createElement('div');
+	div.className = "alert";
+	div.innerHTML = "<strong>Hi there!</strong> You've read an important message.";
+	
+document.createTextNode(text) -- Creates a new text node with the given text: (Rarely used)
+	let textNode = document.createTextNode('Here I am');
+document.createAttribute()
+document.createCDATA...
+document.createProcessingInstruction..
+..etc
+
+
+--------------------------
+ 	Add Content
+-------------------------- 		
+
+innerHTML – get and set the HTML content of an element. We can also modify it. It's only valid for element nodes.
+ex: 
+	<body>
+	  <p>A paragraph</p>
+	  <div>A div</div>
+
+	  <script>
+	    alert( document.body.innerHTML ); // read the current contents
+	    document.body.innerHTML = 'The new BODY!'; // replace it
+	  </script>
+
+	</body>
+
+innerHTML vs. createElement – explain the differences between innerHTML and createElement when it comes to creating new elements.
+
+for ex:
+	<div class="container"></div>
+	
+	let div = document.querySelector('.container');
+	let p = document.createElement('p');
+	p.textContent = 'JS DOM';
+	div.appendChild(p);
+	
+	let div = document.querySelector('.container');
+	div.innerHTML += '<p>JS DOM</p>';
+	
+Using innerHTML is cleaner and shorter when you want to add attributes to the element:
+
+	let div = document.querySelector('.container');
+	div.innerHTML += '<p class="note">JS DOM</p>';	
+
+createElement is more performant. innerHTML causes the web browsers to reparse and recreate all DOM nodes inside the div element. Therefore, it is less efficient than creating a new element and appending to the div. In other words, creating a new element and appending it to the DOM tree provides better performance than the innerHTML.
+
+
+outerHTML -- The outerHTML property contains the full HTML of the element. That’s like innerHTML plus the element itself.
+	<div id="elem">Hello <b>World</b></div>
+
+	<script>
+	  alert(elem.outerHTML); // <div id="elem">Hello <b>World</b></div>
+	</script>
+	
+textContent – get and set the text content of a node. textContent provides access to the text inside the element: only text, minus all <tags>
+ex: 
+	<div id="news">
+	  <h1>Headline!</h1>
+	  <p>Martians attack people!</p>
+	</div>
+
+	<script>	
+	  alert(news.textContent);   // Headline! Martians attack people!
+	</script>
+	
+Writing to textContent is much more useful, because it allows to write text the “safe way”.Let’s say we have an arbitrary string, for instance entered by a user, and want to show it.
+
+With innerHTML we’ll have it inserted “as HTML”, with all HTML tags. With textContent we’ll have it inserted “as text”, all symbols are treated literally.
+
+Compare the two:
+
+	<div id="elem1"></div>
+	<div id="elem2"></div>
+
+	<script>
+	  let name = prompt("What's your name?", "<b>Winnie-the-Pooh!</b>");
+
+	  elem1.innerHTML = name;
+	  elem2.textContent = name;
+	</script>	
+
+1. The first <div> gets the name “as HTML”: all tags become tags, so we see the bold name.
+2. The second <div> gets the name “as text”, so we literally see <b>Winnie-the-Pooh!</b>.	
+
+nodeValue/data - get and set the content of nodes like text/comment. These two are almost the same for practical use. let's use data here.
+ex:
+	<body>
+	  Hello
+	  <!-- Comment -->
+	  <script>
+	    let text = document.body.firstChild;
+	    alert(text.data); // Hello
+
+	    let comment = text.nextSibling;
+	    alert(comment.data); // Comment
+	  </script>
+	</body>
+
+
+	
+---------------------------
+	Insertion methods:
+---------------------------
+
+node.append(...nodes or strings) – append nodes or strings at the end of node,
+node.prepend(...nodes or strings) – insert nodes or strings at the beginning of node,
+node.before(...nodes or strings) –- insert nodes or strings before node,
+node.after(...nodes or strings) –- insert nodes or strings after node,
+node.replaceWith(...nodes or strings) –- replaces node with the given nodes or strings.
+
+Note: text strings become text nodes automatically in the methods above. 
+
+Here is a visual picture of what the methods do. 
+
+	-- before 
+	<ol>		     
+		-- prepend 
+	  <li>0</li>
+	  <li>1</li>
+	  <li>2</li>
+	  	-- append 
+	</ol>
+	-- after
+	
+ex:
+	<ol id="ol">
+	  <li>0</li>
+	  <li>1</li>
+	  <li>2</li>
+	</ol>
+
+	<script>
+	  ol.before('before'); // insert string "before" before <ol>
+	  ol.after('after'); // insert string "after" after <ol>
+
+	  let liFirst = document.createElement('li');
+	  liFirst.innerHTML = 'prepend';
+	  ol.prepend(liFirst); // insert liFirst at the beginning of <ol>
+
+	  let liLast = document.createElement('li');
+	  liLast.innerHTML = 'append';
+	  ol.append(liLast); // insert liLast at the end of <ol>
+	</script> 
+	
+output
+	before
+	<ol id="ol">
+	  <li>prepend</li>
+	  <li>0</li>
+	  <li>1</li>
+	  <li>2</li>
+	  <li>append</li>
+	</ol>
+	after
+	
+As said, these methods can insert multiple nodes and text pieces in a single call.	
+
+But what if we’d like to insert an HTML string “as html”, with all tags and stuff working, in the same manner as elem.innerHTML does it?
+
+for that we use elem.insertAdjacentHTML(where, html).
+
+The first parameter is a code word, specifying where to insert relative to elem. Must be one of the following:
+"beforebegin" – insert html immediately before elem,
+"afterbegin" – insert html into elem, at the beginning,
+"beforeend" – insert html into elem, at the end,
+"afterend" – insert html immediately after elem.
+
+The second parameter is an HTML string, that is inserted “as HTML”.
+
+visual picture of what the methods do 
+	--beforebegin
+	<ol>
+		-- afterbegin
+	 <li>0</li>
+	 <li>1</li>
+	 <li>2</li>	 	
+	 	-- beforeend 
+	</ol>
+	--afterend
+
+ex:
+
+	<div id="div"></div>
+	<script>
+	  div.insertAdjacentHTML('beforebegin', '<p>Hello</p>');
+	  div.insertAdjacentHTML('afterend', '<p>Bye</p>');
+	</script>
+output
+
+	<p>Hello</p>
+	<div id="div"></div>
+	<p>Bye</p>
+
+The method has two brothers:
+
+elem.insertAdjacentText(where, text) – the same syntax, but a string of text is inserted “as text” instead of HTML,
+elem.insertAdjacentElement(where, elem) – the same syntax, but inserts an element.
+They exist mainly to make the syntax “uniform”. In practice, only insertAdjacentHTML is used most of the time. Because for elements and text, we have methods append/prepend/before/after – they are shorter to write and can insert nodes/text pieces.
+
+
+DocumentFragment – learn how to compose DOM nodes and insert them into the active DOM tree.
+
+ex:
+Assuming that you have a list of elements and you need in each iteration:
+
+	let div = document.querySelector('.container');
+
+	for (let i = 0; i < 1000; i++) {
+	   let p = document.createElement('p');
+	   p.textContent = `Paragraph ${i}`;
+	   div.appendChild(p);
+	}
+
+This code results in recalculation of styles, painting, and layout every iteration. This is not very efficient.
+To overcome this, you typically use a DocumentFragment to compose DOM nodes and append it to the DOM tree:
+
+	let div = document.querySelector('.container');
+
+	// compose DOM nodes
+	let fragment = document.createDocumentFragment();
+	for (let i = 0; i < 1000; i++) {
+	   let p = document.createElement('p');
+	   p.textContent = `Paragraph ${i}`;
+	   fragment.appendChild(p);
+	}
+
+	// append the fragment to the DOM tree
+	div.appendChild(fragment);
+
+--------------------
+	Removal
+----------------------
+remove() -- To remove a node, use node.remove().
+
+ex:
+
+	<script>
+	  let div = document.createElement('div');
+	  div.className = "alert";
+	  div.innerHTML = "<strong>Hi there!</strong> You've read an important message.";
+
+	  document.body.append(div);
+	  setTimeout(() => div.remove(), 1000);
+	</script>
+
+
+---------------------------------------------------------------------------------
+
+
+
+
+DOM Attributes 
+----------------
+if a page contains the following input element: 
+	<input type="text" id="username"> 
+The web browser will generate an HTMLInputElement object.
+
+The input element has two attributes: The type attribute with the value text. The id attribute with the value username.
+The HTMLInputElement object will have the corresponding properties: The input.type with the value text. The input.id with the value username.
+
+In other words, the web browser will automatically convert attributes of HTML elements to properties of DOM objects.
+However, the web browser only converts the standard attributes to the DOM object’s properties. The standard attributes of an element are listed on the element’s specification.
+
+Suppose we have a non-standard attribute called secured. i.e <input type="text" id="username" secured="true">
+
+	let input = document.querySelector('#username');
+	console.log(input.secured); // undefined
+
+	
+There are two ways to access both standard and non-standard attributes, 
+
+1. element.attributes property 
+
+	let input = document.querySelector('#username');
+	for(let attr of input.attributes) {
+	    console.log(`${attr.name} = ${attr.value}` )  
+	}
+	
+	//output
+	type = text
+	id = username
+	secure = true
+
+Note: element.attributes is a NamedNodeMap, not an array. 
+
+2. Methods
+element.getAttribute(name) – get the attribute value
+element.setAttribute(name, value) – set the value for the attribute
+element.hasAttribute(name) – check for the existence of an attribute
+element.removeAttribute(name) – remove the attribute
+
+
+Ex: 
+setAttribute
+
+	<body>
+	    <button id="btnSend">Send</button>
+	</body>
+
+        let btnSend = document.querySelector('#btnSend');
+        if (btnSend) {
+            btnSend.setAttribute('name', 'send');
+            btnSend.setAttribute('disabled', '');
+        }
+
+getAttribute
+
+	<body>
+	  <a href="https://www.javascripttutorial.net" target="_blank" id="js">JavaScript Tutorial</a>
+	</body>
+	
+	let link = document.querySelector('#js');
+        if (link) {
+            let target = link.getAttribute('target');
+            console.log(target);
+        }
+
+removeAttribute
+
+	<body>
+	  <a href="https://www.javascripttutorial.net" target="_blank" id="js">JavaScript Tutorial</a>
+	</body>
+	
+	let link = document.querySelector('#js');
+        if (link) {
+            let target = link.removeAttribute('target');
+            console.log(target);
+        }
+
+hasAttribute
+
+	<body>
+	  button id="btnSend" disabled>Send</button>
+	</body>
+
+        let btn = document.querySelector('#btnSend');
+        if (btn) {
+            let disabled = btn.hasAttribute('disabled');
+            console.log(disabled);
+        }
+        
+        	
+		

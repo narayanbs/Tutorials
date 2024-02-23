@@ -1,0 +1,667 @@
+predeclared types
+bool
+int8/uint8, int16/uint16, int32/uint32, int64/uint64, byte(uint8), rune(int32), int, uint,
+float32, float64, complex64, complex128
+string
+
+type literals
+array, struct, pointer, function, slice, map, channel, interface
+
+
+type(
+	alias = type
+	typeName type
+)
+
+alias is just another name for the existing type
+typeName creates a new type with the same underlying type as the type referred
+
+former is type alias, latter is type definition
+
+type definition and predeclared types are called named types, if type alias refers to a named type it is also named
+type literals are unnamed types
+
+---------------------------------------------------------------------
+All types have an underlying type. 
+The underlying type of predeclared types and type literals are the types themselves.
+The underlying type of a type definition is the underlying type of the type it is referring to or if it is referring to 
+a type literal, then the underlying type is the literal itself.
+
+Each Named type has a unique identity. unnamed types are identical if they are structurally identical.
+
+-----------------------------------------------------------------------
+Type conversion (Implicit and explicit)
+Implicit conversion is done through assignment, explicit is of the form T(x), where T is the type and x is the value
+
+Rules:
+* All types that are identical can be implicitly converted
+ex: int <-> int, uint8 <-> byte, []byte <-> []uint8, *int <-> *int 
+
+* if types share the same underlying type, they can be explicitly converted
+ex:
+	type MyInt int
+
+	var a MyInt	// a is a value of named type
+	var b int	// b is a value of named type
+	
+	the underlying type of MyInt and int are the same i.e int, so the values can be explicitly converted
+
+	a = MyInt(b) 
+	b = int(MyInt)
+
+* if types share the same underlying type and one of them is an unnamed type they can be implicitly converted
+ex: 
+	type IntPtr *int 
+	
+	var a IntPtr 	// a is a value of Named type 
+	var b *int 	// b is a value of unnamed type {type literal}
+	
+	since the underlying type of both are the same, they can be implicitly converted.
+	
+	a = b	 
+	b = a
+
+* Pointer specific rule - if types dont share the same underlying type, but both of them are unnamed pointers whose base have the 
+same underlying type, then they can be explicitly converted
+
+ex:
+	type MyInt int
+
+	var a *MyInt 	// a is value of unnamed pointer type	(*MyInt makes it unnamed)
+	var b *int 	// b is value of unnamed pointer type
+
+	the base of *MyInt is MyInt and *int is int, but their underlying types is int, so
+
+	a = (*MyInt)(*int)
+	b = (*int)(*MyInt)
+
+
+* Interface rule - A value v with type T that implements interface I, then value can be implicitly converted to I
+
+* strings
+	- A string value can be explicitly converted to a slice type whose underlying type is []byte (a.k.a., []uint8), and vice versa.
+	- A string value can be explicitly converted to a slice type whose underlying type is []rune (a.k.a., []int32), and	vice versa
+	- If the type (or default type) of a value is an integer type, then the value can be explicitly converted to string types.
+
+* slices - slice may be converted to an array. if the length of the array type is larger than the length of the slice, a panic occurs.
+	
+
+Examples
+--------
+1) 
+package main
+
+func main() {
+	type IntSlice []int
+	type MySlice []int
+
+	var is = IntSlice{}
+	var ms = MySlice{}
+
+	is = IntSlice(ms)
+	ms = MySlice(is)
+
+	type Foo = struct {
+		n int `name:"foo"`
+	}
+	type Bar = struct {
+		n int `name:"bar"`
+	}
+
+	var x map[Foo]Bar
+	var y map[Bar]Foo
+
+	x = map[Foo]Bar(y)
+	y = map[Bar]Foo(x)
+
+	var s = []int{}
+
+	s = is
+	s = ms
+	is = s
+	ms = s
+
+}
+
+2) Pointer related
+
+package main
+
+func main() {
+	type MyInt int
+	type IntPtr *int
+	type MyIntPtr *MyInt
+
+	var pi = new(int)
+
+	var ip IntPtr = pi
+
+	// var _ *MyInt = pi
+	var _ *MyInt = (*MyInt)(pi)
+
+	//
+	// var _ MyIntPtr = pi
+	// var _ = MyIntPtr(pi)
+	var _ MyIntPtr = (*MyInt)(pi)
+	var _ = MyIntPtr((*MyInt)(pi))
+
+	//
+	// var _ MyIntPtr = ip
+	// var _  = MyIntPtr(ip)
+	var _ MyIntPtr = (*MyInt)((*int)(ip))
+	var _ = MyIntPtr((*MyInt)((*int)(ip)))
+
+}
+
+3) Channel specific rule - bidirectional channel can be converted implicitly to another channel (bidirectional/non-bidirectional),
+if they have same element type and either one is an unnamed type. 
+
+
+package main
+
+func main() {
+	type C chan string
+	type C1 chan<- string
+	type C2 <-chan string
+
+	var ca C
+	var cb chan string
+
+	ca = cb
+	cb = ca
+
+	var _, _ chan<- string = ca, cb
+	var _, _ <-chan string = ca, cb
+	var _ C1 = cb
+	var _ C2 = cb
+
+	// Can't be converted directly
+	//
+	// var _ = C1(ca)
+	// var _ = C2(ca)
+	//
+
+	var _ C1 = (chan<- string)(ca)
+	var _ C2 = (<-chan string)(ca)
+
+	var _ = C1((chan<- string)(ca))
+	var _ = C2((<-chan string)(ca))
+
+}
+
+4) Untyped conversion - An untyped value can be implicitly converted to type T, if the untyped value can be representable as value of type T.
+
+
+package main
+
+func main() {
+	var _ []int = nil
+	var _ map[string]int = nil
+	var _ chan string = nil
+	var _ func()() = nil
+	var _ *bool = nil
+	var _ interface{} = nil
+
+	var _ int = 123.0				
+	var _ float64 = 123
+	var _ int32 = 1.23e2
+	var _ int8 = 1 + 0i
+}
+
+5) constants 
+	- If x is an untyped constant representable by a value of type T, then x can be implicitly converted 
+	- If x is a typed constant representable as a value of type T, then x can be explicitly converted to T
+
+package main
+
+func main() {
+	// The implicit conversions are all legal.
+	const I = 123						// I is an untyped constant, whose default type is int
+	const I1, I2 int8 = 0x7F, -0x80				// I1, I2 are typed constants 
+	const I3, I4 int8 = I, 0.0				// I3, I4 are typed constants
+	const F = 0.123456789					// F is an untyped constant, whose default type is float64
+	const F32 float32 = F
+	const F32b float32 = I
+	const F64 float64 = F
+	const C1, C2 complex64 = F, I
+	
+	// const F64b float64 = I3 // doesn't compile
+	const F64b = float64(I3)   // compiles okay
+	
+	// const I5 int = C2 // doesn't compile
+	const I5 = int(C2)   // compiles okay
+}
+
+6) non-constants
+	- Non-constant floating-point and integer values can be explicitly converted to any floating-point and integer types.
+	- Non-constant complex values can be explicitly converted to any complex types.
+
+	Note: 
+	Complex non-constant values can't be converted to floating-point and integer types.
+	Floating-point and integer non-constant values can't be converted to complex types.
+	Data overflow and rounding are allowed in non-constant number conversions. When converting a floating-point non-constant number 
+	to an integer, the fraction is discarded (truncation towards zero).
+
+
+package main
+
+import "fmt"
+
+func main() {
+	var a, b = 1.6, -1.6 // both are float64
+	fmt.Println(int(a), int(b)) // 1 -1
+
+	var i, j int16 = 0x7FFF, -0x8000
+	fmt.Println(int8(i), uint16(j)) // -1 32768
+
+	var c1 complex64 = 1 + 2i
+	var _ = complex128(c1)
+}
+
+---------------------------------------------------------------------------------------------------------------------------------------
+---------------------------------------------------------------------------------------------------------------------------------------
+---------------------------------------------------------------------------------------------------------------------------------------
+
+
+Read Articles/golang/Value Conversion, Assignment and Comparison Rules in Go
+and Articles/golang/golang_types.txt
+
+Type Conversion
+===============
+Type conversion happens when we assign the value of one data type to another. Statically typed languages like C/C++, Java, 
+provide the support for Implicit Type Conversion but Golang is different, as it doesn’t support the Automatic Type Conversion or
+ Implicit Type Conversion. there is no typecasting word or terminology in Golang
+
+The general syntax for converting a value val to a type T is T(val). 
+for ex:
+	var geek1 int = 845
+
+	// explicit type conversion
+	var geek2 float64 = float64(geek1)
+
+	var geek3 int64 = int64(geek1)
+
+	var geek4 uint = uint(geek1)
+	
+	var a []byte = []byte("hello")
+	var s string = string([]byte{'h', 'e', 'l', 'l','o'})
+
+
+Converting Between Integer Types
+--------------------------------
+Go has many integer data types to pick from. Go sometimes automatically generates numeric values as int, which may not match your input value. If your input value were int64, you would not be able to use the int and the int64 numbers in the same mathematical expression until you converted their data types to match.
+
+smaller integer to larger conversion
+
+ex: 
+	var index int8 = 15
+	var bigIndex int32
+	bigIndex = int32(index)
+	fmt.Println(bigIndex)
+	
+	Output
+	15
+	
+fmt.Printf("index data type:    %T\n", index)
+fmt.Printf("bigIndex data type: %T\n", bigIndex)
+	Output
+	index data type:    int8
+	bigIndex data type: int32	
+	
+larger to smaller conversion
+
+ex:
+
+	var big int64 = 64
+	var little int8
+	little = int8(big)
+	fmt.Println(little)
+	
+	Output
+	64	
+
+WrapAround
+Keep in mind that when converting integers you could potentially exceed the maximum value of the data type and overflow.
+When this occurs, the value may wrap to become a very small or negative number.
+
+	var big int64 = 129
+	var little = int8(big)
+	fmt.Println(little)
+
+	Output
+	-127
+	
+because 129 = 127 + 2, so  127 + 1 is -128 and 	127 + 2 is -127
+	
+Converting Integers to Floats	
+------------------------------
+
+	var x int64 = 57
+	var y float64 = float64(x)
+	fmt.Printf("%.2f\n", y)
+	
+	Output
+	57.00
+	
+converting floats to integers
+-----------------------------
+
+The conversion involves dropping the decimal place.
+
+	var f float64 = 390.8
+	var i int = int(f)
+	fmt.Printf("f = %.2f\n", f)
+	fmt.Printf("i = %d\n", i)
+
+	Output
+	f = 390.80
+	i = 390	
+	
+Numbers Converted Through Division
+----------------------------------
+If, when dividing, any of the number types are a float, then all of the types will automatically be declared as a float:
+	a := 5.0 / 2
+	fmt.Println(a)
+	
+	Output
+	2.5	
+
+When dividing integer types in Go the result will also be an integer type
+	a := 5 / 2
+	fmt.Println(a)
+	
+	Output
+	2
+
+Conversion b/w Integers and strings
+------------------------------------
+The most common numeric conversions are Atoi (string to int) and Itoa (int to string).
+
+i, err := strconv.Atoi("-42")
+s := strconv.Itoa(-42)
+
+conversion of values to strings
+---------------------------------
+
+s := strconv.FormatBool(true)
+s := strconv.FormatFloat(3.1415, 'E', -1, 64)
+s := strconv.FormatInt(-42, 16)
+s := strconv.FormatUint(42, 16)
+
+
+conversion of strings to values
+-------------------------------
+
+b, err := strconv.ParseBool("true")
+f, err := strconv.ParseFloat("3.1415", 64)
+i, err := strconv.ParseInt("-42", 10, 64)
+u, err := strconv.ParseUint("42", 10, 64)
+
+
+
+
+
+Converting Numbers to Strings
+-----------------------------
+
+Integers to Strings
+
+When converting an integer to a string, the value is interpreted as a Unicode code point, 
+and the resulting string will contain the character represented by that code point, encoded in UTF-8.
+	
+	string(97) // "a"
+	
+If the value does not represent a valid code point (for instance if it’s negative), the result will be "\ufffd", 
+the Unicode replacement character �.
+
+	string(-1) // "\ufffd" == "\xef\xbf\xbd"
+
+
+Use strconv.Itoa to get the decimal string representation of an integer.
+	
+	strconv.Itoa(97) // "97"
+
+
+ex: 	times := 5
+	fmt.Println("hello number is " + times)
+	
+	output
+	invalid operation: "hello number is " + times (mismatched types untyped string and int)
+	
+	fmt.Println("hello number is " + strconv.Itoa(times))
+
+ex: 
+	package main
+
+	import (
+		"fmt"
+		"strconv"
+	)
+
+	func main() {
+		a := strconv.Itoa(12)
+		fmt.Printf("%q\n", a)
+	}
+
+	Output
+	"12"
+
+fmt.Sprintf to convert floats to strings
+
+ex:
+	times := 5.25
+	fmt.Println("hello number is " + fmt.Sprintf("%f", times))	
+	
+	output
+	hello number is 5.25
+	
+	
+Note: 
+
+strconv.Itoa formats an integer as a decimal string. Example: 
+strconv.Itoa(65) and strconv.Itoa('A') return the string "65".
+
+string(intValue) yields a string containing the UTF-8 representation of the integer. 
+Example: string('A') and string(65) evaluate to the string "A".
+	
+
+
+Converting Strings to Numbers
+-----------------------------
+
+for ex:
+	package main
+
+	import (
+		"fmt"
+	)
+
+	func main() {
+		lines_yesterday := "50"
+		lines_today := "108"
+
+		lines_more := lines_today - lines_yesterday
+
+		fmt.Println(lines_more)
+	}
+	
+	Output
+	invalid operation: lines_today - lines_yesterday (operator - not defined on string)	
+	
+strings to integers, we use strconv.Atoi 
+
+ex: 
+	package main
+	import (
+		"fmt"
+		"log"
+		"strconv"
+	)
+
+	func main() {
+		lines_yesterday := "50"
+		lines_today := "108"
+
+		yesterday, err := strconv.Atoi(lines_yesterday)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		today, err := strconv.Atoi(lines_today)
+		if err != nil {
+			log.Fatal(err)
+		}
+		lines_more := today - yesterday
+
+		fmt.Println(lines_more)
+	}
+	
+	Output
+	58
+
+Try converting something that is not a number
+
+	package main
+
+	import (
+		"fmt"
+		"strconv"
+	)
+
+	func main() {
+		a := "not a number"
+		b, err := strconv.Atoi(a)
+		fmt.Println(b)
+		fmt.Println(err)
+	}
+	You will get the following error:
+
+	Output
+	0
+	strconv.Atoi: parsing "not a number": invalid syntax	
+	
+
+strings to floats, we use strconv.parseFloat
+
+ex:
+	f := "3.14159265"
+	if s, err := strconv.ParseFloat(f, 32); err == nil {
+	    fmt.Println(s) // 3.1415927410125732
+	}
+	if s, err := strconv.ParseFloat(f, 64); err == nil {
+	    fmt.Println(s) // 3.14159265
+	}	
+	
+
+Conversion between Strings and byte slices
+--------------------------------------------
+
+Converting a slice of bytes to a string type yields a string whose successive bytes are the elements of the slice.
+	string([]byte{97, 230, 151, 165}) // "a日"
+
+Converting a value of a string type to a slice of bytes type yields a slice whose successive elements are the bytes of the string.
+	[]byte("a日")                     // []byte{97, 230, 151, 165}
+
+
+Conversion between Strings and rune slices
+-------------------------------------------
+
+Converting a slice of runes to a string type yields a string that is the concatenation of the individual rune values converted to strings.
+	string([]rune{97, 26085}) // "a日"
+
+Converting a value of a string type to a slice of runes type yields a slice containing the individual Unicode code points of the string.
+	[]rune("a日")             // []rune{97, 26085}	
+
+
+Underlying type
+---------------
+
+A non-constant value can be converted to type T if it has the same underlying type as T.
+
+In this example, the underlying type of int64, T1, and T2 is int64.
+
+	type (
+		T1 int64
+		T2 T1
+	)
+It’s idiomatic in Go to convert the type of an expression to access a specific method.
+
+	var n int64 = 12345
+	fmt.Println(n)                // 12345
+	fmt.Println(time.Duration(n)) // 12.345µs
+(The underlying type of time.Duration is int64, and the time.Duration type has a String method that returns the duration formatted as a time.)
+
+
+Implicit conversions
+---------------------
+The only implicit conversion in Go is when an untyped constant is used in a situation where a type is required.
+
+In this example the untyped literals 1 and 2 are implicitly converted.
+
+	var x float64
+	x = 1 // Same as x = float64(1)
+
+	t := 2 * time.Second // Same as t := time.Duration(2) * time.Second
+(The implicit conversions are necessary since there is no mixing of numeric types in Go. You can only multiply a time.Duration with another time.Duration.)
+
+When the type can’t be inferred from the context, an untyped constant is converted to a bool, int, float64, complex128, string or rune depending on the syntactical format of the constant.
+
+	n := 1   // Same as n := int(1)
+	x := 1.0 // Same as x := float64(1.0)
+	s := "A" // Same as s := string("A")
+	c := 'A' // Same as c := rune('A')
+
+Illegal implicit conversions are caught by the compiler.
+
+	var b byte = 256 // Same as var b byte = byte(256)
+	../main.go:2:6: constant 256 overflows byte
+	
+	
+Type assertions and type switches	
+==================================
+	
+Type assertions
+----------------
+A type assertion doesn’t really convert an interface to another data type, but it provides access to an interface’s concrete value, which is typically what you want.
+
+The type assertion x.(T) asserts that the concrete value stored in x is of type T, and that x is not nil.
+
+If T is not an interface, it asserts that the dynamic type of x is identical to T.
+If T is an interface, it asserts that the dynamic type of x implements T.
+	var x interface{} = "foo"
+
+	var s string = x.(string)
+	fmt.Println(s)     // "foo"
+
+	s, ok := x.(string)
+	fmt.Println(s, ok) // "foo true"
+
+	n, ok := x.(int)
+	fmt.Println(n, ok) // "0 false"
+
+	n = x.(int)        // ILLEGAL
+panic: interface conversion: interface {} is string, not int
+	
+Type switches
+-------------
+
+A type switch performs several type assertions in series and runs the first case with a matching type.
+
+	var x interface{} = "foo"
+
+	switch v := x.(type) {
+	case nil:
+	    fmt.Println("x is nil")            // here v has type interface{}
+	case int: 
+	    fmt.Println("x is", v)             // here v has type int
+	case bool, string:
+	    fmt.Println("x is bool or string") // here v has type interface{}
+	default:
+	    fmt.Println("type unknown")        // here v has type interface{}
+	}
+	
+	output
+	x is bool or string
+	
+	
+	

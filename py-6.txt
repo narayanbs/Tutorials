@@ -1,0 +1,627 @@
+Summary
+--------
+glob.glob(pattern, recursive=False)
+glob.iglob(pattern, recursive=False) --> returns iterator
+glob.escape(char) --> fed into glob.glob if pattern contains *,?,[
+
+fnmatch.fnmatch(filename, pattern) --> boolean  (filename & pattern are case=normalized here)
+fnmatch.fnmatchcase(filename, pattern) --> boolean 
+fnmatch.filter(filename, pattern) --> list of filenames that match
+fnmath.translate(pattern) --> returns regex of the pattern. that can be used for re.match(filename) etc
+
+shutil
+
+Only files
+-----------
+shutil.copyfile(src, dest) -> copy contents but no metadata, of src to dest (src, dest can be strings and file like objects).
+shutil.copyfileobj(src, dest, length) --> copy contents but no metadata, of src to dest using a buffer of len or (-1) meaning no buffer 
+or default if not specified. 	src and dest must be file like objects, not strings
+
+shutil.copymode(src, dest) --> copy permission bits
+shutil.copystat(src, dest) --> copy permission, last accessed time and last modified time
+
+file and directories
+---------------------
+shutil.copy(src, dest) --> destination can be a file or directory
+shutil.copy2() --> similar to copy(), but copies the Metadata along with File (like the access and modification times... etc)
+
+copy directories
+-----------------
+shutil.copytree(src, dst, ignore=ignore_patterns('*.pyc', 'tmp*'))
+Recursively copy an entire directory tree rooted at src to a directory named dst and return the destination directory. 
+All intermediate directories needed to contain dst will also be created by default.
+if we want the source folder itself to be copied. In this case we need to specify the name of the source folder in the
+destination path as shown below.
+
+	source = "../shutil"
+	destination = "/tmp/example/shutil"
+
+shutil.copytree('../shutil', '/tmp/example',copy_function=verbose_copy,ignore=shutil.ignore_patterns('*.py'),)
+shutil.rmtree('/tmp/example')  # to remove directory and contents
+shutil.move('example.txt', 'example.out')  file or directory
+shutil.which()   # Finding files
+
+-------------------------------------------------------------------------------------------------------------
+
+In Depth
+--------------------------------------------------------------------------------------------------------------	
+
+
+
+other file/directory utilities -- glob, fnmatch and shutil
+-----------------------------------------------------------
+glob.glob --> search for a list of files/folders on the file system with names matching a pattern created using wildcard characters.
+
+The special characters and their functions used in shell-style wildcards are :
+* – matches everything
+? – matches any single character
+[seq] – matches any character in seq
+[!seq] – matches any character not in seq
+
+
+Syntax
+
+glob.glob(pathname, *, recursive=False), where  
+  pathname: Absolute (with full path and the file name) or relative (with UNIX shell-style wildcards).
+  *: positional argument marker indicating what follows are keyword arguments
+  recursive: If set to True it will search files recursively.
+
+Ex:
+Let’s assume the following test files are present in the current working directory.
+
+sales_march.txt
+profit_march.txt
+sales_april.txt
+profit_april.txt
+
+1. for getting name of every file inside the directory with extension .txt
+
+import glob
+
+files = glob.glob("*.txt")   # relative path to search all text files
+print(files)
+
+output: ['profit_april.txt', 'profit_march.txt', 'sales_april.txt', 'sales_march.txt']
+
+2. Search files using a absolute path
+
+import glob
+
+path = r'E:/performance/pynative/*.txt'  # absolute path to search all text files inside a specific folder
+print(glob.glob(path))
+
+3. To search .txt files under all subdirectories of the current directory.
+
+import glob
+
+path = '**/*.txt'
+for file in glob.glob(path, recursive=True):
+    print(file)
+
+output:
+profit_april.txt
+profit_march.txt
+sales_april.txt
+sales_march.txt
+sales\march_profit_2020.txt
+sales\march_sales_2020.txt
+
+without recursive=True, **/*.txt will search for .txt files inside current folder and folders inside the current folder (one level) 
+
+4. Search all files and folders in a given directory
+
+import glob
+
+# using glob to match every pathname
+print('Inside current directory')
+for item in glob.glob("*"):
+    print(item)
+
+# Match every files and folder from a given folder
+print('Inside Sales folder')
+for item in glob.glob("sales/*"):
+    print(item)
+
+print('All files starts with word march')
+for item in glob.glob("sales/march*"):
+    print(item)
+
+
+output:
+Inside current directory
+sales
+glob_demo.py
+profit_april.txt
+profit_march.txt
+sales_april.txt
+sales_march.txt
+
+Inside Sales folder
+sales\bar.jpeg
+sales\chart.jpeg
+sales\march_profit_2020.txt
+sales\march_sales_2020.txt
+sales\p.jpeg
+
+All files starts with word march
+sales\march_profit_2020.txt
+sales\march_sales_2020.txt
+
+5. Match Single character in File Name Using Question Mark(?):
+
+import glob
+
+# path to search single character filename
+path = "sales/?.jpeg"
+for file in glob.glob(path):
+    print(file)
+
+# path to search three-character filename
+path = "sales/???.jpeg"
+for file in glob.glob(path):
+    print(file)
+
+# search file that starts with word 'cha' followed by exact two-character
+path = "sales/cha??.txt"
+for file in glob.glob(path):
+    print(file)
+
+output:
+sales\p.jpeg
+sales\bar.jpeg
+sales\chart.txt
+
+6. Match File Name using a Range of Characters
+
+import glob
+
+print(glob.glob("sales/[a-f]*.txt"))
+print(glob.glob("sales/[2-5].*"))
+
+
+output:
+['sales\bar.txt', 'sales\chart.txt']
+['sales\2.txt']
+
+--------------------------
+
+glob.iglob 
+
+It works exactly the same as the glob.glob() method except it returns an iterator yielding file names matching the pattern.
+If the number of file or folders to match is high, getting a iterator object  will improve performance
+
+Syntax
+
+glob.iglob(pathname, *, recursive=False)
+
+import glob
+
+# using iglob
+for item in glob.iglob("*.txt"):
+    print(item)
+
+# check type
+print(type(glob.iglob("*.txt")))
+
+output:
+profit_april.txt
+profit_march.txt
+sales_april.txt
+sales_march.txt
+
+<class 'generator'>
+
+--------------------------
+glob.escape(pathname)
+
+glob.escape() doesn't search for anything. It returns a string i.e a pathname with escaped characters that
+you can then pass to glob.glob().
+
+glob.escape() can escape special characters: *, ?, and []
+In other words, * would no longer mean "any character"; it would mean only an asterisk. 
+A question mark would be a literal question mark. The brackets will be mere brackets. 
+It may be useful if these characters are in the filename you would like to find.
+
+Let's say we need to find a subdirectory with the [dir] name. glob.glob('my_dir/[dir]') will not work in this case. 
+Remember that [] is a special symbol, and, in this case, your query will return a subdirectory called d, i, or r, 
+if there's one. So, how do we find our [dir]? That's where we use the escape method:
+
+glob.escape('my_dir/[dir]')  # returns: 'my_dir/[[]dir]'
+
+# now we pass the result to the glob() method:
+
+glob.glob('my_dir/[[]dir]')  # returns: ['my_dir/[dir]']
+
+----------------------------------------------------------------------
+fnmatch
+-------
+This module is used for matching Unix shell-style wildcards. glob internally uses fnmatch for pattern matching. 
+
+The special characters and their functions used in shell-style wildcards are :
+‘*’ – matches everything
+‘?’ – matches any single character
+‘[seq]’ – matches any character in seq
+‘[!seq]’ – matches any character not in seq
+
+fnmatch.fnmatch(filename, pattern) --> This function tests whether the given filename string matches the pattern string 
+and returns a boolean value. Both filename and pattern are case-normalized if operating system requires it. 
+for ex:
+in windows, convert all characters in the pathname to lowercase, and also convert forward slashes to backward slashes.
+
+pattern = 'fnmatch_*.py'
+files = os.listdir('.') 
+for name in files: 
+    print ('Filename: {0:>25} {1}'.format(name, fnmatch.fnmatch(name, pattern))
+    
+Filename: __init__.py               False
+Filename: fnmatch_filter.py         True
+Filename: fnmatch_fnmatch.py        True
+Filename: index.rst                 False
+
+fnmatch.fnmatchcase(filename, pattern) --> This function performs the case sensitive comparison and tests whether 
+the given filename string matches the pattern string and returns a boolean value.
+
+pattern = 'FNMATCH_*.PY'
+files = os.listdir('.') 
+for name in files: 
+    print ('Filename: {0:>25} {1}'.format(name, fnmatch.fnmatchcase(name, pattern))
+
+Filename: __init__.py               False
+Filename: fnmatch_filter.py         False
+Filename: FNMATCH_FNMATCH.PY        True
+
+fnmatch.filter(names, pattern) --> This function returns the subset of the list of names passed in the function 
+that match the given pattern
+
+pattern = 'fnmatch_*.py'
+print('Pattern:', pattern)
+files = os.listdir('.') 
+print('Files :', files)
+print ('Matches:', fnmatch.filter(files, pattern))
+
+Pattern : fnmatch_*.py
+Files   : ['__init__.py', 'fnmatch_filter.py', 'fnmatch_fnmatch.py', 'fnmatch_fnmatchcase.py', 'fnmatch_translate.py', 'index.rst']
+Matches : ['fnmatch_filter.py', 'fnmatch_fnmatch.py','fnmatch_fnmatchcase.py', 'fnmatch_translate.py']
+
+fnmatch.translate(pattern) --> This function returns the shell-style pattern converted to a regular expression 
+for using with re.match() (re.match() will only match at the beginning of the string and not at the beginning of each line).
+
+import fnmatch, re 
+  
+regex = fnmatch.translate('*.txt') 
+reobj = re.compile(regex) 
+  
+print(regex) 
+print(reobj.match('foobar.txt')) 
+Output :
+
+'(?s:.*\\.txt)\\Z'
+_sre.SRE_Match object; span=(0, 10), match='foobar.txt'
+
+-------------------------------------------------------------------------
+shutil - shell util
+-----------------------
+Used for highlevel file operations such as copying and archiving
+
+shutil.copyfile(src, dst, *, follow_symlinks=True)¶
+
+Copy the contents (no metadata) of the file named src to a file named dst and return dst in the most efficient way possible. 
+src and dst are path-like objects or path names given as strings.
+follow_symlinks (optional) : The default value of this parameter is True. If it is False and source represents a symbolic link 
+then destination will be created as a symbolic link.
+
+ex:
+
+# Python program to explain shutil.copyfile() method
+import shutil
+
+source = "csv/main.py"
+destination = "csv/gfg/main_2.py"
+dest = shutil.copyfile(source, destination)
+print("Destination path:", dest)
+
+output:
+Destination path: csv/gfg/main_2.py
+
+copyfile uses copyfileobj internally to do the copying.
+
+shutil.copyfileobj(fsrc, fdst, buffer) 
+
+Copy the contents of the file-like object fsrc to the file-like object fdst.
+buffer specifies reading block size (Use -1 to read all of the input at one time or another positive integer to set a specific block size, 
+The default is to read using large blocks)
+
+ex:
+lorem_ipsum = "there are lots of ufo sightings"
+
+input = io.StringIO(lorem_ipsum)
+output = io.StringIO()
+
+shutil.copyfileobj(input, output) --> default buffer
+
+shutil.copyfileobj(input, output, -1) --> read all i/p at once
+
+shutil.copyfileobj(input, output, 256) --> read in blocks of size 256
+
+print(output.getvalue())
+
+
+shutil.copymode()
+
+Copy the permission bits from src to dst. The file contents, owner, and group are unaffected.
+
+ex:
+
+oct(os.stat("original_file.txt"))  --> 0o100644
+
+with open('file_to_change.txt', 'wt') as f:
+    f.write('content')
+
+os.chmod('file_to_change.txt', 0o444)
+oct(os.stat('file_to_change.txt').st_mode) --> 0o100444
+
+shutil.copymode('original_file.txt', 'file_to_change.txt')
+
+oct(os.stat('file_to_change.txt').st_mode) --> 0o100644
+
+
+shutil.copystat()
+
+Copy the permission bits, last access time, last modification time, and flags from src to dst
+
+ex:
+
+with open('file_to_change.txt', 'wt') as f:
+    f.write('content')
+os.chmod('file_to_change.txt', 0o444)
+
+stat_info = os.stat(filename)
+	Mode	: oct(stat_info.st_mode) --. 0o100444
+	Created : time.ctime(stat_info.st_ctime)) --> Wed Dec 28 19:03:49 2016
+	Accessed: time.ctime(stat_info.st_atime)) --> Wed Dec 28 19:03:49 2016
+	Modified: time.ctime(stat_info.st_mtime)) --> Wed Dec 28 19:03:49 2016
+
+shutil.copystat('shutil_copystat.py', 'file_to_change.txt')
+
+stat_info = os.stat(filename)
+	Mode    : oct(stat_info.st_mode) --> 0o100644
+	Created : time.ctime(stat_info.st_ctime)) --> Wed Dec 28 19:03:49 2016
+	Accessed: time.ctime(stat_info.st_atime)) --> Wed Dec 28 19:03:49 2016
+	Modified: time.ctime(stat_info.st_mtime)) --> Wed Dec 28 19:03:46 2016
+
+
+shutil.copy(source, destination, *, follow_symlinks = True) 
+
+destination can be a file or directory
+
+Parameter:
+follow_symlinks (optional) : The default value of this parameter is True. If it is False and source represents a symbolic link 
+then destination will be created as a symbolic link.
+Return Type: This method returns a string which represents the path of newly created file.
+
+
+ex:
+
+# Python program to explain shutil.copy() method
+
+import shutil
+
+source = "path/main.py"
+destination ="path/main2.py"
+dest = shutil.copy(source, destination)
+print("Destination path:", dest)
+
+output: Destination path: path/main2.py
+
+# if destination is a directory
+
+import shutil
+
+source = "path/main.py"
+destination = "path/gfg/"     # a directory
+
+dest = shutil.copy(source, destination)
+print("Destination path:", dest)
+
+Output: path/gfg/main.py
+
+copy() copies the file data and the file’s permission mode (see os.chmod()). 
+Other metadata, like the file’s creation and modification times, is not preserved. 
+To preserve all file metadata from the original, use copy2() instead.
+
+shutil.copy2() --> similar to copy(), but copies the Metadata along with File (like the access and modification times... etc)
+
+ex:
+
+# Python program to explain shutil.copy2() method
+	
+import os
+import shutil
+
+path = 'csv/'
+print("Before copying file:")
+print(os.listdir(path))
+
+source = "csv/main.py"
+
+# Print the metadeta of source file
+metadata = os.stat(source)
+print("Metadata:", metadata, "\n")
+
+destination = "csv/gfg/check.txt"
+
+# Copy the content of source to destination
+dest = shutil.copy2(source, destination)
+
+print("After copying file:")
+print(os.listdir(path))
+
+# Print the metadata of the destination file
+matadata = os.stat(destination)
+print("Metadata:", metadata)
+
+# Print path of newly created file
+print("Destination path:", dest)
+
+output:
+
+Before copying file:
+
+[‘archive (2)’, ‘c.jpg’, ‘c.PNG’, ‘Capture.PNG’, ‘cc.jpg’, ‘check.zip’, ‘cv.csv’, ‘d.png’, ‘Done! Terms And Conditions Generator – The Fastest Free Terms and Conditions Generator!.pdf’, ‘file1.csv’, ‘gfg’, ‘haarcascade_frontalface_alt2.xml’, ‘log_transformed.jpg’, ‘main.py’, ‘nba.csv’, ‘new_gfg.png’, ‘r.gif’, ‘Result -_ Terms and Conditions are Ready!.pdf’, ‘rockyou.txt’, ‘sample.txt’]
+
+Metadata: os.stat_result(st_mode=33206, st_ino=2251799814202896, st_dev=1689971230, st_nlink=1, st_uid=0, st_gid=0, st_size=1916, st_atime=1612953710, st_mtime=1612613202, st_ctime=1612522940) 
+
+After copying file:
+
+[‘archive (2)’, ‘c.jpg’, ‘c.PNG’, ‘Capture.PNG’, ‘cc.jpg’, ‘check.zip’, ‘cv.csv’, ‘d.png’, ‘Done! Terms And Conditions Generator – The Fastest Free Terms and Conditions Generator!.pdf’, ‘file1.csv’, ‘gfg’, ‘haarcascade_frontalface_alt2.xml’, ‘log_transformed.jpg’, ‘main.py’, ‘nba.csv’, ‘new_gfg.png’, ‘r.gif’, ‘Result -_ Terms and Conditions are Ready!.pdf’, ‘rockyou.txt’, ‘sample.txt’]
+
+Metadata: os.stat_result(st_mode=33206, st_ino=2251799814202896, st_dev=1689971230, st_nlink=1, st_uid=0, st_gid=0, st_size=1916, st_atime=1612953710, st_mtime=1612613202, st_ctime=1612522940)
+
+Destination path: csv/gfg/check.txt
+
+ex:
+
+# Python program to explain shutil.copy2() method
+# if destination is a directory
+
+import os
+import shutil
+
+source = "csv/main.py"
+
+destination = "csv/gfg/"
+
+# Copy the content of source to destination
+dest = shutil.copy2(source, destination)
+
+print("After copying file:")
+print(os.listdir(destination))
+
+# Print path of newly created file
+print("Destination path:", dest)
+
+output:
+After copying file:
+
+[‘cc.jpg’, ‘check.txt’, ‘log_transformed.jpg’, ‘main.py’, ‘main2.py’]
+
+Destination path: csv/gfg/main.py
+
+
+shutil.copytree(src, dst, ignore=ignore_patterns('*.pyc', 'tmp*'))
+
+Recursively copy an entire directory tree rooted at src to a directory named dst and return the destination directory. 
+All intermediate directories needed to contain dst will also be created by default.
+
+ex:
+
+import shutil
+import glob
+
+source = "../shutil"
+destination = "/tmp/example"
+
+# list contents of destinaton directory
+glob.glob('/tmp/example/*') --> []
+
+shutil.copytree('../shutil', '/tmp/example')
+
+glob.glob('/tmp/example/*') --> [ '/tmp/example/example',
+		 '/tmp/example/example.out',
+		 '/tmp/example/file_to_change.txt',
+		 '/tmp/example/index.rst',
+		 '/tmp/example/shutil_copy.py',
+		 '/tmp/example/shutil_copy2.py',
+		 '/tmp/example/shutil_copyfile.py',
+		 '/tmp/example/shutil_copyfile.py.copy',
+		 '/tmp/example/shutil_copyfileobj.py',
+		 '/tmp/example/shutil_copymode.py',
+		 '/tmp/example/shutil_copystat.py',
+]
+
+The above example shows only the content of the source folder getting copied into the destination. What if 
+want the source folder itself to be copied. In this case we need to specify the name of the source folder in the
+destination path as shown below.
+
+	source = "../shutil"
+	destination = "/tmp/example/shutil"
+
+
+
+for fine grained control of copying trees, we can define a copy function 
+
+
+import shutil
+import glob
+
+# list contents of destination
+print(glob.glob('/tmp/example/*'))
+
+def verbose_copy(src, dst):
+    print('copying\n {!r}\n to {!r}'.format(src, dst))
+    return shutil.copy2(src, dst)
+
+shutil.copytree('../shutil', '/tmp/example',copy_function=verbose_copy,ignore=shutil.ignore_patterns('*.py'),)
+
+print("After", glob.glob('/tmp/example/*'))
+
+
+[]
+
+copying
+ '../shutil/example.out'
+ to '/tmp/example/example.out'
+copying
+ '../shutil/file_to_change.txt'
+ to '/tmp/example/file_to_change.txt'
+copying
+ '../shutil/index.rst'
+ to '/tmp/example/index.rst'
+
+AFTER:
+['/tmp/example/example',
+ '/tmp/example/example.out',
+ '/tmp/example/file_to_change.txt',
+ '/tmp/example/index.rst']
+
+
+
+shutil.rmtree('/tmp/example')  # to remove directory and contents
+
+shutil.move('example.txt', 'example.out')  
+
+Recursively move a file or directory (src) to another location and return the destination.
+If dst is an existing directory or a symlink to a directory, then src is moved inside that directory. 
+The destination path in that directory must not already exist. If dst already exists but is not a directory, 
+it may be overwritten depending on os.rename() semantics.
+
+shutil.which()   # Finding files
+
+The which() function scans a search path looking for a named file. The typical use case is 
+to find an executable program on the shell’s search path defined in the environment variable PATH.
+
+shutil.which('virtualenv') --> /home/mordor/workspace/python/webrev/.venv/Python/3.5/bin/virtualenv
+shutil.which('tox') --> /home/mordor/workspace/python/webrev/.venv/Python/3.5/bin/tox
+shutil.which('no-such-program') --> None
+
+which() takes arguments to filter based on the permissions the file has, and the search path to examine. 
+The path argument defaults to os.environ('PATH'), but can be any string containing directory names separated by os.pathsep. 
+The mode argument should be a bitmask matching the permissions of the file. By default the mask looks for executable files, 
+but the following example uses a readable bitmask and an alternate search path to find a configuration file.
+
+# sample.py
+path = os.pathsep.join([
+    '.',
+    os.path.expanduser('~/pymotw'),
+])
+
+mode = os.F_OK | os.R_OK
+
+filename = shutil.which(
+    'config.ini',
+    mode=mode,
+    path=path,
+)
+print(filename)
+
+$ python3 sample.py  --> ./config.ini

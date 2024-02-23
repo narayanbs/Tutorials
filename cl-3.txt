@@ -1,0 +1,366 @@
+command line editing
+
+cursor movement: 
+ctrl+a --> move to the beginning of the line
+ctrl+e --> move to the end of the line
+ctrl+f --> forward one character
+ctrl+b --> back one character
+alt+f -->  forward one word
+alt+b --> back one word
+
+text modification
+ctrl+d --> delete one character
+alt+d --> delete one word front
+alt+backspace --> delete one previous 
+alt+u --> convert word to uppercase
+alt+l --> convert word to lowercase
+
+line modification
+ctrl+k --> delete from cursor to end of line
+ctrl+u --> delete from cursor to beginning of line
+
+ctrl+l to clear the screen (or clear)
+
+history
+-------
+history command 
+to execute a specific command !<command number>
+!! to execute the previously executed command
+ctrl+r to search for history and enter to execute the selected command. Keep pressing ctrl+r to cycle through similar commands
+ctrl+j to paste the line selected to the command prompt
+
+use fzf for better fuzzy search 
+
+------------------------------------------------------
+	users and group mgmt
+------------------------------------------------------
+/etc/passwd contains the user info (uname:pwd(x):uid:gid:<uid addtnl info>:homedir:shell)
+/etc/shadow contains the password info (uname:hashed_pwd...)
+/etc/group contains the group info.(gname:pwd<blank>:gid:[list of uid who are members])
+
+Most linux distros used a superuser account root user "su" by default. But this introduced a problem, users tended to login as root user
+unnecessarily. so security was compromised. By default, Ubuntu disables logins to the root account (by failing to set a password for the account),
+and instead uses sudo to grant superuser privileges. 
+The initial user account is granted full access to superuser privileges via sudo and may grant similar powers to subsequent user accounts.
+The sudo command is like su in many ways but has some important additional capabilities.  The administrator can configure sudo to allow an 
+ordinary user to execute commands as a different user (usually the superuser) in a controlled way.
+
+In ubuntu, the su command is used to become another user during a login session. Invoked without a username, su defaults to becoming the
+superuser. The optional argument - may be used to provide an environment similar to what the user would expect had the user logged in directly.
+The - argument changes the session to the new user with his home directory as the current working directory. 
+
+so sudo su - test_user --> Change user ID to test_user and /home/test_user as current working directory
+
+If we use sudo su --> switching to root/superuser account (after entering password), the prompt changes to '#'
+exit --> exit superuser account back to user account
+
+id --> info about the current user
+	or
+id <username> --> info about a specific user. 
+
+Managing Users and groups
+----------------------------
+useradd <user_name> or adduser <user_name> --> on debian adduser is preferred. useradd is too low-level
+useradd --help 
+ex:
+$ sudo useradd john   --> without any option, creates a user named john with default settings taken from /etc/default/useradd
+The command adds an entry to the /etc/passwd, /etc/shadow, /etc/group, and /etc/gshadow files
+
+$ sudo id john 
+uid=1005(john) gid=1005(john) groups=1005(john)
+
+To be able to log in, you need to set the user password. 
+$ sudo passwd john
+The command will allow you to enter and confirm the password. 
+
+To add a user and create a home directory use the -m option
+$ sudo useradd -m john
+
+Home directory will be created at /home/john, and (.bash_logout  .bashrc  .profile) files will be copied from /etc/skel 
+The entry can be seen in the three files mentioned above. 
+
+An entry from /etc/passwd can be obtained using
+getent passwd john --> john:x:1001:1001:John Simpson,100,,:/home/john:/bin/bash
+
+userdel <user_name> or deluser <user_name> (preferred in debian) can be used for removing a user.
+to remove the home directory too use userdel -r <user_name> 
+$ userdel -r john
+
+To create groups use the grouadd command 
+groupadd <group_name> for adding groups.. check groupadd --help
+groupadd engineers
+cat /etc/group for checking the entry --> engineers:x:1001:
+
+To remove groups use the groupdel command
+groupdel <groupname> --> deletes the group and removes from the group any users associated with it.
+groupdel managers
+groupdel developers
+groupdel engineers
+
+Adding users to a group
+-----------------------
+There are two types of groups in Linux operating systems:
+
+The Primary group – When a user creates a file, the file’s group is set to the user’s primary group. Usually, the name of the group 
+is the same as the name of the user. The information about the user’s primary group is stored in the /etc/passwd file.
+
+Secondary or supplementary group - Useful when you want to grant certain file permissions to a set of users who are members of the group. 
+For example, if you add a specific user to the docker group, the user will inherit the group’s access rights and be able to run docker commands.
+
+To change a user's primary group
+usermod -g <groupName> <username>
+usermod -g developers john  --> Changing primary group of john to developers
+
+To add an existing user to a secondary group, use the usermod -a -G command, 
+usermod -a -G engineers john
+Always use the -a option(append), otherwise the user will be removed from any other group not listed in -G
+
+cat /etc/group --> engineers:x:1001:john
+id john --> uid=1000(john) gid=1000(john) groups=1000(john),1001(engineers)
+john is part of a secondary group engineers
+
+To add an existing user to multiple groups in one command, we need to use
+
+usermod -aG managers,engineers john --> append john to managers and engineers in a single line
+
+To remove a user from a group 
+gpasswd -d john managers --> remove john from managers 
+
+
+Managing passwords
+------------------
+passwd <user-name> --> used to reset password for a user
+passwd -S <user_name> --> Displays the status of a user’s account password settings.
+passwd -l <user_name> --> Used to lock the password of a speciﬁc account such that only the root user can
+access the account. Users are not able to log into the system directly.
+passwd -u <user_name> --> used to unlock the password of a user
+passwd -d <user_name> --> Deletes the password for an account
+
+
+------------------------------------------------
+		File Permissions
+------------------------------------------------
+
+when we list a file using ls -l it will display the file permissions
+-rwxrwxrwx --> - is for regular file, others values include (d,l,c,b,p,s) (dir, link, character, block, pipe, socket)
+The three permissions of the file -->  r, w, x --> read, write, execute 
+The three groups of (rwx) each represent permissions for user, group and other respectively. 
+
+We use chmod (change file mode) to change the permission of a file/dir.
+
+Two ways of setting permission modes -- symbolic and numeric
+
+Symbolic way of setting modes --> chmod whowhatwhich file/dir
+	* who - represents identities u,g,o,a (user, group, other, all)
+	* what - represents actions +,-,= (add, remove, set exact)
+	* which - represents access level r,w,x (read, write, execute)
+Ex:	
+	u+x --> Add execute permission for the user/owner.
+	u-x --> Remove execute permission from the user/owner.
+	+x  --> Add execute permission for the user, group, and others. This is equivalent to a+x.
+	o-rw --> Remove the read and write permissions for others.
+	go=rw --> Set the group owner and others to have read and write permission. 
+	(If either the group owner or the world previously had execute permission, it is removed)
+	u+x,go=rx  --> Add execute permission for the user/owner and set the permissions for the group and others to read and execute. 
+	Multiple specifications may be separated by commas.
+	
+Numeric method of setting modes --> chmod ### file | directory (This is the preferred way of setting permissions)
+	* From left to right, the character # represents an access level (user, group, others). 
+	* To determine what each digit is, we use the following:
+		: Start at 0
+		: If the read permission should be set, add 4
+		: If the write permission should be set, add 2
+		: If the execute permission should be set, add 1
+
+This is calculated on a per access level basis. 
+
+Let's interpret this permissions example:		
+
+-rw-r-x---
+
+The user's permissions are: rw- or 4+2=6
+The group's permissions are: r-x or 4+1=5
+The others's permissions are: --- or 0
+
+The permissions are represented as 650
+
+To put this into the command syntax, chmod 650 test.txt
+
+Default Permissions and umask
+--------------------------------
+
+By default, the permissions on directories are 777 and files are 666 in ubuntu. so when we create a file we expect the permissions to be
+-rw-rw-rw.. But we notice that 
+$ touch hello.txt
+$ ls -ld hello.txt
+-rw-rw-r-- 1 batman batman 0 Feb 20 15:18 hello.txt
+
+Why are the permissions different? This is due to umask. 
+
+umask (unmask) --> umask is a shell setting that deﬁnes a mask that will be subtracted from the default permissions. this will change the default permission on ﬁles and directories.
+
+typing umask gives 0002 (octal 002).
+
+$ umask 
+0002 
+
+$ mkdir test 
+$ ls -ld test/ will give drwxrwxr-x (777-002 = 775) as the default permission.
+
+$ ls -ld hello.txt will give -rw-rw-r (666 - 002 = 664) as the default permission.
+
+You can set the umask as follows
+$ umask 027
+
+This will set the default permissions on a directory to 750 (that is, 777 - 027 = 750). This command also aﬀects all new ﬁles (with default permissions) inside the directory where the command is run.
+
+
+Fourth access level - Special Permission	
+-----------------------------------------
+Special permissions make up a fourth access level in addition to user, group, and other.
+
+SUID also known as setuid, SGID also known as setgid and sticky bit.
+
+suid and sgid if set on an executable, allows it to run with file permissions of the executable's owner and group respectively. 
+Why is this helpful? 
+Say you want to change the password using the passwd command. This command will update a few system files like /etc/passwd and /etc/shadow, 
+which can only be updated with root account. So when passwd is provided the suid permission, it executes as the user who owns the file, 
+in this case root, regardless of the user running the command. So user will be able to change the password and hence update the files i.e
+/etc/passwd and /etc/shadow
+Now this will be a security vulnerbility. What if the user changes someone else's password, The standard passwd program has additional checks
+that wont allow a user to change someone else's password unless it is invoked by someone who is running with root privileges. 
+
+so we need to be careful before providing the suid permission. 
+
+
+* user + s (pecial)		--> (for executable files)
+
+Let's look at /usr/bin/passwd
+ls -l /usr/bin/passwd 
+-rwsr-xr-x. 1 root root 33544 Dec 13  2019 /usr/bin/passwd
+Note the s where x would usually indicate execute permissions for the user.
+
+You must be the owner of the file to set the suid bit. we use the following command to set the setuid bit.
+$ chmod u+s file1
+
+View the permissions using ls -l 
+$ ls -l file1
+-rwSrw-r-- 1 batman batman 0 Feb 20 16:00 file 1
+
+Note the uppercase S here. This denotes we don't have the execute permission on the file. Run the command to add the execute permission
+$ chmod u+x file1
+
+Now check the permission again
+$ ls -l file1
+-rwsrw-r-- 1 batman batman 0 Feb 20 16:00 file 1
+
+Note the lower case s , this indicates we have the execute permission. 
+
+
+* group + s (pecial)	
+
+Commonly noted as SGID, this special permission has a couple of functions:
+
+If set on a file, it allows the file to be executed as the group that owns the file (similar to SUID)
+If set on a directory, any files created in the directory will have their group ownership set to that of the directory owner
+
+ls -l 
+drwxrws---. 2 tcarrigan tcarrigan  69 Apr  7 11:31 my_articles
+
+This permission set is noted by a lowercase s where the x would normally indicate execute privileges for the group. It is also especially useful for directories that are often used in collaborative efforts between members of a group. Any member of the group can access any new file. This applies to the execution of files, as well. SGID is very powerful when utilized properly.
+
+As noted previously for SUID, if the owning group does not have execute permissions, then an uppercase S is used.
+
+* other + t (sticky)
+
+The last special permission has been dubbed the "sticky bit." This permission is only set at directory level. It allows files to be deleted
+only by the owner of the file or root. 
+
+A common example of this is the /tmp directory:
+
+ls -ld /tmp/
+drwxrwxrwt 15 root root 4096 Sep 22 15:28 /tmp/
+
+The permission set is noted by the lowercase t, where the x would normally indicate the execute privilege. if the permission is 
+not given then it will have an uppercase T. 
+
+Setting special permissions
+-----------------------------
+
+We can use either symbolic or numeric way
+
+symbolic way for SUID: 
+$ chmod u+s file2.txt 
+$ ls -l file2.txt 
+-rwsr-xr-x 1 root root 0 Mar  8 02:06 file2.txt
+
+Say, we want to set SGID on the directory community_content.
+Symbolic way for GUID: 
+chmod g+s community_content/
+
+Numerical Way for SUID:
+
+we need to pass a fourth, preceding digit in our chmod command. The digit used is calculated similarly to the standard permission digits:
+
+	Start at 0
+	SUID = 4
+	SGID = 2
+	Sticky = 1	
+	
+chmod X### file | directory, Where X is the special permissions digit.
+
+
+$ chmod 4655 tecadmin.txt 
+
+##View the file permissions  
+$ ls -l tecadmin.txt 
+-rwSr-xr-x 1 root root 0 Mar  8 02:06 tecadmin.txt
+
+Permission is denied here
+
+Numerical way for GUID:
+
+$ chmod 2770 community_content/
+
+$ ls -ld community_content/
+drwxrws---. 2 tcarrigan tcarrigan 113 Apr  7 11:32 community_content/
+
+Removing special permissions
+-----------------------------
+You can remove the setuid bits from your directory with chmod ug-s <directory>, or chmod 0755 <directory>
+
+-------------------------------
+
+Ownership
+-----------
+When a ﬁle is created, by default, the user who created the ﬁles becomes the owner and that primary group 
+of the user becomes the group owner. File ownership can be assigned to another user or group.
+
+The chown command is used to change the user owner.
+In older versions of Unix, the chown command only changed file ownership, not group ownership. 
+For that purpose, a separate command, chgrp was used. It works much the same way as chown, except for being more limited.
+
+chown [owner][:[group]] file...
+chown bob file --> change owner from current to bob
+chown bob:users file --> change owner from current to bob and group to users
+chown :admins file --> change owner group to admins, file owner is unchanged
+chown bob: file --> Changes the file owner from the current owner to user bob and changes the group owner to the primary or login group of user bob.
+
+Example: Let's say we have two users; janet, who has access to superuser privileges and tony,
+who does not. User janet wants to copy a file from her home directory to the home directory of user tony. 
+Since user janet wants tony to be able to edit the file, janet changes the ownership of the copied file from janet to tony.
+
+janet@linuxbox ~]$ sudo cp myfile.txt ~tony
+Password:
+[janet@linuxbox ~]$ sudo ls -l ~tony/myfile.txt
+-rw-r--r-- 1 root root root 2018-03-20 14:30 /home/tony/myfile.txt
+[janet@linuxbox ~]$ sudo chown tony: ~tony/myfile.txt
+[janet@linuxbox ~]$ sudo ls -l ~tony/myfile.txt
+-rw-r--r-- 1 tony tony tony 2018-03-20 14:30 /home/tony/myfile.txt
+
+Here we see user janet copied the file from her directory to the home directory of user
+tony. Next, janet changes the ownership of the file from root (a result of using
+sudo) to tony. Using the trailing colon in the first argument, janet also changed the
+group ownership of the file to the primary/login group of tony, which happens to be group
+tony.
+

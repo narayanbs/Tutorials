@@ -1,0 +1,324 @@
+Python I/O
+======================
+
+There are 3 main types of I/O: text i/o, binary i/o and raw i/o.
+
+Text I/O
+---------
+Text I/O expects and produces str objects. This means that whenever the backing store is natively made of bytes (such as in the case of a file),
+encoding and decoding of data is made transparently as well as optional translation of platform-specific newline characters.
+
+The easiest way to create a text stream is with open(), optionally specifying an encoding:
+f = open("myfile.txt", "r", encoding="utf-8")
+
+In-memory text streams are also available as StringIO objects:
+f = io.StringIO("some initial text data")
+
+Binary I/O
+------------
+Binary I/O (also called buffered I/O) expects bytes-like objects and produces bytes objects. No encoding, decoding, or newline translation 
+is performed. This category of streams can be used for all kinds of non-text data, and also when manual control over the handling of text data 
+is desired.
+
+The easiest way to create a binary stream is with open() with 'b' in the mode string:
+f = open("myfile.jpg", "rb")
+
+In-memory binary streams are also available as BytesIO objects:
+f = io.BytesIO(b"some initial binary data: \x00\x01")
+
+Raw I/O
+---------
+Raw I/O (also called unbuffered I/O) is generally used as a low-level building-block for binary and text streams; it is rarely useful to directly manipulate a raw stream from user code. Nevertheless, you can create a raw stream by opening a file in binary mode with buffering disabled:
+
+f = open("myfile.jpg", "rb", buffering=0)
+
+
+File Input/Output
+-----------------
+
+open(file, mode='r', buffering=1, encoding=None, errors=None, newline=None, closefd=True, opener=None)
+
+	file -> str or bytes or path-like object(os.PathLike protocol - overrides __fspath__ method and returns str/bytes path)
+	mode (text/binary) -> r, w, a, x, r+, w+
+		by default r,w,a --> text mode, we can also use rt,wt,at
+			rb,wb,ab --> binary mode
+		r -> read (file needs to exist)
+		w -> write (file will be created / truncated)
+		a -> append (appended if file exits / created if it doesn't)
+		x -> exclusive creation (if file exists then error is raised)
+		r+ -> read/write mode (file needs to exist else error and write will write over existing content)
+		w+ -> read/write mode (file will be created/truncated)
+	buffering 
+		0 -> set buffering off (only allowed in binary mode)
+		1 -> set line buffering (only in text mode)
+		>1 --> to indicate size of buffer  (applies in binary buffered I/O)
+		if empty, indicates default buffering --> binary files normally use 4096/8192 bytes, 
+					   	      --> interactive text files(tty) use line buffering, others same as above
+	encoding --> only in text mode (it is platform dependent, but any text encoding supported by python can be used)
+	errors --> specifies how encoding/decoding errors need to be handled
+	newline --> controls how universal newlines (\n in unix, \r\n in windows and \r in mac ) need to be handled
+		During Reading
+			if None --> univeral newlines are translated to \n and returned
+			if '' --> universal newlines are returned as it is
+		During writing
+			if None --> \n is translated into system specific line seperator
+			if '' or \n --> no translation occurs
+	If closefd is False and a file descriptor rather than a filename was given, the underlying file descriptor 
+	will be kept open when the file is closed. If a filename is given closefd must be True (the default); 
+	otherwise, an error will be raised.
+	opener --> a custom opener can be used by passing a callable to open files.
+	
+	The following example uses the dir_fd parameter of the os.open() function to open a file relative to a given directory:
+	>>> import os
+	>>> dir_fd = os.open('somedir', os.O_RDONLY)
+	>>> def opener(path, flags):
+	...     return os.open(path, flags, dir_fd=dir_fd)
+	...
+	>>> with open('spamspam.txt', 'w', opener=opener) as f:
+	...     print('This will be written to somedir/spamspam.txt', file=f)
+	...
+	>>> os.close(dir_fd)  # don't leak a file descriptor
+		
+	
+The type of file object returned by the open() function depends on the mode. 
+When open() is used to open a file in a text mode ('w', 'r', 'wt', 'rt', etc.), it returns a subclass of io.TextIOBase 
+(specifically io.TextIOWrapper). 
+
+When used to open a file in a binary mode ('wb', 'rb')  with buffering,the returned class is a subclass of io.BufferedIOBase. 
+
+The exact class varies: in read binary mode, it returns an io.BufferedReader; in write binary and append binary modes, 
+it returns an io.BufferedWriter, and in read/write mode, it returns an io.BufferedRandom. When buffering is disabled, 
+the raw stream, a subclass of io.RawIOBase, io.FileIO, is returned
+
+Reading and Writing files
+--------------------------
+reading:
+
+with open('workfile', 'r') as f:
+	f.read()
+
+opened in text mode, for binary use rb
+
+f.read() --> by default it reads the whole file. but an integer argument can be provided that specifies the number
+of characters or bytes to be read from the file. f.read() returns '' empty string if it reaches the end of file. In
+binary mode it returns b'' empty bytes object at EOF. 
+
+f.readline() --> reads a single line from the file; a newline character (\n) is left at the end of the string or bytes object. 
+and is only omitted on the last line of the file if the file doesn’t end in a newline. This makes the return value 
+unambiguous; if f.readline() returns an empty string, the end of the file has been reached, while a blank line is 
+represented by '\n', a string containing only a single newline.
+
+>>> f.readline() 
+'This is the first line of the file.\n'
+
+f.readlines() --> read all the lines at a single go and then return them as each line a string element in a list
+
+>>> lines = f.readlines()
+for line in lines:
+	print(line, end='')
+
+we can also read lines from a file by looping over a file object
+>>> for line in f:
+	print(line, end='')
+This is the first line of the file.
+Second line of the file
+
+f.write(string) --> writes the contents of the string to the file, returns the number of characters written
+>>> f.write('This is a test\n')
+15
+f.write(bytes) --> writes the bytes to the file (that is opened in binary mode). returns the number of bytes written
+
+f.writelines(list) --> This function writes the content of a list to a file.
+
+f.tell() --> returns an integer giving the file object’s current position in the file represented as number of bytes 
+from the beginning of the file when in binary mode and an opaque number when in text mode.
+
+f.seek(offset, whence) --> To change the file object’s position, The position is computed from adding offset to a reference point; 
+the reference point is selected by the whence argument. A whence value of 0 measures from the beginning of the file, 1 uses the 
+current file position, and 2 uses the end of the file as the reference point. whence can be omitted and defaults to 0, 
+using the beginning of the file as the reference point.
+
+>>> f = open('workfile', 'rb+')
+>>> f.write(b'0123456789abcdef')
+16
+>>> f.seek(5)      # Go to the 6th byte in the file
+5
+>>> f.read(1)
+b'5'
+>>> f.seek(-3, 2)  # Go to the 3rd byte before the end
+13
+>>> f.read(1)
+b'd'
+
+In text files (those opened without "b" in the mode string), only seeks relative to the beginning of the file 
+are allowed (the exception being seeking to the very file end with seek(0, 2)) and the only valid offset values 
+are those returned from the f.tell(), or zero. Any other offset value produces undefined behavior.
+
+File operations summary
+------------------------	
+
+read() : This function reads the entire file and returns a string or bytes (if opened in rb)
+readline() : This function reads lines from that file and returns as a string or bytes. It fetch the line n, if it is been called nth time.
+readlines() : This function returns a list where each element is single line of that file.
+write() : This function writes a fixed sequence of characters or bytes to a file
+writelines() : This function writes a list of string or bytes
+append() : This function append string to the file instead of overwriting the file.
+
+
+Python Streams -- IO Module
+--------------- -----------
+
+String IO
+------------
+import io
+
+# Writing to a buffer
+output = io.StringIO()
+output.write('This goes into the buffer. ')
+print('And so does this.', file=output)
+
+# Retrieve the value written
+print(output.getvalue())
+
+output.close()  # discard buffer memory
+
+# Initialize a read buffer
+input = io.StringIO('Inital value for read buffer')
+
+# Read from the buffer
+print(input.read())
+
+# output
+This goes into the buffer. And so does this.
+Inital value for read buffer
+
+# eof is '' for text i/o
+
+>>> import io
+>>> input = io.StringIO("there are a few characters inside")
+>>> while True:
+...     c = input.read(3)
+...     if c == '':
+...         print("end")
+...         break
+...     print(c)
+...     print("looping")
+
+readline() and readlines() methods are also available. The StringIO class also provides a seek() method for jumping around 
+in a buffer while reading, which can be useful for rewinding if a look-ahead parsing algorithm is being used.
+
+>>> import io
+>>> output = io.StringIO()
+>>> output.write("this is the first line\n")
+>>> output.write("this is the second line\n")
+>>> ouput.write("END\n")
+>>>
+# for reading we need to set the file position to zero
+>>> output.seek(0)  
+>>>
+>>> print(output.readline())
+>>> print(output.readline())
+>>> print(output.readline())
+
+# output
+this is the first line
+this is the second line
+END
+	
+
+BytesIO
+-------
+
+import io
+
+# Writing to a buffer
+output = io.BytesIO()
+output.write('This goes into the buffer. '.encode('utf-8'))
+output.write('ÁÇÊ'.encode('utf-8'))
+
+# Retrieve the value written
+print(output.getvalue())
+
+output.close()  # discard buffer memory
+
+# Initialize a read buffer
+input = io.BytesIO(b'Inital value for read buffer')
+
+# Read from the buffer
+print(input.read())
+
+# output
+b'This goes into the buffer. \xc3\x81\xc3\x87\xc3\x8a'
+b'Inital value for read buffer'
+
+
+for io.BytesIO getBuffer() returns the buffer. 
+
+>>> output = io.BytesIO()
+>>> output.write("this goes into buffer".encode("utf-8"))
+25
+
+>>> input = io.BytesIO(output.getbuffer())
+>>> while True:
+...     c = input.read(3)
+...     if c == b'':    # b'' is EOF for binary io
+...         break
+...     print(c)
+...     print("looping")
+
+Reading contents of a file into memory buffer
+---------------------------------------------
+Use readinto() method of file object
+
+import os
+def read_into_buffer(filename):
+    buffer = bytearray(os.path.getsize(filename))
+    with open(filename,'rb') as f:
+        f.readinto(buffer)
+    return buffer
+
+
+with open("example.bin",'wb') as f:
+    f.write(b"This is the text written into a example binary file")
+
+buf = read_into_buffer("example.bin")
+print(buf)
+
+# Output: bytearray(b'This is the text written into a example binary file')
+
+    
+Wrapping Byte Streams for Text Data
+-------------------------------------
+Raw byte streams such as sockets can be wrapped with a layer to handle string encoding and decoding, 
+making it easier to use them with text data. The TextIOWrapper class supports writing as well as reading. The write_through argument 
+disables buffering, and flushes all data written to the wrapper through to the underlying buffer immediately.    
+
+import io
+
+# Writing to a buffer
+output = io.BytesIO()
+wrapper = io.TextIOWrapper(output, encoding='utf-8', write_through=True,)
+wrapper.write('This goes into the buffer. ')
+wrapper.write('ÁÇÊ')
+
+# Retrieve the value written
+print(output.getvalue())
+
+output.close()  # discard buffer memory
+
+# Initialize a read buffer
+input = io.BytesIO(
+    b'Inital value for read buffer with unicode characters ' +
+    'ÁÇÊ'.encode('utf-8')
+)
+wrapper = io.TextIOWrapper(input, encoding='utf-8')
+
+# Read from the buffer
+print(wrapper.read())
+
+# output
+b'This goes into the buffer. \xc3\x81\xc3\x87\xc3\x8a'
+Inital value for read buffer with unicode characters ÁÇÊ
+
+
+

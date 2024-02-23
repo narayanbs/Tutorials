@@ -1,0 +1,686 @@
+Functions
+----------
+Functions are first class values in python. 
+
+def foo(bar, jay, caz):
+    print(bar, jay, caz)
+
+# positional arguments
+foo("one", "two", "three")  --> one two three 
+
+# keyword arguments
+foo(caz="three", bar="one", jay="two") --> one two three
+
+But if we use both positional and keyword arguments, then keyword arguments must follow positional arguments
+
+foo(caz="three", "two", "one") --> error
+foo("one", caz="three", "two") --> error
+foo("one", caz="three", jay="two") --> one two three
+
+# arguments with default values
+
+In the above function all the arguments are required. Consider the following function, the second argument has a default value,
+
+def foo(bar, jay="hello"):
+    print(bar, jay)
+
+jay has a default value, so if we don't specify the second argument, then the default value will be taken.
+
+foo("i say") --> i say hello
+foo("i say", "wonderful") --> i say wonderful
+
+Note: arguments with default values should always be after required arguments. 
+
+Passing Arbitrary arguments 
+----------------------------
+def foo(bar, *jay):
+    print(bar)
+    print(jay)
+
+Here bar is a required argument, and jay represents zero or more positional arguments. jay wraps all the optional arguments into a tuple,
+
+foo("one") 
+    one
+    ()
+
+foo("one", "two")
+    one
+    ("two",)
+
+foo("one", "two", "three", "four", "five")
+    one
+    ("two", "three", "four", "five")
+
+Since the optional positional arguments are wrapped inside a tuple, we can iterate over them.
+
+def foo(bar, *jay):
+	print(bar)
+	for items in jay:
+		print(items, end=" ")
+
+foo("one", "two", "three", "four", "five")
+    one
+    two, three, four, five
+
+
+A function can also have only optional positional arguments
+
+def foo(*args):
+    print(args)
+
+foo()
+    ()
+
+
+foo("one", "two")
+    ("one","two")
+
+foo("one", "two", "three", "four", "five")
+    ("one", "two", "three", "four", "five")
+
+
+Similarly a function can have optional keyword arguments, Here bar is a required argument, jay represents zero or more keyword arguments, 
+jay wraps all the optional arguments into a dict.
+
+def foo(bar, **jay):
+    print(bar)
+    print(jay)
+
+foo("one")
+    one
+    {}
+
+foo("one", two=2, three=3)
+    one
+    {"two": 2, "three": 3}
+
+Since the optional keyword are wrapped inside a dict, we can iterate over them.
+def foo(bar, **jay):
+	print(bar)
+	for key, value in jay.items():
+		print(key,":",value)
+
+foo("one", two=2, three=3)
+    one
+    two: 2, 
+    three: 3
+
+A function can have only optional keyword arguments
+
+def foo(**kwargs):
+    print(kwargs)
+
+foo()
+    {}
+
+foo(two=2, three=3, four=4)
+    {"two": 2, "three":3, "four":4}
+
+
+But when we have a mixture of required, positional and keyword arguments, make sure keyword arguments follow positional arguments.
+
+ex: 
+def print_args(arg1, arg2, *args, kwarg1, kwarg2)
+    print(arg1, arg2)
+    print(args)
+    print(kwarg1, kwarg2)
+
+arg1, arg2 --> required arguments, args --> zero or more positional arguments, kwarg1, kwarg2 --> required keyword arguments
+kwarg1, kwarg2 follows *args and are assumed to be keyword arguments. 
+
+print_args(1, 2, 3, 4, 5, kwarg1=7, kwarg1=8)
+    1 2
+    (3, 4, 5)
+    7 8
+
+def print_args(arg1, arg2, *args, kwarg1, kwarg2, **kwargs):
+    print(arg1, arg2)
+    print(args)
+    print(kwarg1, kwarg2)
+    print(kwargs)
+
+print_args(1, 2, 3, 4, 5, 6, kwarg4=10, kwarg3=9, kwarg2=8, kwarg1=7)
+    1 2
+    (3, 4, 5, 6)
+    7 8
+    {'kwarg4': 10, 'kwarg3': 9}
+
+sometimes we want keyword arguments only without any arbitrary positional arguments as facilitated by *args above, in such cases
+we can use * as a marker that indicates what follows is keyword arguments
+
+def print_args(arg1, arg2, *, kwarg1, kwarg2):
+    print(arg1, arg2)
+    print(kwarg1, kwarg2)
+
+print_args(1, 2, kwarg2=8, kwarg1=7)
+    1 2
+    7 8
+
+print_args(1, 2, 3, kwarg1=4, kwarg2=5) --> error
+
+Note: what follows * should be explicit keyword arguments. using **kwargs will throw an error
+for ex: 
+	def print_args(arg1, arg2, *, kwarg1, kwarg2) --> valid
+	def print_args(arg1, arg2, *, **kwargs) --> is invalid
+
+Extended call syntax
+-----------------------
+we can unpack sequences into positional arguments using *, and we can unpack dict into keyword arguments using **
+
+def foo(arg1, arg2):
+    print(arg1, arg2)
+
+l = [1,2]
+foo(*l) --> 1 2
+
+def foo(arg1, arg2, *args):
+    print(arg1, arg2, args)
+
+l = [1,2,3,4,5,6]
+foo(*l) --> 1, 2, (3,4,5,6)
+
+l = "street"
+foo(*l) --> s t ('r','e','e','t')
+
+
+def color(red, green, blue, **kwargs):
+    print(red,green,blue, kwargs)
+
+k = {'red': 1, 'blue': 2, 'green': 3, 'alpha': 52} 
+
+color(**k)  --> 1 3 2 {'alpha':52}
+
+
+Anonymous functions: (lambda functions)
+----------------------------------------
+lambda args: body
+
+ex: 
+f = lambda x: print(x)
+f(100) --> 100
+
+last_name = lambda name: name.split()[-1]
+last_name("Nikola Tesla") ---> Tesla
+
+
+functional style tools
+-----------------------
+map(fn, seq) --> applies a callable to each element in a sequence and returns the result as a map object. Like a generator
+the map object can be iterated upon i.e evaluated lazily.
+
+ex:  list(map(ord, 'Hello')) --> [116, 101, 113, 117, 89]
+
+    for i in map(ord, 'Hello'):
+        print(i, end=',')
+
+    116, 101, 113, 117, 89, 
+
+map can take multiple input sequences, if input sequences are of different size, then map will terminate if 
+any of the sequences are terminated.
+
+sizes = ['small', 'medium', 'large']
+colors = ['lavender', 'teal', 'burnt orange']
+animals = ['koala', 'platypus', 'salamander']
+
+def combine(size, color, animal):
+    return '{} {} {}'.format(size, color, animaal)
+
+m = map(combine, sizes, colors, animals)
+
+list(m) or for x in map .....
+
+map vs comprehension
+
+[str(i) for i in range(5)]   -->  list 
+list(map(str, range(5)))
+
+
+gen = (str(i) for i in range(5)) --> generator 
+list(gen)
+
+m = map(str, range(5))
+list(m)
+
+
+filter
+---------------
+filter looks at each element in an iterable series and skips those that don't meet a criteria. Like map, filter applies 
+a callable to each element in the series and it also produces result lazily.
+
+filter(fn, seq) --> we apply the function to each element and return a series containing those elements for which the function 
+returned true.
+
+ex: 
+    is_odd = lambda x: x % 2 != 0
+    list(filter(is_odd, [1,2,3,4,5,6,7,8,9,10]))    -->  [1,3,5,7,9]
+
+    positives = list(filter(lambda x: x >= 0, [1, -5, 0, 6, -2, 8]))
+    positives   -->  [1,0,6,8]
+
+
+reduce
+--------
+reduce repeatedly applies a function of 2 arguments to a interim accumulator value and the elements of a series, updating or
+accumulating the interim value at each step with the result of the called function.
+The initial value of the accumulator can be the first element in a sequence or an optional value we provide.
+
+ex:
+
+from functools import reduce
+import operator
+
+reduce(operator.add, [1,2,3,4,5])  -->  15
+
+The way it works is as shown below
+
+numbers = [1,2,3,4,5]
+accumulator = numbers[0]
+for item in numbers[1:]:
+    accumulator = operator.add(accumulator, item)
+print(accumulator)
+
+ex:
+
+def mul(x,y):
+    print('mul {} {}'.format(x,y))
+    return x * y
+
+reduce(mul, range(1,10))
+mul 1 2
+mul 2 3
+mul 6 4
+mul 24 5
+mul 120 6
+mul 720 7
+.
+.
+362800
+
+Note: reduce raises a TypeError if we pass an empty sequence. if we pass a sequence with one element, then that
+element is returned as the result.
+
+reduce accepts an optional argument specifying the initial value. The value is conceptually added to the beginning 
+of the sequence meaning it will be returned if the sequence is empty.
+
+ex:
+    values = [1,2,3]
+    reduce(operator.add, values, 0) --> 6
+
+    values = []
+    reduce(operator.add, values, 0) --> 0
+
+    reduce(operator.mul, values, 1) --> 6
+
+map/reduce
+-----------
+We can combine map and reduce to get useful functionality
+
+ex:
+    count words in a document and return frequences as a dict 
+    i.e  count_words("...") -->  dict(words, number of times)
+
+>>> count_words("it was the best of times") --> {"best": 1, "it", 1...... }
+
+	Now use map to apply count_words to a collection of documents. 
+    i.e counts = map(count_words, documents)
+    
+    combine_counts is a function that will take two dictionaries and combine their counts into one.
+    We can use reduce to invoke combine_counts on counts collection to get the total count. 
+	i.e 
+    total_counts = reduce(combine_counts, counts)
+
+
+
+local, global and non-local variables
+---------------------------------------
+
+global variable
+----------------
+
+A variable declared outside of the function or in global scope is known as a global variable. This means that a global variable 
+can be accessed inside or outside of the function.
+
+x = "global"
+
+def foo():
+    print("x inside:", x)
+
+foo()
+print("x outside:", x)
+
+x inside: global
+x outside: global
+
+What if you want to change the value of x inside a function?
+
+x = "global"
+
+def foo():
+    x = x * 2
+    print(x)
+
+foo() --> UnboundLocalError: local variable 'x' referenced before assignment. 
+
+for this to work use the global keyword inside the function.
+
+x = "global"
+
+def foo():
+    global x
+    x = x * 2
+    print(x)
+
+foo() --> globalglobal
+print(x) --> globalglobal 
+
+local variable
+----------------
+
+def foo():
+    y = "local"
+
+foo()
+print(y) --> NameError: name 'y' is not defined
+
+def foo():
+    y = "local"
+    print(y)
+
+foo() --> local
+
+
+global and local variable
+-------------------------
+
+x = "global "
+
+def foo():
+    global x
+    y = "local"
+    x = x * 2
+    print(x)
+    print(y)
+
+foo()
+
+global global 
+local
+
+global and local variable with the same name
+--------------------------------------------
+x = 5
+
+def foo():
+    x = 10
+    print("local x:", x)
+
+
+foo()
+print("global x:", x)
+
+local x: 10
+global x: 5
+
+Nonlocal variable
+-------------------
+def outer():
+    x = "local"
+
+    def inner():
+        nonlocal x
+        x = "nonlocal"
+        print("inner:", x)
+
+    inner()
+    print("outer:", x)
+
+
+outer()
+
+inner: nonlocal
+outer: nonlocal
+----------------------------------------------
+
+closures
+---------
+
+Before getting into what a closure is, we have to first understand what a nested function and nonlocal variable is.
+A function defined inside another function is called a nested function. Nested functions can access variables of the enclosing scope.
+In Python, these non-local variables are read-only by default and we must declare them explicitly as non-local (using nonlocal keyword) 
+in order to modify them.
+
+for ex: Here is a nested function accessing a non-local variable
+
+def print_msg(msg):
+    # This is the outer enclosing function
+
+    def printer():
+        # This is the nested function
+        print(msg)
+
+    printer()
+
+# We execute the function
+# Output: Hello
+print_msg("Hello")
+
+In the example above, what would happen if the last line of the function print_msg() returned the printer() function instead of calling it.
+
+def print_msg(msg):
+    # This is the outer enclosing function
+
+    def printer():
+        # This is the nested function
+        print(msg)
+
+    return printer  # returns the nested function
+
+
+# Now let's try calling this function.
+# Output: Hello
+another = print_msg("Hello")
+another()
+
+This value in the enclosing scope is remembered even when the variable goes out of scope or the function itself is removed 
+from the current namespace. This technique by which some data ("Hello in this case) gets attached to the code is called closure in Python.
+More formally, A closure is a function bundled with its referencing environment. 
+
+ex:
+
+def make_multiplier_of(n):
+    def multiplier(x):
+        return x * n
+    return multiplier
+
+
+# Multiplier of 3
+times3 = make_multiplier_of(3)
+
+# Multiplier of 5
+times5 = make_multiplier_of(5)
+
+# Output: 27
+print(times3(9))
+
+# Output: 15
+print(times5(3))
+
+# Output: 30
+print(times5(times3(2)))
+
+Closures can be used to add functionality to an existing function and this is what we will see next, in decorators.
+
+
+Decorators
+------------------
+We have already mentioned that functions are first class values in python. that means they can be passed and returned from a function, 
+and also assigned to a variable.
+
+ex: 
+
+def first(msg):
+    print(msg)
+
+# output : Hello 
+first("Hello")
+
+second = first
+# outout : Hello
+second("Hello")
+
+ex:
+
+def inc(x):
+    return x + 1
+
+def dec(x):
+    return x - 1
+
+def operate(func, x):
+    result = func(x)
+    return result
+
+>>> operate(inc,3)
+4
+>>> operate(dec,3)
+2
+
+ex:
+
+def is_called():
+    def is_returned():
+        print("Hello")
+    return is_returned
+
+
+new = is_called()
+
+# Outputs "Hello"
+new()
+
+With these in mind, let us look at decorators. adding functionality to existing code.
+
+Let's make an ordinary function into a pretty one
+
+def make_pretty(func):
+    def inner():
+        print("I got decorated")
+        func()
+    return inner
+
+def ordinary():
+    print("I am ordinary")
+
+>>> ordinary()
+I am ordinary
+
+>>> # let's decorate this ordinary function
+>>> pretty = make_pretty(ordinary)
+>>> pretty()
+I got decorated
+I am ordinary
+
+The function ordinary() got decorated and the returned function was given the name pretty. 
+Generally, we decorate a function and reassign it as,
+
+ordinary = make_pretty(ordinary)
+
+This is a common construct and for this reason, Python has a syntax to simplify this.
+We can use the @ symbol along with the name of the decorator function and place it above the definition of the 
+function to be decorated. For example,
+
+@make_pretty
+def ordinary():
+    print("I am ordinary")
+
+is equivalent to
+
+def ordinary():
+    print("I am ordinary")
+ordinary = make_pretty(ordinary)
+
+Multiple decorators can be chained in Python i.e  a function can be decorated multiple times with different (or same) decorators.
+
+def star(func):
+    def inner(*args, **kwargs):
+        print("*" * 30)
+        func(*args, **kwargs)
+        print("*" * 30)
+    return inner
+
+
+def percent(func):
+    def inner(*args, **kwargs):
+        print("%" * 30)
+        func(*args, **kwargs)
+        print("%" * 30)
+    return inner
+
+
+@star
+@percent
+def printer(msg):
+    print(msg)
+
+
+printer("Hello")
+
+******************************
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+Hello
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+******************************
+
+
+The above syntax of,
+
+@star
+@percent
+def printer(msg):
+    print(msg)
+
+is equivalent to
+
+def printer(msg):
+    print(msg)
+printer = star(percent(printer))
+
+
+callable objects
+-----------------
+A callable object is something that can be called like functions and classes. 
+ex: function
+import socket
+def resolve(host):
+    return socket.gethostbyname(host)
+
+>>> resolve('www.google.com')
+
+classes are callable, constructors are nothing but using class objects as callables. since classes are objects, 
+we can do some interesting things such as factory
+ex:
+    def sequence_class(immutable):
+        return tuple if immutable else list     # conditional expression in python
+
+>>> seq = sequence_class(True)
+>>> t = seq("Timbuktu")
+>>> t
+    ('T','i','m','b','u','k','t','u')       --> tuple instance
+
+objects can be made callable too, we need to implement the __call__ method in the class
+
+ex: 
+    import socket
+
+    class Resolver:
+        def __init__(self):
+            self._cache = {}
+
+        def __call__(self, host):
+            if host not in self._cache:
+                self._cache[host] = socket.gethostbyname(host)
+            return self._cache[host]
+
+>>> resolve = Resolver()
+>>> resolve('www.apple.com') --> '92.123.125.65'
+

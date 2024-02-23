@@ -1,0 +1,96 @@
+system calls -- read and write
+-------------------------------
+ssize_t read(int fd, void *buf, size_t count);
+ssize_t write(int fd, void *buf, size_t count);
+
+Networking -- read/write calls
+--------------------------
+ssize_t recv(int fd, const void *buf, size_t count, int flags);
+ssize_t send(int fd, const void *buf, size_t count, int flags);
+
+ssize_t recvfrom(int fd, const void *buf, size_t count, int flags, sockaddr* src, int src_addr_len);
+ssize_t sendto(int fd, const void *buf, size_t count, int flags, sockaddr* dest, int dest_addr_len);
+
+recvfrom,sendto - Normally for udp
+-----------------------------------------------------------------------------
+
+send() might not send all the bytes you asked it to? That is, you want it to send 512 bytes, but it returns 412. 
+What happened to the remaining 100 bytes?
+
+Well, they’re still in your little buffer waiting to be sent out. Due to circumstances beyond your control, 
+the kernel decided not to send all the data out in one chunk, and now, it’s up to you to get the data out there.
+
+You could write a function like this to do it
+
+int sendall(int sock, char *buf, int *len)
+{
+    int total = 0;        // how many bytes we've sent
+    int bytesleft = *len; // how many we have left to send
+    int n;
+
+    while(total < *len) {
+        n = send(sock, buf+total, bytesleft, 0);
+        if (n == -1) { break; }
+        total += n;
+        bytesleft -= n;
+    }
+
+    *len = total; // return number actually sent here
+
+    return n==-1?-1:0; // return -1 on failure, 0 on success
+}
+
+here is a sample call to the function
+
+char buf[10] = "Beej!";
+int len;
+
+len = strlen(buf);
+if (sendall(s, buf, &len) == -1) {
+    perror("sendall");
+    printf("We only sent %d bytes because of the error!\n", len);
+}
+
+Note: python has an in-built sendall function
+
+read/recv/recvfrom 
+-------------------
+All the three calls are essentially the same, but with the addition of flags and destination, read is a system call.
+
+All three calls return the length of the message on successful completion or -1 if an error occurred.  In the event of an error, 
+errno is set to indicate the error. Returning ZERO means it has reached EOF. IF it hasn't read any data it means EOF has reached which 
+is not an error it means read() call is successful but no data is read because of EOF.
+
+When a stream socket peer has performed an orderly shutdown, the return value will be 0 (the traditional "end-of-file" return).
+The value 0 may also be returned if the requested number of bytes to receive from a stream socket was 0.
+
+Datagram sockets in various domains (e.g., the UNIX and Internet domains) permit zero-length datagrams.  When such a datagram 
+is received, the return value is 0.
+
+If a message is too long to fit in the supplied buffer, excess bytes may be discarded for SOCK_DGRAM, for SOCK_STREAM the question 
+doesn't really make sense , because stream sockets don't have a concept of packets - they're just a continuous stream of bytes. 
+If there's more bytes available to read than your buffer has room for, then they'll be queued by the OS and available for your next 
+call to recv.
+
+How do you know how big to make the buffer passed to recv()?
+
+SOCK_STREAM: It doesn't really matter too much. If your protocol is a transactional / interactive one just pick a size that can hold 
+the largest individual message / command you would reasonably expect (3000 is likely fine). If your protocol is transferring bulk data, 
+then larger buffers can be more efficient - a good rule of thumb is around the same as the kernel receive buffer size of the socket 
+(often something around 256kB).
+
+SOCK_DGRAM: Use a buffer large enough to hold the biggest packet that your application-level protocol ever sends. If you're using UDP, 
+then in general your application-level protocol shouldn't be sending packets larger than about 1400 bytes, because they'll certainly need 
+to be fragmented and reassembled.
+
+How can I know if I have received the entire message?
+
+SOCK_STREAM: You need to build some way of determining the end-of-message into your application-level protocol. Commonly this is either a 
+length prefix (starting each message with the length of the message) or an end-of-message delimiter (which might just be a newline in a 
+text-based protocol, for example). A third, lesser-used, option is to mandate a fixed size for each message. Combinations of these options 
+are also possible - for example, a fixed-size header that includes a length value.
+
+SOCK_DGRAM: An single recv call always returns a single datagram.
+
+
+

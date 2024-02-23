@@ -1,0 +1,2053 @@
++-golang
+========
+go was designed to run on multiple cores and built to support concurrency. concurrency in go is cheap and easy.
+go is used in automation applications, command line apps for devops and sre tasks.
+
+Variables and constants
+=======================
+
+variable declaration
+--------------------
+var <variable_name> data_type = value  
+
+Note: 
+if data_type is not specified, values must be provided to infer the data_type
+if data_type is specified, values are optional, if values are not provided they are initialized to default values
+
+
+ex:	var userName string = "narayan" // all present
+	var userName string // userName is initialized to default ("") for string
+			    // value is not present, so data_type must be present 
+			    	
+	var userName = "narayan" // data_type is inferred as string	
+				 // data_type is not present, so value is must
+	
+	short form
+	userName := "narayan" // no need of var, data_type is inferred
+
+
+multiple variable declaration
+
+	var i, j int = 1, 2 	// all present
+	
+	var c, python, java bool  // no value (so default values), and data_type is present
+	var c, python, java = true, false, "no!"  // no data_type so values must be provided to infer the data_type
+	
+	short form	
+	c, python, java := true, false, "no!"
+
+ex:
+	import (
+	"fmt"
+	"reflect"
+	)
+
+	func main() {
+		var i, j, k = true, 200, "hello"
+		fmt.Println(reflect.TypeOf(i))
+		fmt.Println(reflect.TypeOf(j))
+		fmt.Println(reflect.TypeOf(k))
+	}	
+o/p:	
+	bool
+	int
+	string	
+
+Note: 
+	userName := "narayan" 
+	userName := "joe"  // error, you should use userName = "joe" since it is already initialized
+	
+	But it can be used during multiple initializations
+	age, userName := 20, "joe" // since age is being initialized, := will be treated as = for userName
+	
+Constants
+----------
+
+There are boolean constants, rune constants, integer constants, floating-point constants, complex constants and string constants.
+Rune, integer, floating-point and complex are called numeric constants.
+
+A constant value can be represented by:
+* a literal (rune, integer, floating-point, complex, string)
+* a constant expression
+* a conversion with a result that is a constant
+* result of some built-in functions
+
+constants can be typed or untyped. if they are specified without a type they are untyped. An untyped constant has a default type which could be
+bool,rune,int,float64,complex128 and string depending on the context.
+
+const declaration
+------------------
+const <const_name> data_type = value  // only data_type is optional, constants have to be initialized.
+ex: 	const ticketNumber int32 = 400 	// typed constant, 
+	const ticketNumber = 400 	// untyped constant - so default type is int 
+	
+	const ticketNumber int or const ticketNumber 	// error , value is mandatory 
+
+Note: Constants cannot be declared using the := syntax.	
+
+
+Constant expression
+--------------------
+
+A constant expression may contain only constant operands and are evaluated at compile time.
+
+const a = 2 + 3.0          // a == 5.0   (untyped floating-point constant)
+const b = 15 / 4           // b == 3     (untyped integer constant)
+const c = 15 / 4.0         // c == 3.75  (untyped floating-point constant)
+const Θ float64 = 3/2      // Θ == 1.0   (type float64, 3/2 is integer division)
+const Π float64 = 3/2.     // Π == 1.5   (type float64, 3/2. is float division)
+const d = 1 << 3.0         // d == 8     (untyped integer constant)
+const e = 1.0 << 3         // e == 8     (untyped integer constant)
+const f = int32(1) << 33   // illegal    (constant 8589934592 overflows int32)
+const g = float64(2) >> 1  // illegal    (float64(2) is a typed floating-point constant)
+const h = "foo" > "bar"    // h == true  (untyped boolean constant)
+const j = true             // j == true  (untyped boolean constant)
+const k = 'w' + 1          // k == 'x'   (untyped rune constant) (k is 120 unicode point of 'x', rune is int32 remember)
+const l = "hi"             // l == "hi"  (untyped string constant)
+const m = string(k)        // m == "x"   (type string)
+const Σ = 1 - 0.707i       //            (untyped complex constant)
+const Δ = Σ + 2.0e-4       //            (untyped complex constant)
+const Φ = iota*1i - 1/1i   //            (untyped complex constant)
+
+
+Numeric constants have arbitrary precision. They represent exact values and do not overflow. so if you have a constant expressions,if the result
+ needs to be converted to a fixed precision where it does not fit into the target type's valid range, it results in a compile time-error.    
+
+
+Example:
+
+package main
+
+import (
+	"fmt"
+	"math"
+	"reflect"
+)
+
+func main() {
+	fmt.Println(math.MaxInt)
+
+	const I = 9223372036854775807		// Max int value math.MaxInt
+	const F = 0.2939723974
+	const C = 1 + 2i
+
+	const I1 int = I
+	const F1 float32 = F
+	const C1 complex64 = C
+
+	fmt.Println(I1, F1, C1)
+	
+	const FF = 123.0
+	const CC = 1.0 + 0.0i 
+
+
+	// const I2 int = F     	cannot represent 0.2939723974 as int, so compile error
+	const I2 int = FF 		// FF can be represented as int so this works
+	// const F2 float32 = C 	cannot represent 1 + 2i as float32, compile error
+	const F2 float32 = CC 		// this works since 1.0 + 0.0i can be represented as a float32
+	const C2 complex64 = I		
+
+	fmt.Println(I2, F2, C2)
+
+	// const I3 int32 = I2     	cannot use int I2 as int32, explicit conversion needed
+	const I3 int32 = int32(I2)
+	const F3 float32 = F2		// both are float32 so implicit conversion 
+	// const C3 complex128 = C2    	// cannot use this, error, explicit conversion required
+	const C3 complex128 = complex128(C2)
+	
+	const I4 = int(C2) 		// compiles ok
+
+	// the same instance with variables.
+	// var I4 int = I3    cannot use I3 as it is int32, you need to convert to int
+	var I4 int = int(I3)
+
+	fmt.Println(I4)
+}
+
+Note: 
+Complex non-constant values can't be converted to floating-point and integer types.
+Floating-point and integer non-constant values can't be converted to complex types.
+
+
+More examples 
+-------------
+
+	var confName = "Go Conference"
+	const conferenceTickets = 50
+	var remainingTickets = 50
+
+	fmt.Println("Welcome to our", confName, "Booking Application")
+	fmt.Println("We have total of", conferenceTickets, "tickets and", remainingTickets, "are still available")
+	fmt.Println("Get your tickets here to attend")
+			
+Note: Declared variable has to be used, otherwise golang raises an error. 
+
+
+Data Types
+===========
+Basic - Boolean, Number, String  
+
+	Boolean - bool (values true or false)  
+	Number - uint8/int8, uint16/int16, uint32/int32, uint64/int64, uint/int (either 32 or 64-bit implementation defined)
+		byte alias for uint8, rune alias for int32, uintptr (width not defined but can hold all the bits for a pointer value).
+		float32, float64 (IEEE 754 floating-point number)
+		complex64, complex128 (internally either two float32 array, or two float64 array)
+	Strings -- sequence of bytes (type string)
+				
+Aggregate - Array, struct
+
+Reference - Pointer,function,slice,map,channel
+
+interface type
+
+
+Default values
+===============
+0 for all integer types,
+0.0 for floating point numbers,
+false for booleans,
+"" for strings,
+nil for pointers,functions,slices,maps,channels and interfaces 
+
+The elements of an array or struct will have its fields zeroed if no value is specified. This initialization is done recursively:
+
+type T struct {
+    n int
+    f float64
+    next *T
+}
+fmt.Println([2]T{}) // [{0 0.0 <nil>} {0 0.0 <nil>}]
+
+
+Note: 
+-----
+***
+Signed and unsigned integers overflow when the values exceed the limit. go allows overflow instead of throwing an exception.
+unsigned integers discard high bits and wrap around. signed integers will just give the 2's complement value. 
+
+ex: var a int8 = 127
+	a + 1 // -128
+	
+    var b uint8 = 255
+    	b + 1 // 0
+    	
+Numeric constants represent exact values of arbitrary precision and do not overflow.  so if you have a constant expressions, since they have arbitrary precision, if the result is to be converted to a fixed precision where it does not fit into the target type's valid range, it results in a compile time-error.    	
+
+for ex:
+	var a int8 = 128 	// compile time error since 128 is untyped int constant and can't fit into int8
+	
+another ex:
+	const maxuint64 = 0xffffffffffffffff
+	var key uint64 = maxuint64 * maxuint64
+	fmt.Println(key)
+
+The above yields:
+cannot use maxuint64 * maxuint64 (untyped int constant 340282366920938463426481119284349108225) as uint64 value in variable declaration (overflows)
+
+You can simply use a type conversion:
+
+
+	i := uint64(0xffffffffffffffff)
+	i2 := int64(i)
+	fmt.Println(i, i2)
+	Output:
+	18446744073709551615 -1
+
+
+
+Converting uint64 to int64 always succeeds: it doesn't change the memory representation just the type. What may confuse you is if you try to convert an untyped integer constant value to int64:
+
+	i3 := int64(0xffffffffffffffff) // Compile time error!
+	
+This is a compile time error as the constant value 0xffffffffffffffff (which is represented with arbitrary precision) does not fit into int64 because the max value that fits into int64 is 0x7fffffffffffffff:
+
+	error: constant 18446744073709551615 overflows int64
+	
+Another example
+
+	i := uint8(0xff)
+	i2 := int8(i)
+	fmt.Println(i, i2)
+	Output:
+	255, -1
+	
+
+	ui := uint16(0xFFFE)
+	fmt.Println(ui)
+	i := int16(ui)
+	fmt.Println(i)
+	Output:
+	65534
+	-2	
+	
+But the compiler will complain if we use int16(0xFFFE) doesn't work because 0xfffe is an untyped integer constant which cannot be represented by a value of type int16.
+
+
+***
+complex numbers have a real and imaginary part as a parameter and returns a complex type. for ex: c := 6 + 7i  
+Both the real and imaginary parts must be of the same type. ie either float32 or float64. If both the real and imaginary parts are float32, this function returns a complex value of type complex64. If both the real and imaginary parts are of type float64, this function returns a complex value of type complex128
+ex: 
+	var a float32 = 22.23
+	var b float32 = 33.33
+	c1 := complex(a, b)  	// type of c1 is complex64
+	
+	var a float64 = 22.23
+	var b float64 = 33.33
+	c1 := complex(a, b) 	// type of c1 is complex128
+	
+	    	
+	c1 := complex(5, 7)	
+	
+	c1 := 5 + 7i	// is valid
+	c2 := 8 + 27i	// is valid 
+	
+	cadd := c1 + c2
+	fmt.Println("sum:", cadd)
+	cmul := c1 * c2
+	fmt.Println("product:", cmul)    	
+    	
+	output
+	sum: (13+34i)
+	product: (-149+191i)
+	
+***	
+_ is known as the blank identifier in Go. It can be used in place of any value of any type. 	
+	
+rune
+======
+A rune is not a character. A rune is an integer value identifying a Unicode code point. A character may be one Unicode code point 
+in which case 1 character is 1 rune. But a single character may span multiple runes. 
+
+for ex:
+'é́́' may be represented by the code point \u00e9 which is just a single rune, but it may also be represented by 
+e followed by 'e' and '◌́' (acute "\u0301") i.e "e\u0301" which is two runes. 
+
+
+s := "é́́"
+fmt.Println(s, []rune(s))
+
+é́́ [101 769 769 769] // here a single char is represented by 4 runes.
+
+A rune literal is expressed as one or more characters enclosed in a pair of quotes. The enclosed characters denote one Unicode code point value.
+
+There are some minor variants of the rune literal form. The most popular form of rune literals is just to enclose the characters 
+denoted by rune values between two single quotes. 
+For example
+'a' // an English character
+'π'
+'众' // a Chinese character
+
+The following rune literal variants are equivalent to 'a' (the Unicode value of character a is 97).
+
+// 141 is the octal representation of decimal number 97.
+'\141'
+// 61 is the hex representation of decimal number 97.
+'\x61'		--> byte value escape sequence for char constants in \xNN form. 
+'\u0061'
+'\U00000061'
+
+Please note, \ must be followed by exactly three octal digits to represent a byte value, \x must be followed by exactly two hex digits 
+to represent a byte value, \u must be followed by exactly four hex digits to represent a rune value, and \U must be followed by exactly 
+eight hex digits to represent a rune value. Each such octal or hex digit sequence must represent a legal Unicode code point, otherwise, 
+it fails to compile.
+
+ex:
+
+fmt.Printf("%U\n", 'ಋ') --> \u0C8b
+
+fmt.Printf("%c\n", '\u0C8b')
+	or
+fmt.Printf("%c\n", 0X0C8b)
+	or
+fmt.Printf("%c\n", 3211)
+
+==> ಋ
+
+code points encoding
+
+UTF-8	E0 B2 8B
+UTF-16	0C 8B
+
+	
+Strings
+=======
+A string is a sequence of bytes. They are readonly byte slices with few extra properties. 
+Strings exist within either back quotes ` or double quotes " in Go and have different characteristics
+depending on which quotes you use.
+If you use the back quotes, you are creating a raw string literal. If you use the double quotes, you are creating
+an interpreted string literal.
+
+ex:
+	a := "say hello to Go!"
+	
+raw Strings
+Raw string literals are character sequences between back quotes, often called back ticks. Within the quotes, any
+character will appear just as it is displayed between the back quotes, except for the back quote character itself.
+	a := `say "hello" to Go!`
+	fmt.Println(a) 	// say "hello" to Go! 		
+
+	a := `Say "hello" to Go!\n`
+	fmt.Println(a)	// say "hello" to Go!\n
+	
+Raw string literals may also be used to create multiline strings:
+	a := `This string is on
+	multiple lines
+	within a single back
+	quote on either side.`
+	fmt.Println(a)
+	
+Output
+
+	This string is on
+	multiple lines
+	within a single back
+	quote on either side.	
+
+The length of sequences (strings, slices, arrays) and maps can be obtained by the len method.
+
+Go string literals are UTF-8 encoded text. Since strings are equivalent to []byte, the len method will produce 
+the length of the raw bytes stored within. To count how many runes are in a string, we can use the 
+RuneCountInString from utf8 package. Note that the run-time of RuneCountInString depends on the size of the string, 
+because it has to decode each UTF-8 rune sequentially. Some characters are represented by multiple UTF-8 code points, 
+so the result of the count may be surprising.
+
+ex:
+	const s = "สวัสดี"
+	fmt.Println("Len:", len(s))	# Len: 18
+
+	for i := 0; i < len(s); i++ {
+	fmt.Printf("%x ", s[i])		# e0 b8 aa e0 b8 a7 e0 b8 b1 e0 b8 aa e0 b8 94 e0 b8 b5
+	}
+	fmt.Println()
+	
+	fmt.Println("Rune count:", utf8.RuneCountInString(s))	# Rune count: 6
+
+
+Arrays and Slices
+=================
+
+Arrays
+------
+var a [4]int 
+a[0] = 1
+i := a[0]  // i = 1
+
+Arrays do not need to be initialized explicitly;the zero value of an array is a ready-to-use array whose elements 
+are themselves zeroed:
+
+Arrays can also be initialized as follows. 
+var a [4]int = [4]int{10,20,30,40}
+	or
+a := [4]int{10,20,40,50}
+
+go arrays are values. Array variable denotes the entire array. It is not a pointer to the first array element as in C.
+So if we pass an array, you will make a copy of its contents. (To avoid the copy you could pass a pointer to the array, 
+but then that’s a pointer to an array, not an array.) One way to think about arrays is as a sort of struct but with indexed 
+rather than named fields: a fixed-size composite value.
+
+An array literal can be specified like so:
+b := [2]string{"Penn", "Teller"}
+or you can have the compiler count the array elements
+b := [...]string{"Penn", "Teller"}
+
+In both cases b is of type [2]string
+
+length of an array can be determined by the len() function.
+
+Slices
+-------
+Arrays are inflexible. Unlike an array type, a slice type has no specified length.The type specification for a slice is []T, 
+where T is the type of the elements of the slice. A slice literal is declared like an array literal, except you leave the element count out
+for ex:
+var letters []string	// letters is initialized to nil, letters == nil
+	
+var letters []string = []string{"a", "b", "c", "d", "e"}
+	or
+letters := []string{"a", "b", "c", "d", "e"}
+
+A slice can be created with built-in function make([]T, len, cap)
+var s []byte
+s = make([]byte, 5, 5)
+// s = []byte{0,0,0,0,0}
+
+When the capacity argument is omitted, it defaults to the specified length. Here’s a more succinct version of the same code:
+s := make([]byte, 5)
+
+Use built-in functions len and cap to check the values
+len(s) == 5
+cap(s) == 5
+
+Zero value of a slice is nil. the len and cap functions both return 0
+var s []byte  // s == nil
+len(s) == 0
+cap(s) == 0
+
+A slice can also be formed by “slicing” an existing slice or array.
+b := []byte{'g', 'o', 'l', 'a', 'n', 'g'}
+b[1:4] --->  []byte{'o', 'l', 'a'}, sharing the same storage as b
+
+b[:2] ---> []byte{'g', 'o'}
+b[2:] ---> []byte{'l', 'a', 'n', 'g'}
+b[:] ---> b
+
+ slice  an array:
+x := [3]string{"Лайка", "Белка", "Стрелка"}
+s := x[:] // a slice referencing the storage of x
+
+Slice internals
+----------------
+ptr --> pointer to a backing array
+len int  --> length
+cap int	 --> capacity
+
+The length is the number of elements referred to by the slice. 
+The capacity is the number of elements in the underlying array (beginning at the element referred to by the slice pointer).
+
+ex: 
+s := make([]byte, 5) 
+
+ptr
+   \
+  [  |  |  |  |  ]	len = 5, cap = 5
+  
+s = s[2:4]
+      ptr
+	 \
+  [  |  |  |  |  ]	len = 2, cap = 3
+
+A slice cannot be grown beyond its capacity. Attempting to do so will cause a runtime panic, just as when indexing outside 
+the bounds of a slice or array. Similarly, slices cannot be re-sliced below zero to access earlier elements in the array.
+
+Growing slices (the copy and append functions)
+-----------------------------------------------
+To increase the capacity of a slice one must create a new, larger slice and copy the contents of the original slice into it. 
+This technique is how dynamic array implementations from other languages work behind the scenes. The next example doubles the 
+capacity of s by making a new slice, t, copying the contents of s into t, and then assigning the slice value t to s:
+
+t := make([]byte, len(s), (cap(s)+1)*2) // +1 in case cap(s) == 0
+for i := range s {
+        t[i] = s[i]
+}
+s = t
+
+The looping piece of this common operation is made easier by the built-in copy function
+func copy(dst, src []T) int
+
+The copy function supports copying between slices of different lengths (it will copy only up to the smaller number of elements). 
+In addition, copy can handle source and destination slices that share the same underlying array, handling overlapping slices correctly.
+
+Using copy, we can simplify the code snippet above:
+
+t := make([]byte, len(s), (cap(s)+1)*2)
+copy(t, s)
+s = t
+
+A common operation is to append data to the end of a slice. This function appends byte elements to a slice of bytes, 
+growing the slice if necessary, and returns the updated slice value:
+
+func AppendByte(slice []byte, data ...byte) []byte {
+    m := len(slice)
+    n := m + len(data)
+    if n > cap(slice) { // if necessary, reallocate
+        // allocate double what's needed, for future growth.
+        newSlice := make([]byte, (n+1)*2)
+        copy(newSlice, slice)
+        slice = newSlice
+    }
+    slice = slice[0:n]
+    copy(slice[m:n], data)
+    return slice
+}
+
+p := []byte{2, 3, 5}
+p = AppendByte(p, 7, 11, 13)
+// p == []byte{2, 3, 5, 7, 11, 13}
+
+Go provides a built-in append function that’s good for most purposes; it has the signature
+
+func append(s []T, x ...T) []T
+The append function appends the elements x to the end of the slice s, and grows the slice if a greater capacity is needed.
+
+a := make([]int, 1)    // a == []int{0}
+a = append(a, 1, 2, 3)     // a == []int{0, 1, 2, 3}
+
+To append one slice to another, use ... to expand the second argument to a list of arguments.
+a := []string{"John", "Paul"}
+b := []string{"George", "Ringo", "Pete"}
+a = append(a, b...) // equivalent to "append(a, b[0], b[1], b[2])"
+// a == []string{"John", "Paul", "George", "Ringo", "Pete"}
+
+Since the zero value of a slice (nil) acts like a zero-length slice, you can declare a slice variable and then append to it in a loop:
+
+// Filter returns a new slice holding only
+// the elements of s that satisfy fn()
+func Filter(s []int, fn func(int) bool) []int {
+    var p []int // == nil
+    for _, v := range s {
+        if fn(v) {
+            p = append(p, v)
+        }
+    }
+    return p
+}
+
+Note: 
+Re-slicing a slice doesn’t make a copy of the underlying array. The full array will be kept in memory until 
+it is no longer referenced. Occasionally this can cause the program to hold all the data in memory when only a small  
+piece of it is needed.
+ 
+for ex:
+FindDigits function loads a file into memory and searches it for the first group of consecutive numeric digits, returning them as a new slice.
+
+var digitRegexp = regexp.MustCompile("[0-9]+")
+
+func FindDigits(filename string) []byte {
+    b, _ := os.ReadFile(filename)
+    return digitRegexp.Find(b)
+}
+This code behaves as advertised, but the returned []byte points into an array containing the entire file. Since the slice references the original array, as long as the slice is kept around the garbage collector can’t release the array; the few useful bytes of the file keep the entire contents in memory.
+
+To fix this problem one can copy the interesting data to a new slice before returning it:
+
+func CopyDigits(filename string) []byte {
+    b, _ := os.ReadFile(filename)
+    b = digitRegexp.Find(b)
+    c := make([]byte, len(b))
+    copy(c, b)
+    return c
+}
+
+A more concise version of this function could be constructed by using append. This is left as an exercise for the reader.
+
+func CopyDigits(filename string) []byte {
+    b, _ := os.ReadFile(filename)
+    b = digitRegexp.Find(b)
+    var c []byte
+    c = append(c, b...)
+    return c
+}
+
+
+Maps
+====
+
+The make function returns a map of the given type, initialized and ready for use.
+	var m map[string]Vertex
+	m = make(map[string]Vertex)
+	m["Bell Labs"] = Vertex{ 40.68433, -74.39967,}
+	
+The zero value of a map is nil. If you try to add elements to a nil map, a run-time panic will occur. 
+	var m map[string]Vertex // Zero value of a map is nil
+	m["Bell Labs"] = Vertex{40.68433, -74.39967,} --> error: panic: assignment to entry in nil map
+
+You can also use Map literals, they are like struct literals, but the keys are required.
+	var m = map[string]Vertex{
+		"Bell Labs": Vertex{
+			40.68433, -74.39967,
+		},
+		"Google": Vertex{
+			37.42202, -122.08408,
+		},
+	}	
+	
+If the top-level type is just a type name, you can omit it from the elements of the literal.	
+
+	var m = map[string]Vertex{
+		"Bell Labs": {40.68433, -74.39967},
+		"Google":    {37.42202, -122.08408},
+	}	 
+	
+All comparable types such as boolean, integer, float, complex, string, ... can be keys. Even user-defined types 
+such as structs can be keys.
+
+Insert or update an element in map m:
+m[key] = elem
+
+Retrieve an element:
+elem = m[key]
+
+if an element is not present, The map will return the zero value of the type of that element	
+
+Delete an element:
+delete(m, key)
+
+Test that a key is present with a two-value assignment:
+elem, ok = m[key] // If key is in m, ok is true. If not, ok is false.	
+
+
+If elem or ok have not yet been declared you could use a short declaration form:
+elem, ok := m[key]
+
+length of a map is obtained by len(map)
+
+Iterating over elements of a map
+
+	 employeeSalary := map[string]int{
+		"steve": 12000,
+		"jamie": 15000,
+		"mike":  9000,
+	 }
+	 
+	 for key, value := range employeeSalary {
+		fmt.Printf("employeeSalary[%s] = %d\n", key, value)
+	 }
+
+full example: map of structs
+
+	package main
+
+	import (  
+	    "fmt"
+	)
+
+	type employee struct {  
+	    salary  int
+	    country string
+	}
+
+	func main() {  
+	    emp1 := employee{
+		salary:  12000,
+		country: "USA",
+	    }
+	    emp2 := employee{
+		salary:  14000,
+		country: "Canada",
+	    }
+	    emp3 := employee{
+		salary:  13000,
+		country: "India",
+	    }
+	    employeeInfo := map[string]employee{
+		"Steve": emp1,
+		"Jamie": emp2,
+		"Mike":  emp3,
+	    }
+
+	    for name, info := range employeeInfo {
+		fmt.Printf("Employee: %s Salary:$%d  Country: %s\n", name, info.salary, info.country)
+	    }
+
+	}
+	
+Pointers
+=========
+
+A pointer is a variable that stores the memory address of another variable. The & operator is used to get the address of a variable.
+
+*T is the type of the pointer variable which points to a value of type T.
+
+ex: 
+	b := 255
+	var a *int = &b
+	fmt.Printf("Type of a is %T\n", a)
+	fmt.Println("address of b is", a)
+
+	output	
+	Type of a is *int  
+	address of b is 0x1040a124  
+
+The zero value of a pointer is nil. 
+	var b *int // b == nil
+
+Pointers can be created using the new function	
+
+	size := new(int)
+	fmt.Printf("Size value is %d, type is %T, address is %v\n", *size, size, size)
+	*size = 85
+	fmt.Println("New size value is", *size)
+	
+	output
+	Size value is 0, type is *int, address is 0x414020  
+	New size value is 85  		
+
+Dereferencing a pointer means accessing the value of the variable to which the pointer points. *a
+
+	b := 255
+	a := &b
+	fmt.Println("address of b is", a)
+	fmt.Println("value of b is", *a)
+	
+	output
+	address of b is 0x1040a124  
+	value of b is 255  
+	
+Points to Note:
+Go doesn't support pointer arithmetic. 
+ex:
+	b := [...]int{109, 110, 111}
+	p := &b
+	p++	// invalid operation: p++ (non-numeric type *[3]int)
+	
+Do not pass a pointer to an array as an argument to a function. Use slice instead.	
+
+Although passing a pointer to an array as an argument to a function and making modification to it works, 
+it is not the idiomatic way of achieving this in Go. We have slices for this.
+
+ex:
+	func modify(arr *[3]int) {
+		arr[0] = 90	// which is basically (*arr)[0] = 90	
+	}
+
+	func main() {
+		a := [3]int{89, 90, 91}
+		modify(&a)
+		fmt.Println(a)
+	}
+	
+	output: [90 90 91]
+
+	
+use this
+
+	func modify(sls []int) {  
+	    sls[0] = 90
+	}
+
+	func main() {  
+	    a := [3]int{89, 90, 91}
+	    modify(a[:])
+	    fmt.Println(a)
+	}	
+
+	output: [90 90 91]
+This code is much cleaner and is idiomatic Go :).
+
+
+structs
+========
+
+A struct is a user-defined type that represents a collection of fields. 
+
+Declaring a struct 
+	type Employee struct {  
+	    firstName string
+	    lastName  string
+	    age       int
+	}	
+	
+	
+structs can be declared as a named type or unnamed type
+
+the type of the variable x is unnamed:
+var x struct{ I int }
+
+And the type of the variable y is named:
+
+type Foo struct{ I int }
+var y Foo	
+
+
+Creating a struct
+
+	//creating struct without specifying field names
+	emp1 := Employee{"Thomas", "Paul", 29, 800}
+	
+	//creating struct specifying field names
+	emp2 := Employee{
+	firstName: "Sam",
+	age:       25,
+	salary:    500,
+	lastName:  "Anderson",
+	}
+
+	fmt.Println("Employee 1", emp1)
+	fmt.Println("Employee 2", emp2)
+	}
+	
+	output
+	Employee 1 {Thomas Paul 29 800}  
+	Employee 2 {Sam Anderson 25 500}  
+	
+
+	// creating anonymous structs
+	emp3 := struct {
+		firstName string
+		lastName  string
+		age       int
+		salary    int
+	    }{
+		firstName: "Andreah",
+		lastName:  "Nikola",
+		age:       31,
+		salary:    5000,
+	    }
+
+	    fmt.Println("Employee 3", emp3)	
+
+	output
+	Employee 3 {Andreah Nikola 31 5000} 
+	
+
+The dot . operator is used to access the individual fields of a struct.
+
+	emp6 := Employee{
+		firstName: "Sam",
+		lastName:  "Anderson",
+		age:       55,
+		salary:    6000,
+	}
+	
+	fmt.Println("First Name:", emp6.firstName)
+	fmt.Println("Last Name:", emp6.lastName)
+	fmt.Println("Age:", emp6.age)
+	fmt.Printf("Salary: $%d\n", emp6.salary)
+	emp6.salary = 6500
+	fmt.Printf("New Salary: $%d", emp6.salary)	,
+	    
+	output:
+	First Name: Sam  
+	Last Name: Anderson  
+	Age: 55  
+	Salary: $6000  
+	New Salary: $6500  	    
+	    
+When a struct is defined and it is not explicitly initialized with any value, the fields of the struct 
+are assigned their zero values by default.
+
+	type Employee struct {  
+	    firstName string
+	    lastName  string
+	    age       int
+	    salary    int
+	}
+
+	func main() {  
+	    var emp4 Employee //zero valued struct
+	    fmt.Println("First Name:", emp4.firstName)
+	    fmt.Println("Last Name:", emp4.lastName)
+	    fmt.Println("Age:", emp4.age)
+	    fmt.Println("Salary:", emp4.salary)
+	}
+	
+	output
+	First Name:  
+	Last Name:  
+	Age: 0  
+	Salary: 0  		
+	
+It is also possible to specify values for some fields and ignore the rest. In this case, the ignored fields are assigned zero values.
+
+
+Pointers to a struct
+
+	type Employee struct {  
+	    firstName string
+	    lastName  string
+	    age       int
+	    salary    int
+	}
+
+	func main() {  
+	    emp8 := &Employee{
+		firstName: "Sam",
+		lastName:  "Anderson",
+		age:       55,
+		salary:    6000,
+	    }
+	    fmt.Println("First Name:", (*emp8).firstName)
+	    fmt.Println("Age:", (*emp8).age)
+	}
+
+	output
+	First Name: Sam  
+	Age: 55  	
+	
+The Go language gives us the option to use emp8.firstName instead of the explicit dereference (*emp8).firstName 
+to access the firstName field.	
+
+	emp8 := &Employee{
+		firstName: "Sam",
+		lastName:  "Anderson",
+		age:       55,
+		salary:    6000,
+	}
+	fmt.Println("First Name:", emp8.firstName)
+	fmt.Println("Age:", emp8.age)
+	
+	output
+	First Name: Sam  
+	Age: 55  	
+
+Anonymous fields
+----------------
+
+	type Person struct {  
+	    string
+	    int
+	}
+
+Even though anonymous fields do not have an explicit name, by default the name of an anonymous field is the name of its type
+So Person struct has 2 fields with name string and int.
+
+	type Person struct {  
+	    string
+	    int
+	}
+
+	func main() {
+	    p0 := Person{
+		"James",
+		60,
+	    }
+	    fmt.Println(p0.string)
+	    fmt.Println(p0.int)
+	
+	    p1 := Person{
+		string: "shane",
+		int:    50,
+	    }
+	    fmt.Println(p1.string)
+	    fmt.Println(p1.int)
+	}
+	
+	output
+	James
+	60
+	shane
+	50
+	
+Nested structs
+---------------
+
+	type Address struct {  
+	    city  string
+	    state string
+	}
+
+	type Person struct {  
+	    name    string
+	    age     int
+	    address Address
+	}	
+	
+	p := Person{
+	name: "Shane",
+	age:  50,
+	address: Address{
+		city:  "Chicago",
+		state: "Illinois",
+		},
+	}
+
+	fmt.Println("Name:", p.name)
+	fmt.Println("Age:", p.age)
+	fmt.Println("City:", p.address.city)
+	fmt.Println("State:", p.address.state)	
+	
+	output
+		
+	Name: Shane
+	Age: 50  
+	City: Chicago  
+	State: Illinois 	
+
+Promoted fields
+-----------------
+
+	type Address struct {  
+	    city string
+	    state string
+	}
+	type Person struct {  
+	    name string
+	    age  int
+	    Address
+	}	
+	
+In the above code snippet, the Person struct has an anonymous field Address which is a struct. Now the fields of the Address 
+namely city and state are called promoted fields since they can be accessed as if they are directly declared in the Person struct itself.	
+
+ex:
+
+	p := Person{
+		name: "Shane",
+		age:  50,
+		Address: Address{
+		    city:  "Chicago",
+		    state: "Illinois",
+		},
+	}
+
+	fmt.Println("Name:", p.name)
+	fmt.Println("Age:", p.age)
+	fmt.Println("City:", p.city)   //city is promoted field
+	fmt.Println("State:", p.state) //state is promoted field		
+	
+	output
+	Name: Shane  
+	Age: 50  
+	City: Chicago  
+	State: Illinois 	
+	
+Note:
+If a struct type starts with a capital letter, then it is an exported type and it can be accessed from other packages. 
+Similarly, if the fields of a struct start with caps, they can be accessed from other packages.	
+
+mkdir structs & cd structs
+go mod init structs  
+
+Suppose the folder structure is like this.. 
+
+	├── structs
+	│   ├── computer
+	│   │   └── spec.go
+	│   ├── go.mod
+	│   └── main.go
+
+spec.go
+	
+	package computer
+	
+	type Spec struct { //exported struct  
+	    Maker string //exported field
+	    Price int //exported field
+	    model string //unexported field
+
+	}
+
+main.go
+
+	package main
+
+	import (  
+	    "structs/computer"
+	    "fmt"
+	)
+
+	func main() {  
+	    spec := computer.Spec {
+		    Maker: "apple",
+		    Price: 50000,
+		}
+	    fmt.Println("Maker:", spec.Maker)
+	    fmt.Println("Price:", spec.Price)
+	}	
+
+	output
+	Maker: apple  
+	Price: 50000 	
+	
+
+Now if we try to access the unexported field model. 	
+
+	spec := computer.Spec {
+		Maker: "apple",
+		Price: 50000,
+		model: "Mac Mini",
+	}
+
+
+unknown field 'model' in struct literal of type computer.Spec
+
+Structs Equality
+------------------
+Structs are value types and are comparable if each of their fields are comparable. 
+Two struct variables are considered equal if their corresponding fields are equal.	
+
+
+	type name struct {  
+	    firstName string
+	    lastName  string
+	}
+
+	func main() {  
+	    name1 := name{
+		firstName: "Steve",
+		lastName:  "Jobs",
+	    }
+	    name2 := name{
+		firstName: "Steve",
+		lastName:  "Jobs",
+	    }
+	    if name1 == name2 {
+		fmt.Println("name1 and name2 are equal")
+	    } else {
+		fmt.Println("name1 and name2 are not equal")
+	    }
+
+	    name3 := name{
+		firstName: "Steve",
+		lastName:  "Jobs",
+	    }
+	    name4 := name{
+		firstName: "Steve",
+	    }
+
+	    if name3 == name4 {
+		fmt.Println("name3 and name4 are equal")
+	    } else {
+		fmt.Println("name3 and name4 are not equal")
+	    }
+	}
+	
+	output
+	name1 and name2 are equal  
+	name3 and name4 are not equal  
+
+Struct variables are not comparable if they contain fields that are not comparable
+
+
+	type image struct {  
+	    data map[int]int
+	}
+
+	func main() {  
+	    image1 := image{
+		data: map[int]int{
+		    0: 155,
+		}}
+	    image2 := image{
+		data: map[int]int{
+		    0: 155,
+		}}
+	    if image1 == image2 {
+		fmt.Println("image1 and image2 are equal")
+	    }
+	}
+
+	output
+	invalid operation: image1 == image2 (struct containing map[int]int cannot be compared)
+
+maps are not comparable, hence image1 and image2 cannot be compared.
+
+
+Functions
+===========
+
+skeleton of a function in golang is
+
+	func functionname(parametername type) returntype {  
+	 //function body
+	}
+	
+It can have multiple return values
+
+	func functionname(parametername type) (returntype, returntype) {  
+	 //function body
+	}	
+	
+It can have Named return values	
+
+	func rectProps(length, width float64)(area, perimeter float64) {  
+	    area = length * width
+	    perimeter = (length + width) * 2
+	    return //no explicit return value
+	}	
+	
+Functions are values too. They can be passed around just like other values.Function values may be used as function arguments and return values.
+
+	func compute(fn func(float64, float64) float64) float64 {
+		return fn(3, 4)
+	}
+	
+	hypot := func(x, y float64) float64 {
+		return math.Sqrt(x*x + y*y)
+	}
+	
+	compute(hypot)
+
+Go functions may be closures. 
+
+	func adder() func(int) int {
+		sum := 0
+		return func(x int) int {
+			sum += x
+			return sum
+		}
+	}
+
+	pos, neg := adder(), adder()
+	
+	for i := 0; i < 10; i++ {
+		fmt.Println(pos(i),neg(-2*i))
+	}
+	
+Variadic functions
+
+	func hello(a int, b ...int) {  
+	}	
+
+the parameter b is variadic since it's type is prefixed by ellipsis and it can accept any number of arguments. This function can be called by using the syntax.
+
+	hello(1, 2) //passing one argument "2" to b  
+	hello(5, 6, 7, 8, 9) //passing arguments "6, 7, 8 and 9" to b
+	
+The way variadic functions work is by converting the variable number of arguments to a slice of the type of the variadic parameter.
+Inside the function find, the type of b is []int i.e, an integer slice	
+
+Passing a slice to a variadic function
+
+	func find(num int, nums ...int) {  }
+	
+	nums := []int{89, 90, 95}
+	find(89, nums) // error --> cannot use nums (type []int) as type int in argument to find
+	
+	find(89, nums...) // right way (the slice is directly passed to the function without a new slice being created)
+	
+One side effect of the actual slice being passed into a variadic function is
+
+	func change(s ...string) {  
+	    s[0] = "Go"
+	}
+
+	func main() {  
+	    welcome := []string{"hello", "world"}
+	    change(welcome...)
+	    fmt.Println(welcome)
+	}	
+	 
+	output
+	[Go world]	 
+	
+	
+Methods
+========	
+
+A method is just a function with a special receiver type between the func keyword and the method name. 
+The receiver should be a defined type and must be defined in the same package as the method declaration. 
+
+Note: 
+type Book struct {} is a defined type since Book is a type definition of the struct .
+type MyInt int is a type definition 
+type PersonAge map[string]int is a type definition. 
+type Reader interface{Read([]byte) int} is another type definition
+
+Book, MyInt, PersonAge, Reader can be used as receivers for the methods. 
+
+The receivers cannot be a pointer defined type or an interface type. 
+
+so type P *int is not allowed 
+
+[The receiver type must be of the form T or *T where T is a type name. The type denoted by T is called the receiver base type; it must not be a pointer or interface type and it must be declared in the same package as the method]
+
+
+Methods are declared as follows:
+
+	func (t Type) methodName(parameter list) {  
+	}	
+	
+ex:
+
+	type Employee struct {  
+	    name     string
+	    salary   int
+	    currency string
+	}
+
+	/*
+	 displaySalary() method has Employee as the receiver type
+	*/
+	func (e Employee) displaySalary() {  
+	    fmt.Printf("Salary of %s is %s%d", e.name, e.currency, e.salary)
+	}
+
+	func main() {  
+	    emp1 := Employee {
+		name:     "Sam Adolf",
+		salary:   5000,
+		currency: "$",
+	    }
+	    emp1.displaySalary() //Calling displaySalary() method of Employee type
+	}	
+	
+	output
+	Salary of Sam Adolf is $5000
+
+
+Methods with the same name can be defined on different types whereas functions with the same names are not allowed. 
+Let's assume that we have a Square and Circle structure. It's possible to define a method named Area on both Square and Circle
+
+	type Rectangle struct {  
+	    length int
+	    width  int
+	}
+
+	type Circle struct {  
+	    radius float64
+	}
+
+	func (r Rectangle) Area() int {  
+	    return r.length * r.width
+	}
+
+	func (c Circle) Area() float64 {  
+	    return math.Pi * c.radius * c.radius
+	}
+
+	func main() {  
+	    r := Rectangle{
+		length: 10,
+		width:  5,
+	    }
+	    fmt.Printf("Area of rectangle %d\n", r.Area())
+	    c := Circle{
+		radius: 12,
+	    }
+	    fmt.Printf("Area of circle %f", c.Area())
+	}
+
+
+	output
+	Area of rectangle 50  
+	Area of circle 452.389342  
+
+
+Pointer Receivers vs Value Receivers
+--------------------------------------
+ The difference between value and pointer receiver is,  changes made inside a method with a pointer receiver 
+ is visible to the caller whereas this is not the case in value receiver
+ 
+	type Employee struct {  
+	    name string
+	    age  int
+	}
+
+	/*
+	Method with value receiver  
+	*/
+	func (e Employee) changeName(newName string) {  
+	    e.name = newName
+	}
+
+	/*
+	Method with pointer receiver  
+	*/
+	func (e *Employee) changeAge(newAge int) {  
+	    e.age = newAge
+	}
+
+	func main() {  
+	    e := Employee{
+		name: "Mark Andrew",
+		age:  50,
+	    }
+	    fmt.Printf("Employee name before change: %s", e.name)
+	    e.changeName("Michael Andrew")
+	    fmt.Printf("\nEmployee name after change: %s", e.name)
+
+	    fmt.Printf("\n\nEmployee age before change: %d", e.age)
+	    (&e).changeAge(51)	// e.changeAge(51) instead of (&e).changeAge(51) produces the same output
+	    fmt.Printf("\nEmployee age after change: %d", e.age)
+	}
+
+
+	output
+	Employee name before change: Mark Andrew  
+	Employee name after change: Mark Andrew
+
+	Employee age before change: 50  
+	Employee age after change: 51 
+
+
+When to use pointer receiver and when to use value receiver.Generally, pointer receivers can be used when changes 
+made to the receiver inside the method should be visible to the caller.Pointers receivers can also be used in places 
+where it's expensive to copy a data structure. 
+Consider a struct that has many fields. Using this struct as a value receiver in a method will need the entire struct 
+to be copied which will be expensive. 
+In this case, if a pointer receiver is used, the struct will not be copied and only a pointer to it will be used in the method.
+In all other situations, value receivers can be used.
+
+
+Methods of embedded struct fields 
+----------------------------------
+They can be called as if they belong to the structure where the anonymous field is defined.
+
+	type address struct {  
+	    city  string
+	    state string
+	}
+
+	func (a address) fullAddress() {  
+	    fmt.Printf("Full address: %s, %s", a.city, a.state)
+	}
+
+	type person struct {  
+	    firstName string
+	    lastName  string
+	    address
+	}
+
+	func main() {  
+	    p := person{
+		firstName: "Elon",
+		lastName:  "Musk",
+		address: address {
+		    city:  "Los Angeles",
+		    state: "California",
+		},
+	    }
+
+	    p.fullAddress() //accessing fullAddress method of address struct
+
+	}
+
+	output
+	Full address: Los Angeles, California  
+	
+
+Method sets: 
+--------------
+The method set of a type determines the methods that can be called on an operand of that type. Every type has a (possibly empty) method set associated with it:
+
+The method set of a defined type T consists of all methods declared with receiver type T.
+The method set of a pointer to a defined type T (where T is neither a pointer nor an interface) is the set of all methods declared with receiver *T or T.
+The method set of an interface type is the intersection of the method sets of each type in the interface's type set (the resulting method set is usually just the set of declared methods in the interface).
+
+Method Sets of embedded field types
+------------------------------------
+Given a struct type S and a named type T, promoted methods are included in the method set of the struct as follows:
+
+If S contains an embedded field T, the method sets of S and *S both include promoted methods with receiver T. The method set of *S also includes promoted methods with receiver *T.
+If S contains an embedded field *T, the method sets of S and *S both include promoted methods with receiver T or *T.
+	
+	
+Methods with non-struct receivers
+---------------------------------
+To define a method on a type, the definition of the receiver type and the definition of the method 
+should be present in the same package. So far, all the structs and the methods on structs we defined 
+were all located in the same main package and hence they worked.
+
+consider the following example
+
+	package main
+
+	func (a int) add(b int) {  
+	}
+
+	func main() {
+
+	}
+	
+In the program above, in line no. 3 we are trying to add a method named add on the built-in type int. 
+This is not allowed since the definition of the method add and the definition of type int is not in the same package. 
+This program will throw compilation error cannot define new methods on non-local type int	
+
+The way to get this working is to create a type alias for the built-in type int and then create a method 
+with this type alias as the receiver.
+
+	package main
+
+	import "fmt"
+
+	type myInt int
+
+	func (a myInt) add(b myInt) myInt {  
+	    return a + b
+	}
+
+	func main() {  
+	    num1 := myInt(5)
+	    num2 := myInt(10)
+	    sum := num1.add(num2)
+	    fmt.Println("Sum is", sum)
+	}    
+
+	output
+	Sum is 15.
+
+
+When a function has a value argument, it will accept only a value argument.
+Similarly functions with pointer arguments will accept only pointers whereas 
+
+When a method has a value receiver or pointer receiver,  it will accept both pointer and value receivers.
+
+Interfaces
+===========
+An interface is a set of method signatures. When a type provides definition for all the methods in the interface, 
+it is said to implement the interface
+
+	//interface definition
+	type VowelsFinder interface {  
+	    FindVowels() []rune
+	}
+
+	type MyString string
+
+	//MyString implements VowelsFinder
+	func (ms MyString) FindVowels() []rune {  
+	    var vowels []rune
+	    for _, rune := range ms {
+		if rune == 'a' || rune == 'e' || rune == 'i' || rune == 'o' || rune == 'u' {
+		    vowels = append(vowels, rune)
+		}
+	    }
+	    return vowels
+	}
+
+	func main() {  
+	    name := MyString("Sam Anderson")
+	    var v VowelsFinder
+	    v = name // possible since MyString implements VowelsFinder
+	    fmt.Printf("Vowels are %c", v.FindVowels())
+
+	}
+
+
+Practical use of interface
+
+	type SalaryCalculator interface {  
+	    CalculateSalary() int
+	}
+
+	type Permanent struct {  
+	    empId    int
+	    basicpay int
+	    pf       int
+	}
+
+	type Contract struct {  
+	    empId    int
+	    basicpay int
+	}
+
+	//salary of permanent employee is the sum of basic pay and pf
+	func (p Permanent) CalculateSalary() int {  
+	    return p.basicpay + p.pf
+	}
+
+	//salary of contract employee is the basic pay alone
+	func (c Contract) CalculateSalary() int {  
+	    return c.basicpay
+	}
+
+	/*
+	total expense is calculated by iterating through the SalaryCalculator slice and summing  
+	the salaries of the individual employees  
+	*/
+	func totalExpense(s []SalaryCalculator) {  
+	    expense := 0
+	    for _, v := range s {
+		expense = expense + v.CalculateSalary()
+	    }
+	    fmt.Printf("Total Expense Per Month $%d", expense)
+	}
+
+	func main() {  
+	    pemp1 := Permanent{
+		empId:    1,
+		basicpay: 5000,
+		pf:       20,
+	    }
+	    pemp2 := Permanent{
+		empId:    2,
+		basicpay: 6000,
+		pf:       30,
+	    }
+	    cemp1 := Contract{
+		empId:    3,
+		basicpay: 3000,
+	    }
+	    employees := []SalaryCalculator{pemp1, pemp2, cemp1}
+	    totalExpense(employees)
+
+	}
+
+
+Interface internal representation
+
+An interface can be thought of as being represented internally by a tuple (type, value). 
+type is the underlying concrete type of the interface and value holds the value of the concrete type.
+
+	type Worker interface {  
+	    Work()
+	}
+
+	type Person struct {  
+	    name string
+	}
+
+	func (p Person) Work() {  
+	    fmt.Println(p.name, "is working")
+	}
+
+	func describe(w Worker) {  
+	    fmt.Printf("Interface type %T value %v\n", w, w)
+	}
+
+	func main() {  
+	    p := Person{
+		name: "Shane",
+	    }
+	    var w Worker = p
+	    describe(w)
+	    w.Work()
+	}
+
+	output
+	Interface type main.Person value {Shane}  
+	Shane is working  
+	
+Empty Interface
+An interface that has zero methods is called an empty interface. Since the empty interface has zero methods, 
+all types implement the empty interface. It is represented as interface{}.
+
+
+	func describe(i interface{}) {  
+	    fmt.Printf("Type = %T, value = %v\n", i, i)
+	}
+
+	func main() {  
+	    s := "Hello World"
+	    describe(s)
+	    i := 55
+	    describe(i)
+	    strt := struct {
+		name string
+	    }{
+		name: "Shane D",
+	    }
+	    describe(strt)
+	}
+
+	output
+	Type = string, value = Hello World  
+	Type = int, value = 55  
+	Type = struct { name string }, value = {Shane D}
+
+
+Type assertion --> Type assertion is used to extract the underlying value of the interface.
+
+	func assert(i interface{}) {  
+	    s := i.(int) //get the underlying int value from i
+	    fmt.Println(s)
+	}
+	func main() {  
+	    var s interface{} = 56
+	    assert(s)
+	}
+	
+What if the underlying type is not an int
+
+	func assert(i interface{}) {  
+	    s := i.(int) 
+	    fmt.Println(s)
+	}
+	func main() {  
+	    var s interface{} = "Steven Paul"
+	    assert(s)
+	}	
+
+	output
+	panic: interface conversion: interface {} is string, not int.
+	
+To solve this we use, v, ok := i.(T), If the concrete type of i is T then v will have the underlying value of i and ok will be true.
+
+	func assert(i interface{}) {  
+	    v, ok := i.(int)
+	    fmt.Println(v, ok)
+	}
+	func main() {  
+	    var s interface{} = 56
+	    assert(s)
+	    var i interface{} = "Steven Paul"
+	    assert(i)
+	}
+
+	output
+	56 true  
+	0 false  
+	
+Type Switch
+------------
+A type switch is used to compare the concrete type of an interface against multiple types specified in various case statements. 
+It is similar to switch case. The only difference being the cases specify types and not values as in normal switch.
+
+	func findType(i interface{}) {  
+	    switch i.(type) {
+	    case string:
+		fmt.Printf("I am a string and my value is %s\n", i.(string))
+	    case int:
+		fmt.Printf("I am an int and my value is %d\n", i.(int))
+	    default:
+		fmt.Printf("Unknown type\n")
+	    }
+	}
+	func main() {  
+	    findType("Shane")
+	    findType(77)
+	    findType(89.98)
+	}
+
+	Output
+	I am a string and my value is Shane  
+	I am an int and my value is 77  
+	Unknown type
+
+It is also possible to compare a type to an interface. If we have a type and if that type implements an interface, 
+it is possible to compare this type with the interface it implements.
+ex:
+	type Describer interface {  
+	    Describe()
+	}
+	type Person struct {  
+	    name string
+	    age  int
+	}
+
+	func (p Person) Describe() {  
+	    fmt.Printf("%s is %d years old", p.name, p.age)
+	}
+
+	func findType(i interface{}) {  
+	    switch v := i.(type) {
+	    case Describer:
+		v.Describe()
+	    default:
+		fmt.Printf("unknown type\n")
+	    }
+	}
+
+	func main() {  
+	    findType("Shane")
+	    p := Person{
+		name: "Shane",
+		age:  25,
+	    }
+	    findType(p)
+	}
+
+
+	Output
+	unknown type  
+	Shane is 25 years old  
+
+
+Implementing interfaces using pointer receivers vs value receivers
+
+	type Describer interface {  
+	    Describe()
+	}
+	type Person struct {  
+	    name string
+	    age  int
+	}
+
+	func (p Person) Describe() { //implemented using value receiver  
+	    fmt.Printf("%s is %d years old\n", p.name, p.age)
+	}
+
+	type Address struct {  
+	    state   string
+	    country string
+	}
+
+	func (a *Address) Describe() { //implemented using pointer receiver  
+	    fmt.Printf("State %s Country %s", a.state, a.country)
+	}
+
+	func main() {  
+	    var d1 Describer
+	    p1 := Person{"Sam", 25}
+	    d1 = p1
+	    d1.Describe()
+	    p2 := Person{"James", 32}
+	    d1 = &p2
+	    d1.Describe()
+
+	    var d2 Describer
+	    a := Address{"Washington", "USA"}
+
+	    /* compilation error if the following line is
+	       uncommented
+	       cannot use a (type Address) as type Describer
+	       in assignment: Address does not implement
+	       Describer (Describe method has pointer
+	       receiver)
+	    */
+	    //d2 = a
+
+	    d2 = &a //This works since Describer interface
+	    //is implemented by Address pointer 
+	    d2.Describe()
+
+	}
+
+This is a surprise since we learnt earlier that methods with pointer receivers will accept both pointer and value receivers.
+The reason is that it is legal to call a pointer-valued method on anything that is already a pointer or whose address can be taken. 
+The concrete value stored in an interface is not addressable and hence it is not possible for the compiler to automatically 
+take the address of a, and hence this code fails.
+
+Implementing multiple interfaces
+--------------------------------
+
+	type SalaryCalculator interface {  
+	    DisplaySalary()
+	}
+
+	type LeaveCalculator interface {  
+	    CalculateLeavesLeft() int
+	}
+
+	type Employee struct {  
+	    firstName string
+	    lastName string
+	    basicPay int
+	    pf int
+	    totalLeaves int
+	    leavesTaken int
+	}
+
+	func (e Employee) DisplaySalary() {  
+	    fmt.Printf("%s %s has salary $%d", e.firstName, e.lastName, (e.basicPay + e.pf))
+	}
+
+	func (e Employee) CalculateLeavesLeft() int {  
+	    return e.totalLeaves - e.leavesTaken
+	}
+
+	func main() {  
+	    e := Employee {
+		firstName: "Shane",
+		lastName: "Dawson",
+		basicPay: 5000,
+		pf: 200,
+		totalLeaves: 30,
+		leavesTaken: 5,
+	    }
+	    var s SalaryCalculator = e
+	    s.DisplaySalary()
+	    var l LeaveCalculator = e
+	    fmt.Println("\nLeaves left =", l.CalculateLeavesLeft())
+ 
+Embedding interfaces
+
+	type SalaryCalculator interface {  
+	    DisplaySalary()
+	}
+
+	type LeaveCalculator interface {  
+	    CalculateLeavesLeft() int
+	}
+
+	type EmployeeOperations interface {  
+	    SalaryCalculator
+	    LeaveCalculator
+	}
+
+	type Employee struct {  
+	    firstName string
+	    lastName string
+	    basicPay int
+	    pf int
+	    totalLeaves int
+	    leavesTaken int
+	}
+
+	func (e Employee) DisplaySalary() {  
+	    fmt.Printf("%s %s has salary $%d", e.firstName, e.lastName, (e.basicPay + e.pf))
+	}
+
+	func (e Employee) CalculateLeavesLeft() int {  
+	    return e.totalLeaves - e.leavesTaken
+	}
+
+	func main() {  
+	    e := Employee {
+		firstName: "Shane",
+		lastName: "Dawson",
+		basicPay: 5000,
+		pf: 200,
+		totalLeaves: 30,
+		leavesTaken: 5,
+	    }
+	    var empOp EmployeeOperations = e
+	    empOp.DisplaySalary()
+	    fmt.Println("\nLeaves left =", empOp.CalculateLeavesLeft())
+	}
+
+Zero value of Interface
+
+	type Describer interface {  
+	    Describe()
+	}
+
+	func main() {  
+	    var d1 Describer
+	    if d1 == nil {
+		fmt.Printf("d1 is nil and has type %T value %v\n", d1, d1)
+	    }
+	}
+
+	output
+	d1 is nil and has type <nil> value <nil>  
+	
+
+If we try to call a method on the nil interface, the program will panic since the nil interface neither 
+has a underlying value nor a concrete type	
+
+	type Describer interface {  
+	    Describe()
+	}
+
+	func main() {  
+	    var d1 Describer
+	    d1.Describe()
+	}
+	
+	output
+	panic: runtime error: invalid memory address or nil pointer dereference
+	[signal SIGSEGV: segmentation violation code=0xffffffff addr=0x0 pc=0xc8527]"
+	
+
+
+packages and modules
+------------------------
+package dir
+  |
+  |___ file with package package_dir_name
+
+  or
+
+package dir
+  |
+  |__ file with package package_dir_name
+  |
+  |__ file with package package_dir_name
+ 
+ 
+
+module
+  |
+  |___ package_dir
+  |___ package_dir
+  |___ package_dir
+  |
+  |__go.mod file
+  
+
+Another possibility there may be a single package in a module, here module_name and package_name will be the same
+
+
+ex:
+
+calculator
+  |
+  |__ operations
+  	|__ simple.go		(having package operations) 
+  	|__ complex.go		 	"
+  	|__ binary.go			"
+  |
+  |__ display
+  	|__ format.go		(having package display)
+  	|__ ...				"
+  |
+  |__ mod.go
+  
+ 
+  	
+
+I/O
+====
+fmt.Println()
+fmt.Print()
+fmt.Printf() -- > formatted output
+
+Reading user input
+---------------------
+var userName string
+fmt.Scan(&userName)
+fmt.Printf("The username is %v", userName)
+
+
+

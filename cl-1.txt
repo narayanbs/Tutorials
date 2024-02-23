@@ -1,0 +1,253 @@
+Shell is a command line interpreter. Anything you enter inside a shell, it interprets it as a command.
+
+for ex: 
+  $ hello  --> hello command not found
+
+Each time we type inside a shell, and press the Enter key,  the text undergoes "word-splitting" into commands and arguments. 
+But how does the shell split the words???
+The shell looks for spaces, tabs and line feed/newline characters (' ', '\t', '\n') and treats them as delimiters between words. 
+this is specified in bash as internal field seperator, IFS.
+
+echo "$IFS" | cat -et  -->  ^I$  (space, ^I tab character and $ newline character)
+
+This means unquoted spaces, tabs, and newlines are not considered as separators, not part of the text. 
+
+ex: this is a           test  --> becomes -->  this is a test 
+The spaces serve only as seperators and hence the above string is split into 4 words.
+so our command line contains a command followed by three distinct arguments.
+
+Additionally bash performs several expansions and substitutions upon the text. These include parameter expansion, 
+pathname expansion, arithmetic expansion, brace expansion and command line substitution.
+
+If the words are enclosed by quotes(double/single) then it is considered a single entity, word splitting is not done. 
+ex: "this is a      test" --> this is a single entity. It is not split into 4 words.  If the words are enclosed by single quote 
+then expansions and substitutions are not done. 
+
+Now let us look at some expansions and substitutions. 
+
+Parameter expansion
+-------------------
+men=Jordan
+when we use $men or ${men} in the text, the parameter will be replaced with their value i.e Jordan
+for ex:
+${men} --> Jordan: command not found
+echo $men or echo ${men} --> echo Jordan   Note: It's better to use ${} for parameter expansion
+echo $USER or echo ${USER} --> echo mordor
+
+MYVAR="Hello World"
+echo $MYVAR
+
+MYWAR represents a single word "Hello World", since it is enclosed in quotes. 
+
+Another example, 
+test="this is                bunny", 
+echo ${test}. 
+
+${test} will involve a parameter expansion,  to this is           bunny. Now bash will split it into three words using space as a seperator. 
+
+But what about echo "${test}"
+Again parameter expansion will occur to echo "this is           bunny" 
+this is                 bunny will be printed 
+
+similarly if test="this
+		is
+		bunny"
+${test} will be parameter expanded to this\nis\nbunny. Again bash splits it into three words. since \n newline is a seperator. 
+Hence we see --> this is bunny
+
+another example is echo the price is $100 --> echo the price is 00, shell performs parameter expansion on $1 and substitutes an empty string.
+(In bash $1 implies first argument, hence it is substituted instead of $100 as a whole)
+
+Pathname expansion (wildcards)
+------------------------------
+Shell uses wildcards to match strings that represent file/directory etc. but what is a wildcard?
+
+A string can be considered a wildcard pattern if it contains one of the following characters: *, ?, or [
+
+* --> wildcard matches any number of characters except slashes on linux, (on windows slashes and backslashes) a.l.a file seperators. (to enable */ or *\ in windows)
+? --> matches any single character
+[]  --> matches any single character from the set
+[!] --> matches any single character not from the set
+
+[[:alnum:]] -> matches any alpha-numeric character i.e a-zA-z0-9 (underscore _ is not alpha-numeric) ,
+[[:alpha:]] -> matches any alphabet, 
+[[:digit:]] -> matches any digit 0-9
+[[:lower:]] -> matches a lowercase letter
+[[:upper:]] -> matches an uppercase letter
+
+The most common wildcard that you'll see is the Asterisk (*) type * into the terminal, since * wildcard matches any number of characters,
+shell expands it into file/dir names in the current folder and tries to execute the first one as a command, 
+with others passed as arguments.
+
+D* --> matches all files/dir starting with D
+*s --> matches all files/dir ending with s
+
+ls is a command in unix for listing files and directories. 
+
+ls * --> shell expands * and passes the name of each file/dir present in the current directory as argument to ls, 
+for ex: this may expand to ls Desktop Downloads one.pdf and so ls will list the contents of Desktop and Downloads folder
+along with one.pdf 
+
+echo is a command that prints out its arguments. 
+
+echo * --> shell expands * and passes each file/dir name as argument to the echo command 
+* means matching any characters in a filename except / or \ . so shell expands it before executing the echo command which will
+print the name of the file/dir passed as the argument, on the terminal. 
+
+echo D* --> print files/dirs beginning with D
+echo *s --> print files/dirs ending in s
+echo [[:upper:]]* ---> files/dirs starting with an Uppercase 
+echo /usr/*/share ---> /usr/kerberos/share /usr/local/share
+echo .* will show hidden files and also curdir . and pardir .. as well. 
+use echo .[!.]* to show most of the hidden files, but of course not files starting with ..
+To show hidden files best is to use ls -A
+echo ~ will print the home dir, since tilde "~" expands to home directory
+
+** (double asterisk) is disabled by default on most systems. On bash it can be enabled by the globstar option 
+$ shopt -s globstar     (to persist it put it into your .bashrc)
+
+* (single asterisk) as mentioned previously matches any number of  character except '/' (linux) or '\' (windows). so it can be used
+on one directory level. 
+
+**/ expands to an arbitrary number of directories. suppose we have the following directory structure
+
+test
+├── file1.txt
+├── one
+│   ├── file2.txt
+│   └── three
+│       ├── file3.txt
+│       └── four
+│           └── file4.txt
+└── two
+    └── three
+        ├── file23.txt
+        └── four
+            └── file24.txt
+ 
+$ ls test/**/*.txt  	# will find every txt file in the hierarchy
+
+test/file1.txt            test/one/three/four/file4.txt
+test/one/file2.txt        test/two/three/file23.txt
+test/one/three/file3.txt  test/two/three/four/file24.txt
+
+where as 
+
+$ ls test/*/*.txt 	# will just find the text in one directory below
+
+test/one/file2.txt
+
+Another example, to find all Markdown files recursively that end with .md, the pattern would be **/*.md
+Note: *.md would only return the file paths in the current directory, which is why we append **/ at the beginning.
+
+
+Arithmetic expansion
+--------------------
+echo $((2 + 2)) --> 4
+$((expression)) --> where expression is an arithmetic expr consisting of values and operators
+Nested arithmetic expansions are also done.
+ex: echo $(($((5**2)) * 3)) --> 75, it can also be written as  $(((5**2) * 3)) 
+
+Brace expansion
+---------------
+Anything inside {} seperated by comma gets expanded.. Note there cannot be space before or after comma. 
+for ex: echo {1,2.3} --> echo 1 2 3 --> 1 2 3 
+	but
+	echo {1, 2, 3} --> {1, 2, 3}, no expansion because of space after/before comma.
+
+Patterns to be 'brace expanded' may contain a leading portion called a preamble and a trailing portion called a postscript. 
+
+echo A-{1,2,3}-B  (preamble is A and postscript is B). --> echo A-1-B A-2-B A-3-B --> A-1-B A-2-B A-3-B
+
+echo Front-{A,B,C}-Back  --> Front-A-Back, Front-B-Back, Front-C-Back 
+echo Number_{1..5} --> Number_1 Number_2 Number_3 Number_4 Number_5
+echo {01..15} --> 01 02 03 04 05 06 07 08 09 10 11 12 13 14 15 (zero prepended)
+echo {001..15} --> 001 002 003 004 005 006 007 008 009 010 011 012 013 014 015 (zero prepended)
+echo {Z..A} --> Z Y X W V U T S R Q P O N M L K J I H G F E D C B A (reverse order)
+Brace expansion can be nested
+echo a{A{1,2},B{3,4}}b --> a{A1,A2,B3,B4}b --> aA1b, aA2b, aB3b, aB4b
+
+Primary use of brace expansion is to make lists of files/dirs to be created
+mkdir {2007..2009}-{01..12}
+creates folders 2007-01 2007-02 2007-03... etc 
+
+command substitution
+--------------------
+$() will execute the command and substitute the results of the command in its place. 
+ls -l $(which cp) --> ls -l /usr/bin/cp
+echo $(ls) --> echo Desktop Downloads .... 
+file $(ls -d /usr/bin/* | grep zip) --> get list of files/dir with zip in their name and output what they are
+
+older shell use this syntax for command substitution. ls -l `which cp`
+
+------------------------------------------
+Suppressing expansions and interpolations
+-------------------------------------------
+We can use use quoting (double and single) to suppress expansions. 
+
+Double quoting "" --> all special characters lose meaning except $, \ and ', single quoting '' --> every character loses their special meaning. it
+suppresses all expansions..
+
+Double Quotes ""
+----------------
+If we enter a text surrounded by double quotes into a shell, if it contains characters other than $, \ and ', they are used as they are. 
+word-splitting characters are not treated as delimiters (so space,tab and newline become part of argument). Once the double quotes are added, our command line contains a command followed by a single argument.
+
+Ex: Now consider a parameter stmt="this is a      test". What happens when we use echo "${stmt}" ??? 
+
+	stmt="this is a         test"
+	echo ${stmt} ---> echo this is a test		 // stmt is expanded and spaces get removed
+	
+	echo "${stmt}" --> echo "this is a         test"  // stmt is expanded, but inside double quotes, so spaces are retained and hence becomes a single argument  
+
+"this is a         test" is considered as a single command this is a        test  since word seperators lose their meaning.
+"${stmt}" will involve parameter expansion, since double quote doesn't affect $, \ and '."${stmt}" will be expanded as "this is a     test". 
+Double quotes prevent splitting of the words, so the final command will be echo followed by a single argument this is a    test.
+i.e echo "this is a test" 
+
+
+Similarly if test="this
+		is
+		bunny"
+
+what is echo "$test" ???  $test is a parameter expansion and the above will become echo "this\nis\nbunny" and this is printed.
+	     --> this 
+		 is
+		 bunny
+ 
+
+echo "the following *" --> the following *  (the expansion of * is suppressed and the whole line becomes a single argument)
+but
+echo "the price is $100" --> the price is 00  as before shell tries the parameter expansion of $1 and passes the whole string
+as a single argument to echo
+
+ls -l two words.txt
+ls: cannot access two: No such file or directory
+ls: cannot access words.txt: No such file or directory
+
+but adding double quotes spaces lose special meaning hence
+ls -l "two words.txt" --> -rw-rw-r-- 1 me me 18 2016-02-20 13:03 two words.txt
+
+$ holds the special meaning hence, parameter, arithmetic and  command substitution works.
+echo "$USER $((2+2)) $(which cp)" --> mordor 4 /usr/bin/cp
+
+Single Quotes ''
+----------------
+--> it suppresses all expansions. 
+
+ex:
+echo text ~/*.txt {a,b} $(echo foo) $((2+2)) $USER --> text /home/me/ls-output.txt a b foo 4 mordor
+echo "text ~/*.txt {a,b} $(echo foo) $((2+2)) $USER" --> text ~/*.txt {a,b} foo 4 mordor
+echo 'text ~/*.txt {a,b} $(echo foo) $((2+2)) $USER' --> text ~/*.txt {a,b} $(echo foo) $((2+2)) $USER
+
+Escaping Characters
+---------------------
+Sometimes we want to quote only a single character. To do this, we can precede a character with a backslash, which in this context is called the escape character. Often this is done inside double quotes to selectively prevent an expansion.
+echo "The balance for user $USER is: \$5.00" -->  The balance for user mordor is: $5.00
+
+It is also common to use escaping to eliminate the special meaning of a character in a filename. 
+ex: it is possible to use characters in filenames that normally have special meaning to the shell. These would include $, !, &, spaces, and others. To include a special character in a filename we can do this:
+mv bad\&filename good_filename
+To allow a backslash character to appear, escape it by typing \\. 
+Note that within single quotes, the backslash loses its special meaning and is treated as an ordinary character.
+

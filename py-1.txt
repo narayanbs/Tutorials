@@ -1,0 +1,500 @@
+Python
+========
+ls -l $(which python) or ls -l `which python` 
+
+python3 <script.py>
+python3 -c 'import sys; sys.stdout.write('hello')'
+python3 -m <module_name> 
+	ex: python3 -m pip install --user yt-dlp
+
+python file structure
+---------------------
+#!/usr/bin/env python3
+#-*- coding: utf-8 -*-
+
+    .....
+
+
+Built-in types
+--------------
+bool, int, float, complex, str, bytes, bytearray, list, tuple, set, dict
+
+Literals
+---------
+boolean -- True or False
+integer -- 123 - decimal, 0xff -- hexadecimal, 0o14 -- octal, 0b10100101 -- binary
+float -- 12.43, 1.34E12, 
+complex -- 3+4j, 
+string -- "regular string" or 'regular string' , ''' multiline strings ''', r'raw\n strings' or r"raw\n strings" 
+bytes -- b'he\x6cl\x6f' i.e b'hello'
+bytearray -- same as above except it is mutable 
+list -- [1,2,3]
+tuple -- (1,4,2)
+set -- {1,2,3}
+dict -- {1: "Narayan", 2: "python"}
+
+Numeric types -- int, float and complex
+----------------------------------------
+integers can be positive or negative numbers,in Python, there is no limit to how long a number can be. 
+It is only constrained by the amount of memory your system has.
+ex: Num = 99999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999 + 1
+
+More info can be obtained as shown below
+import sys
+sys.int_info() --> sys.int_info(bits_per_digit=30, sizeof_digit=4, 
+        default_max_str_digits=4300, str_digits_check_threshold=640)
+
+Integers can be represented in different bases: decimal (base 10), Hexadecimal (base 16), Octal (base 8) and binary (base 2)
+
+All real numbers that have one decimal can be considered a float value. There is no fixed number of digits before or after the decimal point
+ex: Z = -48.1928569
+
+Floats can be represented in scientific notation using e or E.
+X = 1e-2  Y = 4e5  Z = 2.5e105
+
+The max and min values for float are as show below. 
+import sys
+sys.float_info --> sys.float_info(max=1.7976931348623157e+308, max_exp=1024, max_10_exp=308,
+            min=2.2250738585072014e-308, min_exp=-1021, min_10_exp=-307, dig=15,
+            mant_dig=53, epsilon=2.2204460492503131e-16, radix=2, rounds=1)
+            
+The maximum value stored by floats is 1.79 * 10^308. 
+how??
+for 64-bit --> n = (−1)**s * (1.f) * 2**(e−1023)  
+largest ==> sign is +ve, f is all 1 (52 of them) and e is 2046 i.e 1 + (1/2)**1 + (1/2)**2 + .... (1/2)**52 * 2**(2046 - 1023)
+
+Using numpy -- largest = ((1 + sum(0.5**np.arange(1, 53)))) * (2**(2046-1023)),  which is 1.7976931348623157e+308
+
+Values beyond this is represented by inf
+    print(1.79e308) ==> 1.79e308
+    print(1.8e308) ==> inf
+
+Note: infinity and NaN
+The concept of representing infinity as an integer violates the definition of infinity itself. As of 2020, there is no such way to 
+represent infinity as an integer in any programming language so far. But in python, as it is a dynamic language, float values can be 
+used to represent an infinite integer. One can use float(‘inf’) to represent it as infinity. Below is the list of ways 
+one can represent infinity in Python.
+ 
+1. Using float(‘inf’) and float(‘-inf’):
+
+As infinity can be both positive and negative they can be represented as a float(‘inf’) and float(‘-inf’) respectively. 
+The below code shows the implementation of the above-discussed content:
+
+# Defining a positive infinite integer
+positive_infinity = float('inf')
+print('Positive Infinity: ', positive_infinity)
+
+# Defining a negative infinite integer
+negative_infinity = float('-inf')
+print('Negative Infinity: ', negative_infinity)
+
+Positive Infinity:  inf
+Negative Infinity:  -inf
+
+2. Using math.inf and -math.inf from math module
+
+3. Decimal('Infinity') and Decimal ('-Infinity') from decimal.Decimal 
+
+NaN, standing for not a number, is a numeric data type used to represent any value that is undefined or unpresentable.
+For example, 0/0 is undefined as a real number and is, therefore, represented by NaN. The square root of a negative number 
+is an imaginary number that cannot be represented as a real number, so, it is represented by NaN.
+
+We can create NaN value using float as shown below
+n1 = float("nan")
+n2 = float("Nan")
+n3 = float("NaN")
+n4 = float("NAN")
+print n1, n2, n3, n4 ---> nan nan nan nan
+
+Also math.nan from math module
+
+Complex numbers are represented in the form (a+jb) where a is the real part and b is the imaginary part
+Python uses j instead of i (as is standard in math notation)
+
+X = 4+2j, Y = 2-5j, Z = -5j
+type(5-4j) --> <class 'complex'>
+
+It is compulsory to define the coefficient of the imaginary part, otherwise, the j will be considered as a variable.
+ex:
+X = 4 + j # NameError: name ‘j’ is not defined
+Y = 4 + 1j # Valid complex number
+
+Text Sequences -- string
+-------------------------
+Textual data in Python is handled with str objects, or strings. Strings are immutable sequences of Unicode code points. 
+String literals are written in a variety of ways:
+
+Single quotes: 'allows embedded "double" quotes'
+
+Double quotes: "allows embedded 'single' quotes"
+
+Triple quoted: '''Three single quotes''', """Three double quotes"""   these represent multi-line strings. 
+
+raw strings r'' or r"", where characters are not escaped 
+
+strings and representations: multi-line strings and raw strings are basically represented as escaped strings underneath. 
+ex: s =  ''' hello how is
+	your day going '''
+
+is internally represented as "hello how is \n your day going".
+
+Similarly the raw string s = r'this is purely \n nonsense' is internally represented as "this is purely \\n nonsense".
+
+Multi-line strings can also be represented in the old C-way of terminating a line with a backslash and return. 
+In this case the underlying representation doesn't have a newline.
+for ex: s = 'hello this is purely \
+	nonsensical isn't it'
+ 
+Escape Sequence:
+An escape sequence contains a backslash (\)  followed by one of the escape sequence characters or an octal or hexadecimal number.
+If you use the \ (backslash) in front of another character, it changes the meaning of that character
+for ex: t is a literal character, \t makes it into a tab character. Similarly n is a literal, \n is line feed. 
+\ is also used to escape quote \' or \" and backslash itself i.e \\
+
+Now the use of backslash could be a problem on windows where file path use \ as the separator. 	
+for ex:
+filename = 'c:\abc\def\ghi.txt' , It contains a “\a” character. Which means that when we print it: c:bc\def\ghi.txt
+so we have to escape the \ backslash like this, filename = 'c:\\abc\\def\\ghi.txt' to print c:\abc\def\ghi.txt
+But this is where raw strings can help. instead of escaping the \ we can use filename = r'c:\abc\def\ghi.txt'  to get the right path.
+
+Binary Sequences -- bytes, bytearray
+--------------------------------------
+bytes object is an immutable sequence of small integers in the range 0 <= x < 256, while bytearray is mutable.
+Since bytes objects are sequences of integers (akin to a tuple), for a bytes object b, b[0] will be an integer, 
+
+bytes() constructor 
+* with an integer argument creates a bytes object of given size initialized with null bytes
+* can take a string argument with a specified encoding and converts it into array of bytes
+* can take an iterable yielding integers in the range 0 to 255,
+
+ex: 
+    bytes(5) = b'\x00\x00\x00\x00\x00'
+    bytes('abc', 'utf-8') = b'abc'
+    bytes([1,2,3,4,5]) = b'\x01\x02\x03\x04\x05
+
+It's the same with bytearray, except it is mutable
+
+    for ex: x = bytearray('abc', 'utf-8')
+            x[0] = 115
+            x = b'sbc'
+Bytes literals are always prefixed with 'b' or 'B'; they produce an instance of the bytes type instead of the str type. 
+They may only contain ASCII characters; bytes with a numeric value of 128 or greater must be expressed with escapes.            
+The 'rb' prefix is used for raw bytes literals.
+
+Note: x = b'abc', x[0] is an integer (in the range 0 <= x[0] < 256) i.e type(x[0]) = <class int>. 
+This echoes how other languages treat string data; in C the unsigned char type is also effectively an integer in the range 0-255.
+
+Sequence Types -- list, tuple 
+-----------------------------
+list is a mutable sequence type. 
+ex: l = [1,2,3]  // literal
+or l = list() // constructor
+
+list methods -->  append(), extend(iterable), insert(index, a), remove(a), del[index], pop(), pop(index),
+        clear(), count(a), index(a), sort(), reverse()
+        
+l = [1,5,3,2,4]
+
+l.sort() 
+print(l) --> [1,2,3,4,5]
+l.reverse()
+print(l) --> [5,4,3,2,1]
+l.sort()
+print(l) --> [1,2,3,4,5]
+
+l.sort(reverse=True) 
+print(l) -> [5,4,3,2,1]
+
+Note: python has a sorted() function that takes in an iterable and returns a sorted list
+	ex: sorted("hellochunai") -->  ['a', 'c', 'e', 'h', 'h', 'i', 'l', 'l', 'n', 'o', 'u']
+
+tuple is an immutable sequence type. 
+x = (1,2,3) // literal
+y = (2,) // literal with one element, requires a , at the end because y = (2) is int 
+t = tuple([1,2,3]) // constructor 
+
+Since it's immutable you can't add, remove or modify a tuple. t = tuple(), empty tuple cannot be filled with elements
+
+But you can add two tuples to create a new one
+x + y  = (1,2,3,2)
+
+Note: string. list and tuple are the sequence types in python
+
+set
+-----
+Notion of a mathematical set.
+s = {1,2,3,4,5} // set literal, Note s = {} is a dict, not an empty set
+s = set()
+
+methods --> add(a), remove(a), union or |, intersection or &, subtraction or -, symmetric difference or ^
+
+dict
+----
+Mapping type.. 
+d = {} // literal
+d = dict() // constructor
+d['one'] = "first"
+x = d['one']
+if you try to retrieve an invalid key, you get KeyError
+for ex: d['two'] .. throws KeyError
+to retrieve a key without excaption use get,  you can also use a default value if the key doesn't exist
+d.get('two') -- no error
+d.get('two', 'default value') --> default value
+
+methods:  
+	keys() -- set of keys,
+	values() -- set of values, 
+	items() -- set of (key, value),
+	get(key, default),	
+        pop(a) -- remove specified key and return corresponding value
+        popitem() -- remove an entry in LIFO order as (key,value)
+        clear(), copy() -- return shallow copy,
+        update() -- update dict from iterable/dict passed
+        
+ex:
+	d = {'physics': 66, 'math': 77 }
+	c = d.copy()	# shallow copy  
+	c --> {'physics': 66, 'math': 77}
+	e = {'practical': 55}
+	
+	d.update(e)	# updated with dict 
+	
+	d --> {'physics': 66, 'math': 77, 'practical': 55}
+	c --> {'physics': 66, 'math': 77}
+
+	d.update([('chemistry', 99), ('english', 50)]) 	 # updated with iterable
+	d --> {'physics': 66, 'math': 77, 'practical': 55, 'chemistry': 99, 'english': 50}
+	
+	x = {}
+	x.update([[1,2],[3,4]])
+	x --> {1:2, 3:4}
+
+
+Type Conversion  
+----------------
+
+Implicit Type Conversion  -- Python converts types implicitly depending on the context. 
+-------------------------
+for boolean, Anything that is empty is False i.e  0, "", [], (), {}, None, Everything else is True
+
+For Numeric Types, Python always converts smaller types into larger data types so that data is not lost.
+for ex: When we add an int and a float, the resulting value will be a float.
+
+When it is unable to convert types, then it throws a TypeError.
+for ex: When we try to add a string and integer together, we get a type error.
+
+Explicit Type Conversion (Type casting) 
+---------------------------------------
+Note there can be data loss during conversion.
+
+int() 
+* takes decimal, hexadecimal, binary and octal integers and converts them to decimal (base 10) integers
+* it takes a float and removes everything after the decimal point
+* It takes a string and a base and converts it into decimal
+
+ex: int(0xff) = 255, int(0b1010) = 6, int(20.0) = 20,  int('456') = 456, int('0b1010', 2) = 6, int("hello") = ValueError
+
+float()
+* converts other numeric values into floats
+ex: float(5) = 5.0, float(0xb) = 11.0, float("234") = 234.0, float("hello") = ValueError
+
+Note: complex numbers cannot be converted into int and float
+
+complex()
+* converts other nummeric values into complex numbers
+ex: complex(3) = 3+0j, complex(8.5) = 8.5+0j, complex(2, 3) = 2+3j, complex("11") = 11+0j, complex("hello") = ValueError
+
+hex(),bin() and oct() will take an integer (other bases) and convert it into hexadecimal, binary and octal respectively
+The values returned are string. 
+ex: hex(0b11111111) = '0xff'
+    hex(255) = '0xff'
+    hex('23') = TypeError
+
+    oct(255) = '0o377'
+    bin(4) = '0b100'
+
+str()
+* converts the argument into a string type
+* if the argument is an object, then its __str__ method is invoked. __str__ defaults to __repr__ if not overridden. but it is
+not the other way round, if __repr__ is not overridden, then it won't invoke __str__ dunder method.
+
+ex:
+    str(20) = "20"
+    str([1,2,3,4,5]) = '[1,2,3,4,5]' ---> is the same as [1,2,3,4,5].__str__() --> also [1,2,3,4,5].__repr__()
+
+ord()
+* Returns the unicode code point of a one character string
+ex:
+   ord("a") = 97
+
+chr()
+* Returns the unicode string of one character with ordinal equal to the argument
+ex:
+  chr(97) = "a"
+  
+ex: ord('ꁃ') = 41027
+    chr(41027) - 'ꁃ'
+
+Operators
+----------
+Arithmetic: + - * / // (floor division) % ** (expo) 
+Bitwise: & | ^ ~ >> <<
+Relational: > < <= >= == !=
+Logical: and, or, not
+Identity: is, is not
+Assignment: = += -= *= /= %= //= **= &= |= ^= >>= <<=
+Membership: in, not in
+
+id
+----
+Everything is an object in python. Objects have identity and type. They can be determined by id() and type() respectively.
+A unique id is assigned to an object when it is created. It could be the object's memory address. It will be different each
+time we run the program
+x, y = 2, 2
+for primitives, they have the same identity i.e x is y and x == y
+x is y ==> id(x) == id(y).
+
+x = [1,2,3]
+y = [1,2,3]
+x is not y but x == y i.e id(x) != id(y) even though x == y
+
+x = [1,2,3]
+y = x   // id(y) == id(x)
+y[0] = 20
+x = [20,2,3]
+
+
+slicing
+-------
+slicing works with sequence types. Notation is seq[start:stop:step]. It returns a sequence that begins at the index 'start' and 
+ends at the element with index stop - 1.  step is optional and defaults to 1
+In other words, it returns all elements of the sequence at the index n where n satisfies the following expression:
+    start <= n < stop
+when start or stop is greater than len(seq) then python uses len(seq) for the start or stop.
+Both start and stop are optional. The start defaults to 0 and stop defaults to len(seq) when you don’t specify it.
+
+The syntax is:
+
+a[start:stop]  # items start through stop-1
+a[start:]      # items start through the rest of the array
+a[:stop]       # items from the beginning through stop-1
+a[:]           # a copy of the whole array
+
+There is also the step value, which can be used with any of the above:
+
+a[start:stop:step] # start through not past stop, by step
+
+The key point to remember is that the :stop value represents the first value that is not in the selected slice. 
+So, the difference between stop and start is the number of elements selected (if step is 1, the default).
+
+The other feature is that start or stop may be a negative number, which means it counts from the end of the array instead of the beginning. So:
+
+a[-1]    # last item in the array
+a[-2:]   # last two items in the array
+a[:-2]   # everything except the last two items
+
+Similarly, step may be a negative number:
+
+a[::-1]    # all items in the array, reversed
+a[1::-1]   # the first two items, reversed
+a[:-3:-1]  # the last two items, reversed
+a[-3::-1]  # everything except the last two items, reversed
+
+Python is kind to the programmer if there are fewer items than you ask for. For example, if you ask for a[:-2] and a only contains one element, you get an empty list instead of an error. Sometimes you would prefer the error, so you have to be aware that this may happen.
+
+ex: 
+colors = ['red', 'green', 'blue', 'orange']
+print(colors[0:100])    --> ['red', 'green', 'blue', 'orange']
+
+colors = ['red', 'green', 'blue', 'orange']
+print(colors[10:])  --> []  // Because the start bound is 10, Python assigns the len(colors) to it.
+
+Negative start and stop bounds
+
+colors = ['red', 'green', 'blue', 'orange']
+print(colors[-4:-2])        --> ['red', 'green']
+
+   0      1        2        3
+------|-------|--------|-----------|
+ red    green   blue       orange
+------|-------|--------|-----------|
+  -4     -3       -2        -1
+
+
+colors = ['red', 'green', 'blue', 'orange']
+print(colors[0:4:2])        --> ['red', 'blue']
+
+colors = ['red', 'green', 'blue', 'orange']
+print(colors[:])        --> ['red', 'green', 'blue', 'orange']
+print(colors[::])       --> ['red', 'green', 'blue', 'orange']
+print(colors[::-1])     --> ['orange', 'blue', 'green', 'red']
+
+colors = ['red', 'green', 'blue', 'orange']
+print(colors[1::-1] 	--> ['green', 'red']
+print(colors[:-3:-1]	--> ['orange', 'blue']
+print(colors[-3::-1] 	--> ['green', 'red']
+
+Relationship with the slice object
+
+A slice object can represent a slicing operation, i.e.:
+a[start:stop:step] is equivalent to:  a[slice(start, stop, step)]
+
+Slice objects also behave slightly differently depending on the number of arguments, similarly to range(), i.e. both slice(stop) and slice(start, stop[, step]) are supported. To skip specifying a given argument, one might use None, so that e.g. a[start:] is equivalent to a[slice(start, None)] or a[::-1] is equivalent to a[slice(None, None, -1)].
+
+While the :-based notation is very helpful for simple slicing, the explicit use of slice() objects simplifies the programmatic generation of slicing.
+
+
+Note: In seq[start:stop] , start:stop is a slice object i.e slice(start, stop)
+for ex:
+    s = slice(1, 3)
+
+    print(type(s))              // <class 'slice>
+    print(s.start, s.stop)      // 1 3
+
+so instead of colors[1:3] we can use
+    colors = ['red', 'green', 'blue', 'orange']
+    s = slice(1, 3)
+
+    print(colors[s])        --> ['green', 'blue']
+
+
+slicing is similar to copy from copy module i.e  l = copy.copy(t) this is shallow copy, for deep copy use deepcopy() method of copy module
+t = copy.deepcopy(l)
+
+
+ex: 
+        l1 = [1, 2, [3, 4], 5]
+        l2 = copy.copy(l1)          // shallow copy
+        l3 = copy.deepcopy(l1)      // deep copy
+
+        l1[2][0] = 300
+
+        l2= [1, 2, [300, 4], 5]
+        l3 = [1, 2, [3, 4], 5]
+
+
+None (NoneType)
+---------------
+None object is used to initialize an object without a value. It is an object of a special type NoneType. You explicity set an object value to
+None to indicate it has no value. When using None remember to use "is" or "is not". Do not use the equality operators == and != 
+
+None becomes False when used in a boolean context. so "not None" is True.
+ex:
+    some_result = None
+    if some_result:
+        print("Got a result!")
+    else:
+        print("No result.")
+
+"No result."
+
+None is the value a function returns when there is no return statement 
+ex: def has_no_return()
+        pass
+    print(has_no_return()) --> None
+
+very often you will use None as the default value for an optional parameter
+ex:
+    def good_function(new_elem, starter_list=None):
+        .....
+

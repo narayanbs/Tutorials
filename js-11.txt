@@ -1,0 +1,264 @@
+Javascript --> runs in a host environment. Initially it was the browser.Now it could be server-side, webserver, coffee machine etc. 
+Host environment brings its own objects and functions, in addition to the language core.
+
+Here we look at the browser as the host environment. 
+
+		  window
+		 /  |  \
+		/   |   \
+	      DOM  BOM  JavaScript
+	     /	    |         \
+     document     navigator   Object
+     		  location    Array
+     		   ..		..	
+     		   
+     		   
+window is the global object and it represents a browser window. global functions are methods of the window object in a browser.
+	function sayHi() { alert("hello"); }
+	window.sayHi();
+
+DOM -- Document Object Model represents all page content as objects. document is the entry point to the page.
+	document.body.style.background="red"
+
+BOM -- Browser object model represents objects provided by the browser. ex: navigator, location. screen.
+	location.href --> current url
+
+
+DOM -- Document Object Model
+-----------------------------
+The DOM represents an HTML document as a hierarchy of nodes. Consider the following HTML document:
+
+	<html>
+	  <head>
+	     <title>Javascript DOM</title>
+	  </head>
+	  <body>
+	     <p>Hello DOM</p>
+	 </body>
+	</html>
+	
+The following tree represents the above HTML document: fig 1
+
+	document
+	   |__ html
+	        |__ head
+	              |__ title
+	              	   |__ text  
+	        |__ body
+	              |__ p
+	                  |__ text
+
+Each markup can be represented by a node in the tree. document is the root node. It has one child node which is the html element. 
+The html element is called the document element (documentElement). Each document can have only one document element. 
+The topmost tree nodes are available as document properties. 
+	<html> = document.documentElement
+	<head> = document.head
+	<body> = document.body
+	<script>... = document.scripts
+	<form>.. = document.forms
+
+
+Sometimes it’s easy to confuse between the Node and the Element. A node is a generic name of any object in the DOM tree. 
+It can be any built-in DOM element such as the document, comment, text Or it can be any HTML tag specified in the HTML document like <div> or <p>.
+Elements are basically nodes that represent html tags. The following represents the relation b/w Node and Elements. 
+		
+		  EventTarget
+		      |
+		      |
+		     Node _ _ _ _ _ _ _	
+		   /  |   \		\
+		  /   |    \		 \
+		 /    |     \		  \
+	    Text/      |     Comment 	Document
+                   Element  		   |	
+                      |			   |
+		      |		       	HTMLDocument (Document as a whole, document object belongs to this class) 
+		  HTMLElement		  
+		/     |      \
+HTMLInputElement      |	      HTMLAnchorElement
+		HTMLBodyElement
+
+	
+Each node has a node type, node name and node value. 
+
+Node Type - Javascript uses integers to determine the node type
+---------
+Node.ELEMENT_NODE			1	An Element node like <p> or <div>.
+Node.TEXT_NODE				3	The actual Text inside an Element or Attr.
+Node.CDATA_SECTION_NODE			4	A CDATASection, such as <!CDATA[[ … ]]>.
+Node.PROCESSING_INSTRUCTION_NODE	7	A ProcessingInstruction of an XML document, such as <?xml-stylesheet … ?>.
+Node.COMMENT_NODE			8	A Comment node, such as <!-- … -->.
+Node.DOCUMENT_NODE			9	A Document node.
+Node.DOCUMENT_TYPE_NODE			10	A DocumentType node, such as <!DOCTYPE html>.
+Node.DOCUMENT_FRAGMENT_NODE		11	A DocumentFragment node.
+
+To get a type we use the nodeType property. (node.nodeType)
+	if(node.nodeType == Node.ELEMENT_NODE) {}
+	
+An element is a node whose type is Node.ELEMENT_NODE, which is equal to 1.	
+
+To get the name and value we use nodeName and nodeValue properties. The values of these properties depend on the node type. 
+For example, if the node type is the element node, the nodeName is always the same as the element’s tag name and nodeValue is always null.
+	if (node.nodeType == Node.ELEMENT_NODE) {
+	    let name = node.nodeName; // tag name like <p>	    
+	}
+
+Node Relationships
+------------------
+	             parentNode
+			| 	
+previousSibling <----- Node ------> nextSibling
+			|
+	 _______________|_______________________	
+	|	|	|	|	|	|
+firstChild	..... childNodes .... 		lastChild
+	                  
+
+Child nodes (or children) – elements that are direct children. In other words, they are nested exactly in the given one. 
+For instance, <head> and <body> are children of <html> element.
+Descendants – all elements that are nested in the given one, including children, their children and so on.	
+For ex in fig 1: descendent of body is not only p but also text node.                   
+
+The example below shows child nodes of document.body:	                  
+	            
+	<html>
+	<body>
+	  <div>Begin</div>
+
+	  <ul>
+	    <li>Information</li>
+	  </ul>
+
+	  <div>End</div>
+	  <script>
+	    for (let i = 0; i < document.body.childNodes.length; i++) {
+	      alert( document.body.childNodes[i].nodeName ); // Text, DIV, Text, UL, ..., SCRIPT
+	    }
+	  </script>
+	  ...more stuff...
+	</body>
+	</html>	        
+
+Element only navigation
+-----------------------
+Navigation properties listed above refer to all nodes. For instance, in childNodes we can see both text nodes, element nodes, and even comment nodes if they exist.
+But for many tasks we don’t want text or comment nodes. We want to manipulate element nodes that represent tags and form the structure of the page.	   
+
+The hierarchy is similar to the node relationships above, just with the Element word inside.
+
+	          	   parentElement
+				| 	
+previousElementSibling <----- Element ------> nextElementSibling
+				|
+		 _______________|_______________________	
+		|	|	|	|	|	|
+  firstElementChild	..... children  .... 		lastElementChild
+
+
+
+The example below shows children of document.body:	                  
+
+	<html>
+	<body>
+	  <div>Begin</div>
+
+	  <ul>
+	    <li>Information</li>
+	  </ul>
+
+	  <div>End</div>
+
+	  <script>
+	    for (let elem of document.body.children) {
+	      alert(elem.nodeName); // DIV, UL, DIV, SCRIPT
+	    }
+	  </script>
+	  ...
+	</body>
+	</html>
+	
+	
+
+Note that childNodes returns a NodeList while children return a HTMLCollection. 
+
+NodeList and HTMLCollection
+---------------------------
+NodeList is a collection of document nodes (element nodes, attribute nodes, and text nodes) while HTMLCollection is a collection of document elements. 
+
+<div id="box">
+  I'm Text Node
+  <div>I'm Element Node 1</div>
+  <div>I'm Element Node 2</div>
+</div>
+
+const box = document.getElementById("box");
+// console.log(box.children); // HTMLCollection(2) [div, div]
+// console.log(box.childNodes); // NodeList(5) [text, div, text, div, text]
+
+NodeList items can only be accessed by their index number, while HTMLCollection items can be accessed by their name, id, or index number. 
+
+<div id="box-wrapper">
+  <div name="nm-box1" id="id-box1" class="cls-box1">box 1</div>
+  <div name="box2">box 2</div>
+  <div name="box3">box 3</div>
+  <div>box 4</div>
+</div>
+
+const boxWrapper = document.getElementById('box-wrapper');
+const boxes = boxWrapper.childNodes; // NodeList
+
+console.log(boxes[0]); // Using Index WORKS!
+console.log(boxes.namedItem("id-box1")); // Using ID ERROR!
+console.log(boxes.namedItem("nm-box1")); // Using Name ERROR!
+console.log(boxes.namedItem("cls-box1")); // Using Class ERROR!
+
+const boxWrapper = document.getElementById('box-wrapper');
+const boxes = boxWrapper.children; // HTMLCollection
+
+console.log(boxes[0]); // Using Index WORKS!
+console.log(boxes.namedItem("id-box1")); // Using ID WORKS!
+console.log(boxes.namedItem("nm-box1")); // Using Name WORKS!
+console.log(boxes.namedItem("cls-box1")); // Using Class NULL	
+
+An HTMLCollection is always a live collection. A NodeList is most often a static collection. 
+
+<div id="box-wrapper">
+  <div class="box" name="box">box 1</div>
+  <div class="box" name="box">box 2</div>
+  <div class="box" name="box">box 3</div>
+  <div class="box" name="box">box 4</div>
+</div>
+
+const boxWrapper = document.getElementById("box-wrapper");
+
+const boxes = boxWrapper.getElementsByClassName("box"); // HTMLCollection
+console.log(boxes.length); // 4
+
+const div = document.createElement("div");
+div.classList.add("box");
+div.innerHTML = "box 5";
+boxWrapper.appendChild(div);
+
+console.log(boxes.length); // 5
+
+where as for a NodeList
+
+const boxes = document.querySelectorAll(".box");
+console.log(boxes.length); // 4
+
+const div = document.createElement("div");
+div.setAttribute("class", "box");
+div.innerHTML = "box 5";
+boxWrapper.appendChild(div);
+
+console.log(boxes.length); // 4
+console.log(document.querySelectorAll(".box").length); // 5
+
+
+
+
+
+
+
+
+

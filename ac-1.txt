@@ -1,0 +1,77 @@
+Understanding hardware detection
+---------------------------------
+Intel/AMD manufactures chips.. The compatibility of the motherboard is determined by the CPU socket type and the associated 
+chipset. . If the specified CPU socket type and chipset is supported then we can use the motherboard. These motherboards will have chipsets that
+are provided by intel or amd, that enable communication b/w CPU, RAM storage and other peripherals. 
+Intel normally supports the same chipsets for two generations of CPU. 
+
+Motherboard contains a firmware (UEFI or legacy bios) that gives information such as boot order, hardware configuration, system time etc.
+During the boot process, only the hardware modules strictly necessary to find and start the OS are loaded.
+These hardware modules are: motherboard, hard drive, RAM, graphics card, keyboard, mouse, screen (that is detected by the graphics card), network card, CD / DVD, and a few extra peripherals such as USB units.
+
+Each hardware module you connect to a computer has a controller that is like a small firmware with all the information of the stored device:
+manufacturer, device type, protocols, etc.. for ex: Network cards, video cards, RAID controllers, hard drives, flash drives, SSDs, sound cards, 
+just to name a few, can all have firmware embedded inside the device.
+
+During boot the hardware detection process is very simple: the motherboard firmware has hardcoded all the information about the motherboard, 
+with all communication ports. At startup, the firmware sends a signal to all system ports asking the questions "Who are you? What are you? 
+How do you function?" and all.. attached devices answers by sending their information. In this way the computer knows how much RAM you have, 
+if there is present a keyboard or a mouse, which storage devices are available, screen resolution, etc ...
+
+Obviously, this process only works with the basic modules needed to boot the system, and does not work with complex peripherals that require specific drivers: printers, scanners, webcams ... all these complex peripherals are loaded by software once the OS has been loaded.
+
+During the Boot-up of the system, recognizing all the PCI devices in the system is done and is known as the PCI Bus enumeration. 
+firmware generally enumerates all the PCI devices present on all the buses and populates them to the sysfs. 
+Users can access the details of PCI devices present with the help of the lspci utility
+After the PCI Bus enumeration, all the devices get the number, number, and function number. These three components are enough to locate 
+any device.
+
+On any x86 based Linux platform, there is a root complex PCI driver or Linux PCI subsystem which reads the information populated by firmware/BIOS 
+and exports the information to the sysfs filesystem. All the PCI devices present in the system can be found inside the /sys/bus/pci/devices directory. Root complex driver also provides the flexibility to rescan or reset the devices on any PCI Bus. Even full rescanning of all the PCI Buses can be done through /sys/bus/pci/rescan.
+
+
+how does os detect hardware???
+------------------------------
+Generally speaking, most modern OSes (Windows and Linux) will re-scan the detected hardware as part of the boot sequence. Trusting the BIOS to detect everything and have it setup properly has proven to be unreliable.
+
+In a typical x86 PC, there are a combination of techniques used to detect attached hardware.
+
+PCI and PCI Express busses has a standard mechanism called Configuration Space that you can scan to get a list of attached devices. This includes devices installed in a PCI/PCIe slot, and also the controller(s) in the chipset (Video Controller, SATA, etc).
+
+If an IDE or SATA controller is detected, the OS/BIOS must talk to the controller to get a list of attached drives.
+
+If a USB controller is detected, the OS/BIOS loaded a USB protocol stack, and then enumerates the attached hubs and devices.
+
+For "legacy" ISA devices, things are a little more complicated. Even if your motherboard does not have an ISA slot on it, 
+you typically still have a number of "ISA" devices in the system (Serial Ports, Parallel Ports, etc). These devices typically lack a truly standardized auto-detection method. To detect these devices, there are 2 options:
+
+Probe known addresses - Serial Ports are usually at 0x3F8, 0x2F8, 0x3E8, 0x2E8, so read from those addresses and see if there is something there that looks like a serial port UART. This is far from perfect. You may have a serial port at a non-standard address that are not scanned. You may also have a non-serial port device at one of those addresses that does not respond well to being probed. Remember how Windows 95 and 98 used to lock up a lot when detecting hardware during installation?
+
+ISA Plug-n-Play - This standard was popular for a hot minute as ISA was phased out in favor of PCI. You probably will not encounter many devices that support this. I believe ISA PnP is disabled by default in Windows Vista and later, but I am struggling to find a source for that right now.
+
+ACPI Enumeration - The OS can rely on the BIOS to describe these devices in ASL code. (See below.)
+
+Additionally, there may be a number of non-PnP devices in the system at semi-fixed addresses, such as a TPM chip, HPET, or those "special" buttons on laptop keyboards. For these devices to be explained to the OS, the standard method is to use ACPI.
+
+The BIOS ACPI tables should provide a list of on-motherboard devices to the OS. These tables are written in a language called ASL (or AML for the compiled form). At boot time, the OS reads in the ACPI tables and enumerates any described devices. Note that for this to work, the motherboard manufacturer must have written their ASL code correctly. This is not always the case.
+
+And of course, if all of the auto-detection methods fail you, you may be forced to manually install a driver. You do this through the Add New Hardware Wizard in Windows. (The exact procedure varies depending on the Windows version you have installed.)
+
+
+PCI-e details
+-------
+When the computer is powered on, the PCI bus(es) and device(s) must be enumerated by BIOS or operating system. Bus enumeration is performed by attempting to access the PCI configuration space registers for each buses, devices and functions. Note that device number, different from VID and DID, is merely a device's sequential number on that bus. Moreover, after a new bridge is detected, a new bus number is defined, and device enumeration restarts at device number zero.
+
+If no response is received from the device's function #0, the bus master performs an abort and returns an all-bits-on value (FFFFFFFF in hexadecimal), which is an invalid VID/DID value, thus the BIOS or operating system can tell that the specified combination bus/device_number/function (B/D/F) is not present. So, when a read to a function ID of zero for a given bus/device causes the master (initiator) to abort, it must then be presumed that no working device exists on that bus because devices are required to implement function number zero. In this case, reads to the remaining functions numbers (1–7) are not necessary as they also will not exist.
+
+When a read to a specified B/D/F combination for the vendor ID register succeeds, the system firmware or operating system knows that it exists; it writes all ones to its BARs and reads back the device's requested memory size in an encoded form. The design implies that all address space sizes are a power of two and are naturally aligned.[1]
+
+At this point, the BIOS or operating system will program the memory-mapped addresses and I/O port addresses into the device's BAR configuration registers. These addresses stay valid as long as the system remains turned on. Upon power-off, these settings are lost and the procedure is repeated next time the system is powered back on. BIOS or operating system will also program some other registers of the PCI configuration space for each PCI device, e.g. interrupt request. Since this entire process is fully automated, the user is spared the task of configuring any newly added hardware manually by changing DIP switches on the cards themselves. This automatic device discovery and address space assignment is how plug and play is implemented.
+
+If a PCI-to-PCI bridge is found, the system must assign the secondary PCI bus beyond the bridge a bus number other than zero, and then enumerate the devices on that secondary bus. If more PCI bridges are found, the discovery continues recursively until all possible domain/bus/device combinations are scanned.
+
+Each non-bridge PCI device function can implement up to 6 BARs, each of which can respond to different addresses in I/O port and memory-mapped address space. Each BAR describes a region [2][1] that is between 16 bytes and 2 gigabytes in size, located below 4 gigabyte address space limit. If a platform supports the "Above 4G" option in system firmware, 64 bit BARs can be used.
+
+A PCI device may also have an option ROM.
+
+Linux uses udevd for device detection and device file creation, by getting uevents when new device is detected. 

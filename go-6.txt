@@ -1,0 +1,84 @@
+Go HTTP Handling
+-----------------------
+
+
+http.ListenAndServe("addr", handler);
+	==> 
+	ListenAndServe(addr string, handler Handler) error {
+	
+		server := &Server{Addr: addr, Handler: handler}
+	
+		server.ListenAndServe()	
+			==>
+					ln, err := net.Listen("tcp", addr)
+					server.Serve(ln)
+
+					 	==> 
+						 	for {
+						 		rwConn, err := l.Accept()
+						 		c := srv.newConn(rwConn)
+							 		==>
+							 			c := &conn {
+							 				server:srv,
+							 				rwc: rwConn
+							 			}
+							 			return c	
+						 		go c.serve() 
+						 	}
+						 	
+===> 						 	
+
+c.serve() ==>
+		w, err := c.readReqest()
+		serverHandler{c.server}.ServeHTTP(w, w.req)	
+		==> 
+			handler := sh.srv.Handler
+			if handler == nil {
+				handler = DefaultServeMux
+			}
+			handler.ServeHTTP(w, req)
+			
+			==>
+			// get registered handler and invoke ServeHTTP		
+			func (mux *ServeMux) ServeHTTP(w ResponseWriter, r *Request) 
+			{		
+				h, _ := mux.Handler(r)		
+				h.ServeHTTP(w, r)
+			}	
+
+
+
+Registering handlers
+=======================
+
+// handler registering on DefaultServeMux
+// the handlers are converted to ServerHandler interface using HandlerFunnc(handler) casting
+
+http.HandleFunc(pattern, handler)
+	i.e	DefaultServeMux.HandleFunc(pattern, handler)	
+	   		-->	mux.Handle(pattern, HandlerFunc(handler))
+
+		
+		
+type HandlerFunc func(ResponseWriter, *Request)
+
+// ServeHTTP calls f(w, r).
+// f(w,r) is invoked by function that implements the handler interface.		
+func (f HandlerFunc) ServeHTTP(w ResponseWriter, r *Request) {
+	f(w, r)
+}			
+		
+
+// handler registering on custom Mux	
+mux.HandleFunc(pattern, handler) 
+	--> mux.Handle(pattern, HandlerFunc(handler))
+
+
+
+type handler interface {
+	ServeHTTP(rw, *req);
+}
+
+
+
+

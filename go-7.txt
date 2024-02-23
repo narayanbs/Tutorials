@@ -1,0 +1,124 @@
+Operating systems provide both a “wall clock,” which is subject to changes for clock synchronization, and a “monotonic clock,” which is not. The general rule is that the wall clock is for telling time and the monotonic clock is for measuring time. Rather than split the API, in this package the Time returned by time.Now contains both a wall clock reading and a monotonic clock reading; later time-telling operations use the wall clock reading, but later time-measuring operations, specifically comparisons and subtractions, use the monotonic clock reading.
+
+Read intro of https://pkg.go.dev/time, before continuing
+
+Golang time and dates
+=====================
+Time and date are represented by the type Time in time package i.e time.Time
+
+Creation
+---------
+A Time instance that represents the current date and time can be created as shown below
+	ttime := time.Now()
+
+A Time instance that represents a custom date and time can be created as shown below
+	ttime := time.Date(2006, 06, 20, 19, 30, 0, 0, time.Local)
+where time.Local represents the timezone and is an instance of the type time.Location
+
+Representation
+-----------------
+ttime = time.Now() 		// or time.Date(...)
+fmt.Println(ttime)		// 2023-08-02 10:50:26.678014397 +0530 IST m=+0.000027502
+
+ttime.Year(), ttime.Month(), ttime.Day(), ttime.Hour(), ttime.Minute(), ttime.Second() ....
+
+ttime.Unix()	//	1690966032	-- Number of seconds since Unix epoch Jan 1 1970. 
+ttime.UnixMillis()	//	1690966032361 -- Number of milliseconds since epoch 
+ttime.UnixMicro()	//	1690966032361985 -- Number of microseconds since epoch 
+ttime.UnixNano()	//	1690966032361985772 -- Number of nanoseconds since epoch 
+
+Formatting time
+-------------------
+Predefined layouts are available as constants in time package. 
+
+const (
+	Layout      = "01/02 03:04:05PM '06 -0700" // The reference time, in numerical order.
+	ANSIC       = "Mon Jan _2 15:04:05 2006"
+	UnixDate    = "Mon Jan _2 15:04:05 MST 2006"
+	RubyDate    = "Mon Jan 02 15:04:05 -0700 2006"
+	RFC822      = "02 Jan 06 15:04 MST"
+	RFC822Z     = "02 Jan 06 15:04 -0700" // RFC822 with numeric zone
+	RFC850      = "Monday, 02-Jan-06 15:04:05 MST"
+	RFC1123     = "Mon, 02 Jan 2006 15:04:05 MST"
+	RFC1123Z    = "Mon, 02 Jan 2006 15:04:05 -0700" // RFC1123 with numeric zone
+	RFC3339     = "2006-01-02T15:04:05Z07:00"
+	RFC3339Nano = "2006-01-02T15:04:05.999999999Z07:00"
+	Kitchen     = "3:04PM"
+	// Handy time stamps.
+	Stamp      = "Jan _2 15:04:05"
+	StampMilli = "Jan _2 15:04:05.000"
+	StampMicro = "Jan _2 15:04:05.000000"
+	StampNano  = "Jan _2 15:04:05.000000000"
+	DateTime   = "2006-01-02 15:04:05"
+	DateOnly   = "2006-01-02"
+	TimeOnly   = "15:04:05"
+)
+
+The reference time used in these layouts is the specific time stamp: 
+	01/02 03:04:05PM '06 -0700 (January 2, 15:04:05, 2006, in time zone seven hours west of GMT). 
+That value is recorded as the constant named Layout
+
+Ex:
+	fmt.Println(time.Layout) // default layout - 01/02 03:04:05PM '06 -0700
+	fmt.Println(time.UnixDate)		// Mon Jan 2 15:04:05 MST 2006
+	
+	present_time := time.Now()
+	fmt.Println(present_time.Format("2006/01/2 15:04:05 PM"))		//  2023/08/2 14:44:11 PM
+	fmt.Println(present_time.Format(time.RFC3339))		// 2023-08-02T14:44:11+05:30
+	
+Parsing time 
+--------------
+Time instance can be created by parsing an existing date as shown below
+
+parsed_time, _ := time.Parse("01/02 2006 15:04:05 MST", "12/06 2022 10:40:45 CDT")
+
+The first argument is the layout and the second is the date represented as a string. 
+
+Timezones
+----------
+Timezone is represented as an instance of time.Location.
+The local timezone can be obtained by using time.Local. Other timezones can be loaded using time.LoadLocation("")
+
+ex:	
+	uk_location, _ := time.LoadLocation("Europe/London")
+	uk_time := time.Now().In(uk_location)
+	fmt.Println(uk_time)
+	
+Comparison
+----------
+Time instances can be compared as follows.
+
+	now := time.Now()
+	then := time.Date(2009, 11, 17, 20, 34, 58, 651387237, time.UTC)
+	fmt.Println(then.Before(now))
+	fmt.Println(then.After(now))
+	fmt.Println(then.Equal(now))
+
+Duration
+----------
+Difference b/w time instances are represented as instances of time.Duration. 
+
+	now := time.Now()
+	then := time.Date(2009, 11, 17, 20, 34, 58, 651387237, time.UTC)
+	
+	diff := now.Sub(then)
+	fmt.Println(reflect.TypeOf(diff)) // time.Duration
+	fmt.Println(diff)
+	fmt.Println(diff.Hours())
+	fmt.Println(diff.Minutes())
+	fmt.Println(diff.Seconds())
+
+	fmt.Println(then.Add(diff))
+	fmt.Println(then.Add(-diff))
+
+Duration can also be represented as follows
+	toAddDuration := 1 * time.Second // add a duration of a second
+	toAddHourDuration := 1 * time.Hour // add a duration of an hour
+
+	fmt.Println(toAddDuration)
+	fmt.Println(toAddHourDuration)
+
+
+
+
+

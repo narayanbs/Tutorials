@@ -1,0 +1,234 @@
+python strings:
+----------------
+sequence of unicode characters between 
+' ' or " " or ''' '''
+
+String1 = 'Welcome to the Geeks World'
+String1 = "I'm a Geek"
+String1 = '''I'm a Geek and I live in a world of "Geeks"'''
+
+the characters could be escape sequences (characters that represent other characters that can't be represented directly,
+like line feed LR or (newline) - \n, carriage return CR -  \r, form feed FF - \f,  vertical tab - \t
+
+s = "hello\nworld"
+print(s) - hello
+	   world
+print(s.__repr__()) -->  hello\nworld
+
+
+# multiline strings using "" and ''
+
+s = "hello this is \
+a new string that is multiline"
+
+print(s) = hello this a new string that is multiline
+print(s.__repr__()) = 'hello this a new string that is multiline'
+
+# multiline strings with triple Quotes 
+
+String1 = '''Geeks
+            For
+            Life'''
+
+print(String1) - Geeks
+		For
+		Life
+print(String1.__repr__()) - 'Geeks\nFor\nLife'
+
+Unicode strings
+----------------
+
+Access characters from a string like a sequence
+
+String1 = "GeeksForGeeks"
+print(String1) --> "GeeksForGeeks"          
+print(String1[0]) --> 'G'
+print(String1[-1]) --> 's'
+
+for i in String1:
+	print(i, end='')
+	
+--> "GeeksForGeeks"
+
+# slicing 
+print(String1[1:4]) --> 'eek'
+
+
+Strings are immutables, so we can't delete or update characters
+you can however delete the whole string
+del String1
+
+Escape sequences
+-----------------
+An escape sequence is a sequence of characters that does not represent itself when used inside a character or string literal, 
+but is translated into another character or a sequence of characters that may be difficult or impossible to represent directly.
+Some special characters and non-printable ones use escape sequences that allow them to be interpreted differently. 
+Escape sequences start with a back slash
+
+\"	Double Quote
+\'	Single Quote	
+\\	Backslash	
+\n	Line Feed or New Line	
+\r	Carriage Return	
+\t	Tab	
+\b	Backspace	
+\f	Form Feed	
+\ooo	Octal value	
+\xhh	Hex value
+\uxxxx	Character with 16-bit hex value xxxx. Exactly four hexadecimal digits are required.
+\Uxxxxxxxx	Character with 32-bit hex value xxxxxxxx. Exactly eight hexadecimal digits are required.
+\N{name}	Character named name in the Unicode database
+
+# octal 
+print("\110\145\154\154\157\40\127\157\162\154\144\41") --> "Hello World!"
+# Hex 
+print("\x48\x65\x6c\x6c\x6f\x20\x57\x6f\x72\x6c\x64\x21") --> "Hello World!"
+
+# using the character name
+print("\N{GREEK CAPITAL LETTER DELTA}") 
+'Δ'
+
+# using 16-bit Hex value
+print("\u0394") 
+'Δ'
+
+# using 32-bit Hex value
+print("\U00000394") 
+'Δ'
+
+# Escaping Single Quote
+String1 = 'I\'m a "Geek"'
+
+# Escaping Double Quotes
+String1 = "I'm a \"Geek\""
+
+# Printing Paths with the use of Escape Sequences
+String1 = "C:\\Python\\Geeks\\" --> here if we just use single \, then interpreter will try to
+interpret \P and \G, hence \ needs to be escaped with \\
+
+To ignore the escape sequences in a String, r or R is used, this implies that the string is a raw string 
+and escape sequences inside it are to be ignored.
+
+s = 'Hi\nHello'
+print(s)
+
+Hi
+Hello
+
+raw_s = r'Hi\nHello'
+print(raw_s)
+
+Hi\nHello
+
+# Printing Geeks in HEX
+String1 = "This is \x47\x65\x65\x6b\x73 in \x48\x45\x58"
+--> "This is Geeks in HEX"
+
+# Using raw String to ignore Escape Sequences
+String1 = r"This is \x47\x65\x65\x6b\x73 in \x48\x45\x58"
+--> "This is \x47\x65\x65\x6b\x73 in \x48\x45\x58"
+
+String formatting
+------------------
+Default order
+String1 = "{} {} {}".format('Geeks', 'For', 'Life')
+
+Positional Formatting
+String1 = "{1} {0} {2}".format('Geeks', 'For', 'Life')
+
+Keyword Formatting
+String1 = "{l} {f} {g}".format(g='Geeks', f='For', l='Life')
+
+Formatting of Integers
+String1 = "{0:b}".format(16) --> 10000
+
+Formatting of Floats
+String1 = "{0:e}".format(165.6458) --> 1.656458e+02
+
+Rounding off Floats
+String1 = "{0:.2f}".format(1/6) --> 0.17
+
+left(<), center(^) and right(>) justification
+
+String1 = "|{:<10}|{:^10}|{:>10}|".format('Geeks', 'for', 'Geeks') -->  |Geeks     |   for    |     Geeks|
+
+String1 = "\n{0:^16} was founded in {1:<4}!".format("GeeksforGeeks", 2009) --> GeeksforGeeks   was founded in 2009 !
+
+Old style formatting
+
+number1 = 12.3456789
+The value of number1 is %3.2f' % number1 --> The value of number1 is 12.35
+The value of number1 is %3.4f' % number1 --> The value of number1 is 12.3457	
+
+Python String Methods - by action
+----------------------------------
+1. change case of characters
+
+ lower() --> returns lowercased string (used for purely ascii text)
+ casefold() --> converts to case folded strings (used for unicode/user input) 
+ upper() --> returns uppercased string
+ capitalize() --> Converts first character to Capital Letter ex: hello world --> Hello world
+ title() --> Returns a Title Cased String ex: hello world -- Hello World
+ swapcase() --> swap uppercase characters to lowercase; vice versa
+
+2. search
+
+ find() --> Returns the index of first occurrence of substring
+ index() --> Returns Index of Substring
+ rfind() --> Returns the Highest Index of Substring
+ rindex() --> Returns Highest Index of Substring
+
+3. number of occurences
+
+ count() --> returns occurrences of substring in string
+ 
+4. check 
+
+ startswith() --> Checks if String Starts with the Specified String
+ endswith() --> Checks if String Ends with the Specified Suffix
+ isalnum() --> Checks Alphanumeric Character
+ isalpha() --> Checks if All Characters are Alphabets
+ isdecimal() --> Checks Decimal Characters
+ isdigit() --> Checks Digit Characters
+ isidentifier() --> Checks for Valid Identifier
+ islower() --> Checks if all Alphabets in a String are Lowercase
+ isnumeric() --> Checks Numeric Characters
+ isprintable() --> Checks Printable Character
+ isspace() --> Checks Whitespace Characters
+ istitle() --> Checks for Titlecased String
+ isupper() --> returns if all characters are uppercase characters
+
+5. replace/remove
+
+ replace() --> Replaces Substring Inside
+ strip() --> Removes Both Leading and Trailing Characters
+ lstrip() --> Removes Leading Characters 
+ rstrip() --> Removes Trailing Characters
+
+6. join / split
+
+ join() --> Returns a Concatenated String
+ split() --> Splits String from Left	(has an optional maxsplit argument, that specifies how many splits we want ex: word.split('g', 1)
+ rsplit() --> Splits String From Right  (same as above)
+ splitlines() --> Splits String at Line Boundaries
+ partition() --> Returns a Tuple of string partitioned  (Method only partitions on first occurrence of separator)
+ rpartition() --> Returns a Tuple of string partitioned but starting from the right
+ 
+7. formatting/printing
+
+ ljust() --> returns left-justified string of given width, with optional fill-in character. ex: ljust(20, "*")
+ rjust() --> returns right-justified string of given width, with optional fill-in character, ex: rjust(20, "*")
+ center() --> Pads string with specified character, with optional fill-in character, ex: center(20, "*")
+ zfill() --> Returns a Copy of The String Padded With Zeros, ex: zfill(30), left padded with zeros
+ format() --> formats string into nicer output
+ format_map() --> Formats the String Using Dictionary
+ 
+8. convert/create
+
+ encode() --> returns encoded string of given string
+ expandtabs() --> Replaces Tab character With Spaces
+ maketrans() --> returns a translation table
+ translate() --> returns mapped charactered string
+ 
+
+

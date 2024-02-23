@@ -1,0 +1,684 @@
+Advanced Functions
+------------------
+'...' - rest parameters
+-------------------------
+A function can be called with any number of arguments, no matter how it is defined.
+function sum(a,b) {
+    return a + b;
+}
+console.log(sum(1,2,3,4,5,6)) // valid
+
+we can capture all the arguments using ... 
+function sumAll(...args) {
+    sum = 0;
+    for(let arg of args) {
+        sum += arg;
+    }
+    return sum;
+}
+
+sumAll(1,2);
+sumAll(1,2,3,4);
+sumAll(1,2,3,4,5,6);
+
+the arguments go into the args array. 
+
+ex 2: 
+function showName(firstName, lastName, ...titles) {
+  alert( firstName + ' ' + lastName ); // Julius Caesar
+
+  // the rest go into titles array
+  // i.e. titles = ["Consul", "Imperator"]
+  alert( titles[0] ); // Consul
+  alert( titles[1] ); // Imperator
+  alert( titles.length ); // 2
+}
+
+showName("Julius", "Caesar", "Consul", "Imperator");
+
+Note: the rest parameters should always be at the end.
+
+arguments variable
+----------------------
+There is also a special array-like object named arguments that contains all arguments by their index.
+
+For instance:
+function showName() {
+  alert( arguments.length );
+  alert( arguments[0] );
+  alert( arguments[1] );
+
+  // it's iterable
+  // for(let arg of arguments) alert(arg);
+}
+
+// shows: 2, Julius, Caesar
+showName("Julius", "Caesar");
+
+// shows: 1, Ilya, undefined (no second argument)
+showName("Ilya");
+
+Note: arrow functions do not have the special array-like object "arguments"
+
+Spread syntax - converting iterable into function arguments
+---------------------------------------------------------
+if a function takes a list of arguments for ex: Math.max() and we have an array [3,5,1], how do we call it
+
+let arr = [3,5,1];
+Math.max(arr); // NaN
+
+we can do Math.max(arr[0], arr[1], arr[2]), but if we have a huge array it would get ugly, we can use spread syntax
+
+let arr = [3, 5, 1];
+alert( Math.max(...arr) ); // 5 (spread turns array into a list of arguments)
+
+let us turn a string into array of characters
+
+let str = "Hello";
+alert( [...str] ); // [H,e,l,l,o]
+
+The spread syntax internally uses iterators to gather elements, the same way as for..of does.
+
+So, for a string, for..of returns characters and ...str becomes "H","e","l","l","o". 
+The list of characters is passed to array initializer [...str].
+For this particular task we could also use Array.from, because it converts an iterable (like a string) into an array:
+
+let str = "Hello";
+
+// Array.from converts an iterable into an array
+alert( Array.from(str) ); // H,e,l,l,o
+The result is the same as [...str]. But there’s a subtle difference between Array.from(obj) and [...obj]:
+
+Array.from operates on both array-likes and iterables. The spread syntax works only with iterables.
+So, for the task of turning something into an array, Array.from tends to be more universal.
+
+
+We also can pass multiple iterables this way:
+
+let arr1 = [1, -2, 3, 4];
+let arr2 = [8, 3, -8, 1];
+alert( Math.max(...arr1, ...arr2) ); // 8
+
+We can even combine the spread syntax with normal values:
+
+let arr1 = [1, -2, 3, 4];
+let arr2 = [8, 3, -8, 1];
+alert( Math.max(1, ...arr1, 2, ...arr2, 25) ); // 25
+
+the spread syntax can be used to merge arrays:
+
+let arr = [3, 5, 1];
+let arr2 = [8, 9, 15];
+let merged = [0, ...arr, 2, ...arr2];
+alert(merged); // 0,3,5,1,2,8,9,15 (0, then arr, then 2, then arr2)
+
+Copy an array/object using spread syntax
+------------------------------------------
+
+let arr = [1, 2, 3];
+
+let arrCopy = [...arr]; // spread the array into a list of parameters
+                        // then put the result into a new array
+
+// do the arrays have the same contents?
+alert(JSON.stringify(arr) === JSON.stringify(arrCopy)); // true
+
+// are the arrays equal?
+alert(arr === arrCopy); // false (not same reference)
+
+// modifying our initial array does not modify the copy:
+arr.push(4);
+alert(arr); // 1, 2, 3, 4
+alert(arrCopy); // 1, 2, 3
+
+Note that it is possible to do the same thing to make a copy of an object:
+
+let obj = { a: 1, b: 2, c: 3 };
+
+let objCopy = { ...obj }; // spread the object into a list of parameters
+                          // then return the result in a new object
+
+// do the objects have the same contents?
+alert(JSON.stringify(obj) === JSON.stringify(objCopy)); // true
+
+// are the objects equal?
+alert(obj === objCopy); // false (not same reference)
+
+// modifying our initial object does not modify the copy:
+obj.d = 4;
+alert(JSON.stringify(obj)); // {"a":1,"b":2,"c":3,"d":4}
+alert(JSON.stringify(objCopy)); // {"a":1,"b":2,"c":3}
+
+Global Object
+-----------------
+The global object provides variables and functions that are available anywhere. By default, 
+those that are built into the language or the environment. In a browser it is named window, 
+for Node.js it is global, for other environments it may have another name.
+Recently, globalThis was added to the language, as a standardized name for a global object.
+
+Interesting functions
+---------------------
+setTimeout  --> allows us to run a function once after the interval of time.
+
+let timerId = setTimeout(func|code, [delay], [arg1], [arg2], ...)
+func -- function to execute
+delay -- he delay before run, in milliseconds (1000 ms = 1 second), by default 0.
+arg1, arg2… -- Arguments for the function 
+ex:
+function sayHi() {
+  alert('Hello');
+}
+setTimeout(sayHi, 1000);
+
+ex:
+function sayHi(phrase, who) {
+  alert( phrase + ', ' + who );
+}
+setTimeout(sayHi, 1000, "Hello", "John"); // Hello, John
+
+first argument is a string, then JavaScript creates a function from it. So, this will also work:
+setTimeout("alert('Hello')", 1000);
+But using strings is not recommended, use arrow functions instead of them, like this:
+setTimeout(() => alert('Hello'), 1000);
+
+A call to setTimeout returns a “timer identifier” timerId that we can use to cancel the execution.
+The syntax to cancel:
+let timerId = setTimeout(...);
+clearTimeout(timerId);
+
+
+setInterval -->  allows us to run a function, starting after the interval of time, then repeating continuously at that interval.
+
+let timerId = setInterval(func|code, [delay], [arg1], [arg2], ...)
+All arguments have the same meaning. But unlike setTimeout it runs the function not only once, 
+but regularly after the given interval of time.
+ex:
+// repeat with the interval of 2 seconds
+let timerId = setInterval(() => alert('tick'), 2000);
+// after 5 seconds stop
+setTimeout(() => { clearInterval(timerId); alert('stop'); }, 5000);
+
+
+forwarding --- call, apply, bind 
+---------------------------------
+
+Functions in JavaScript run in a specific context, and using the this variable we have access to the context. 
+All standard functions in the browser run under the Window context. Functions defined under an object or a class
+(method) will use the context of the object it was created in. However, we can also change the context 
+of a function at runtime, either before or while executing the function.
+
+for ex:
+
+let person = {
+    name : "John"
+};
+
+function printName()
+{
+    console.log(this.name);
+} 
+
+The function printName can be called with person as the context using the call method:
+printName.call(person);      // prints out "John"
+
+Just like call, we can use apply to call a function as if it was bound to an object. The difference between 
+the call and apply functions is only by how they receive their arguments - the call function receives the "this" argument 
+followed by the arguments of the function, whereas the apply function receives the "this" argument followed by  
+an array of arguments to pass on to the function as a second argument to the function.
+
+Alternatively, we can bind the function to an object and make it an object method, for this we use bind as shown below
+
+var boundPrintName = printName.bind(person);
+boundPrintName();    // prints out "John"
+
+Here We use the bind function to associate an object as the context under which the function executes..
+
+
+Difference between call/apply and bind
+----------------------------------------
+The difference between call/apply and bind is that bind returns a new function identical to the old function, except 
+that the value of this in the new function is now the object it was bound to. call/apply calls the function with this 
+being the bound object, but it does not return a new function or change the original, it calls it with a different value 
+for this. For example:
+
+var boundPrintName = printName.call(person);    //boundPrintName gets printName's return value (null)
+boundPrintName();                               //doesn't work because it's not a function, it's null
+
+var boundPrintName = printName.bind(person); // returns a new function with the object bound
+boundPrintName(); 			     // works 
+
+
+Think of call as executing the return value of bind. For example:
+
+printName.call(person);     //is the same as
+printName.bind(person)();   //executes the function returned by bind
+
+Or think of bind returning a shortcut to call. For example:
+
+var boundPrintName = printName.bind(person); //is the same as
+var boundPrintName = function()
+{
+    printName.call(person); 
+
+}
+
+Losing "this"
+----------------------
+let user = {
+  firstName: "John",
+  sayHi() {
+    alert(`Hello, ${this.firstName}!`);
+  }
+};
+
+setTimeout(user.sayHi, 1000); // Hello, undefined!
+
+That’s because setTimeout got the function user.sayHi, separately from the object. The last line can be rewritten as:
+
+let f = user.sayHi;
+setTimeout(f, 1000); // lost user context
+
+The method setTimeout in-browser is a little special: it sets this=window for the function call (for Node.js, this becomes the timer object, but doesn’t really matter here). So for this.firstName it tries to get window.firstName, which does not exist. In other similar cases, usually this just becomes undefined.
+
+solution:
+
+let sayHi = user.sayHi.bind(user); // (*)
+
+// can run it without an object
+sayHi(); // Hello, John!
+
+setTimeout(sayHi, 1000); // Hello, John!
+
+// even if the value of user changes within 1 second
+// sayHi uses the pre-bound value which is reference to the old user object
+user = {
+  sayHi() { alert("Another user in setTimeout!"); }
+};
+
+
+Arrow functions - revisited
+----------------------------
+Arrow functions do not have this. If this is accessed, it is taken from the outside, lexical scope
+
+let group = {
+  title: "Our Group",
+  students: ["John", "Pete", "Alice"],
+
+  showList() {
+    this.students.forEach(
+      student => alert(this.title + ': ' + student)
+    );
+  }
+};
+
+group.showList();
+
+Here in forEach, the arrow function is used, so this.title in it is exactly the same as in the outer method showList. 
+That is: group.title.
+
+If we used a “regular” function, there would be an error:
+
+let group = {
+  title: "Our Group",
+  students: ["John", "Pete", "Alice"],
+
+  showList() {
+    this.students.forEach(function(student) {
+      // Error: Cannot read property 'title' of undefined
+      alert(this.title + ': ' + student);
+    });
+  }
+};
+
+group.showList();
+The error occurs because forEach runs functions with this=undefined by default, so the attempt to access undefined.title is made.
+
+
+Decorators
+--------------
+const logger = (message) => console.log(message)
+
+function loggerDecorator (logger) {
+    return function (message) {
+        logger.call(this, message)
+        console.log("message logged at:", new Date().toLocaleString())
+    }
+}
+const decoratedLogger = loggerDecorator(logger);
+
+logger("Lawrence logged in: logger") // returns Lawrence logged in: logger
+
+decoratedLogger("Lawrence logged in: decoratedLogger") 
+// returns:
+// Lawrence logged in: decoratedLogger
+// message logged at: 6/20/2021, 9:18:39 PM
+
+
+----------------------------------
+Generators
+---------------------------------
+Regular functions return only one, single value (or nothing).
+Generators can return (“yield”) multiple values, one after another, on-demand. They work great with iterables, allowing to create data streams with ease.
+To create a generator, we need a special syntax construct: function*, so-called “generator function”.
+	function* generateSequence() {
+	  yield 1;
+	  yield 2;
+	  return 3;
+	}
+Generator functions behave differently from regular ones. When such function is called, it doesn’t run its code. Instead it returns a special object,
+called “generator object”, to manage the execution.
+ex:
+	function* generateSequence() {
+	  yield 1;
+	  yield 2;
+	  return 3;
+	}
+
+	// "generator function" creates "generator object"
+	let generator = generateSequence();
+	alert(generator); // [object Generator]
+
+The main method of a generator is next(). When called, it runs the execution until the nearest yield <value> statement (value can be omitted, then it’s undefined). 
+Then the function execution pauses, and the yielded value is returned to the outer code.
+
+The result of next() is always an object with two properties:
+* value: the yielded value.
+* done: true if the function code has finished, otherwise false
+
+For instance, here we create the generator and get its first yielded value:
+
+	function* generateSequence() {
+	  yield 1;
+	  yield 2;
+	  return 3;
+	}
+
+	let generator = generateSequence();
+	let one = generator.next();
+	alert(JSON.stringify(one)); // {value: 1, done: false}
+
+As of now, we got the first value only, and the function execution is on the second line:
+Let’s call generator.next() again. It resumes the code execution and returns the next yield:
+
+	let two = generator.next();
+	alert(JSON.stringify(two)); // {value: 2, done: false}
+
+And, if we call it a third time, the execution reaches the return statement that finishes the function:
+
+	let three = generator.next();
+	alert(JSON.stringify(three)); // {value: 3, done: true}
+
+Now the generator is done. We should see it from done:true and process value:3 as the final result.
+New calls to generator.next() don’t make sense any more. If we do them, they return the same object: {done: true}.
+
+Generators are iterable, We can loop over their values using for..of:
+
+	function* generateSequence() {
+	  yield 1;
+	  yield 2;
+	  return 3;
+	}
+	
+	let generator = generateSequence();
+	for(let value of generator) {
+	  alert(value); // 1, then 2
+	}
+But please note: the example above shows 1, then 2, and that’s all. It doesn’t show 3!
+It’s because for..of iteration ignores the last value, when done: true. So, if we want all results to be shown by for..of, we must return them with yield:
+
+	function* generateSequence() {
+	  yield 1;
+	  yield 2;
+	  yield 3;
+	}
+
+	let generator = generateSequence();
+	for(let value of generator) {
+	  alert(value); // 1, then 2, then 3
+	}
+
+As generators are iterable, we can call all related functionality, e.g. the spread syntax ...:
+
+	function* generateSequence() {
+	  yield 1;
+	  yield 2;
+	  yield 3;
+	}
+
+	let sequence = [0, ...generateSequence()];
+	alert(sequence); // 0, 1, 2, 3
+
+Now let's revisit the range iterator we created previously.
+
+	let range = {
+	  from: 1,
+	  to: 5,
+
+	  // for..of range calls this method once in the very beginning
+	  [Symbol.iterator]() {
+	    // ...it returns the iterator object:
+	    // onward, for..of works only with that object, asking it for next values
+	    return {
+	      current: this.from,
+	      last: this.to,
+
+	      // next() is called on each iteration by the for..of loop
+	      next() {
+		// it should return the value as an object {done:.., value :...}
+		if (this.current <= this.last) {
+		  return { done: false, value: this.current++ };
+		} else {
+		  return { done: true };
+		}
+	      }
+	    };
+	  }
+	};
+
+	// iteration over range returns numbers from range.from to range.to
+	alert([...range]); // 1,2,3,4,5
+	
+We can use a generator function for iteration by providing it as Symbol.iterator.
+Here’s the same range, but much more compact:
+
+	let range = {
+	  from: 1,
+	  to: 5,
+
+	  *[Symbol.iterator]() { // a shorthand for [Symbol.iterator]: function*()
+	    for(let value = this.from; value <= this.to; value++) {
+	      yield value;
+	    }
+	  }
+	};
+
+	alert( [...range] ); // 1,2,3,4,5	
+	
+That works, because range[Symbol.iterator]() now returns a generator, and generator methods are exactly what for..of expects:
+* it has a .next() method
+* that returns values in the form {value: ..., done: true/false}	
+
+Generator Composition
+----------------------
+Generator composition is a special feature of generators that allows to transparently “embed” generators in each other.
+
+For instance, we have a function that generates a sequence of numbers:
+
+	function* generateSequence(start, end) {
+	  for (let i = start; i <= end; i++) yield i;
+	}
+	
+Now we’d like to reuse it to generate a more complex sequence:
+* first, digits 0..9 (with character codes 48…57),
+* followed by uppercase alphabet letters A..Z (character codes 65…90)
+* followed by lowercase alphabet letters a..z (character codes 97…122)
+
+	function* generatePasswordCodes() {
+
+	  // 0..9
+	  yield* generateSequence(48, 57);
+
+	  // A..Z
+	  yield* generateSequence(65, 90);
+
+	  // a..z
+	  yield* generateSequence(97, 122);
+
+	}
+
+	let str = '';
+
+	for(let code of generatePasswordCodes()) {
+	  str += String.fromCharCode(code);
+	}
+
+	alert(str); // 0..9A..Za..z
+	
+The yield* directive delegates the execution to another generator. This term means that yield* gen iterates over the generator gen and transparently
+forwards its yields outside. As if the values were yielded by the outer generator.
+
+The result is the same as if we inlined the code from nested generators:
+
+	function* generateSequence(start, end) {
+	  for (let i = start; i <= end; i++) yield i;
+	}
+
+	function* generateAlphaNum() {
+
+	  // yield* generateSequence(48, 57);
+	  for (let i = 48; i <= 57; i++) yield i;
+
+	  // yield* generateSequence(65, 90);
+	  for (let i = 65; i <= 90; i++) yield i;
+
+	  // yield* generateSequence(97, 122);
+	  for (let i = 97; i <= 122; i++) yield i;
+
+	}
+
+	let str = '';
+
+	for(let code of generateAlphaNum()) {
+	  str += String.fromCharCode(code);
+	}
+
+	alert(str); // 0..9A..Za..z
+A generator composition is a natural way to insert a flow of one generator into another. It doesn’t use extra memory to store intermediate results.
+
+yield is a two-way street
+----------------------------
+"yield" not only returns the result to the outside, but also can pass the value inside the generator.
+To do so, we should call generator.next(arg), with an argument. That argument becomes the result of yield.
+
+	function* gen() {
+	  // Pass a question to the outer code and wait for an answer
+	  let result = yield "2 + 2 = ?"; // (*)
+
+	  alert(result);
+	}
+
+	let generator = gen();
+
+	let question = generator.next().value; // <-- yield returns the value
+
+	generator.next(4); // --> pass the result into the generator
+
+1. The first call generator.next() should be always made without an argument (the argument is ignored if passed). It starts the execution and 
+returns the result of the first yield "2+2=?". At this point the generator pauses the execution, while staying on the line (*).
+2. Then, as shown at the picture above, the result of yield gets into the question variable in the calling code.
+3. On generator.next(4), the generator resumes, and 4 gets in as the result: let result = 4.
+
+Please note, the outer code does not have to immediately call next(4). It may take time. That’s not a problem: the generator will wait.
+For instance:
+
+	// resume the generator after some time
+	setTimeout(() => generator.next(4), 1000);
+	
+As we can see, unlike regular functions, a generator and the calling code can exchange results by passing values in next/yield.
+To make things more obvious, here’s another example, with more calls:
+
+	function* gen() {
+	  let ask1 = yield "2 + 2 = ?";
+
+	  alert(ask1); // 4
+
+	  let ask2 = yield "3 * 3 = ?"
+
+	  alert(ask2); // 9
+	}
+
+	let generator = gen();
+
+	alert( generator.next().value ); // "2 + 2 = ?"
+
+	alert( generator.next(4).value ); // "3 * 3 = ?"
+
+	alert( generator.next(9).done ); // true	
+
+1. The first .next() starts the execution… It reaches the first yield.
+2. The result is returned to the outer code.
+3. The second .next(4) passes 4 back to the generator as the result of the first yield, and resumes the execution.
+4. …It reaches the second yield, that becomes the result of the generator call.
+5. The third next(9) passes 9 into the generator as the result of the second yield and resumes the execution that reaches the end of the function, so done: true.
+
+It’s like a “ping-pong” game. Each next(value) (excluding the first one) passes a value into the generator, that becomes the result of the current yield, and then gets back the result of the next yield.
+
+generator.throw and generator.return
+-------------------------------------
+As we observed in the examples above, the outer code may pass a value into the generator, as the result of yield.
+…But it can also initiate (throw) an error there. That’s natural, as an error is a kind of result.
+
+To pass an error into a yield, we should call generator.throw(err). In that case, the err is thrown in the line with that yield.
+
+For instance, here the yield of "2 + 2 = ?" leads to an error:
+
+	function* gen() {
+	  try {
+	    let result = yield "2 + 2 = ?"; // (1)
+
+	    alert("The execution does not reach here, because the exception is thrown above");
+	  } catch(e) {
+	    alert(e); // shows the error
+	  }
+	}
+
+	let generator = gen();
+
+	let question = generator.next().value;
+
+	generator.throw(new Error("The answer is not found in my database")); // (2)
+
+The error, thrown into the generator at line (2) leads to an exception in line (1) with yield. In the example above, try..catch catches it and 
+shows it. If we don’t catch it, then just like any exception, it “falls out” the generator into the calling code.
+The current line of the calling code is the line with generator.throw, labelled as (2). So we can catch it here, like this:
+
+	function* generate() {
+	  let result = yield "2 + 2 = ?"; // Error in this line
+	}
+
+	let generator = generate();
+
+	let question = generator.next().value;
+
+	try {
+	  generator.throw(new Error("The answer is not found in my database"));
+	} catch(e) {
+	  alert(e); // shows the error
+
+
+generator.return(value) finishes the generator execution and return the given value.
+
+	function* gen() {
+	  yield 1;
+	  yield 2;
+	  yield 3;
+	}
+
+	const g = gen();
+
+	g.next();        // { value: 1, done: false }
+	g.return('foo'); // { value: "foo", done: true }
+	g.next();        // { value: undefined, done: true }
+	
+If we again use generator.return() in a completed generator, it will return that value again (MDN).
+Often we don’t use it, as most of time we want to get all returning values, but it can be useful when we want to stop generator in a specific condition.

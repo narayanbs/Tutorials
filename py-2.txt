@@ -1,0 +1,1002 @@
+Type and Class
+---------------
+Everything is an object in python. even functions and classes are objects. Each object has a type, identity and value. 
+The type of an object can be determined by type(obj), this invokes obj.__class__ 
+
+classes are templates from which instances are created. All classes have a type <class 'type'>.
+for ex:
+	class Person:
+	    pass
+
+	type(Person) == Person.__class__ == <class 'type'>
+
+Each class can extend one or more one or more super classes. These can be determined by __bases__.
+i.e 
+	Person.__bases__ == <class 'object'>
+	
+The class acts as the type for instances. for ex, If we create a new instance of Person,
+	p = Person() then
+	type(p) == p.__class__ == <class 'Person'>
+
+Note: 
+* Instances don't have __bases__, only types have.
+* All primitives (__class__) points to <class 'type'> 
+* All primitives (__bases__) lead to  <class 'object'>
+ex:
+	ll = [1,2,3]
+	type(ll) ----> <class 'list'>
+	list.__class__ -------> <class 'type'>
+	list.__bases__ -------> <class 'object'>
+
+
+type of object is <class 'type'>, object.__bases__ is ()
+type of type is <class 'type'> itself, type.__bases__ is object, 
+                               extends
+ -> type type <----------------------------------> type object
+|       |    <------                         --->
+|       |           |                        | extends
+|_______|           |_______type int ------- |
+                    |                        |
+                    |-------type list -------|
+                    |                        |
+                    |-------type dict -------
+
+
+
+To check if a class extends another class we use issubclass(class, superclass) 
+To check if an object is an instance of a class we use isinstance(obj, class)
+
+issubclass(class, superclass) is True iff
+    * class.__bases__ is superclass
+    * superclass is part of the hierarchy from object to class.__bases__
+
+isinstance(A,B) is True iff
+    * A.__class__ is B
+    * issubclass(A.__class__, B) is True
+
+ex:
+	issubclass(list, object) --> True
+	isinstance(ll, list) --> True
+	isinstance(ll, object) --> True
+
+                
+-----------------------------------------------------------------------------
+
+classes, methods and instances
+==============================
+
+class Student:
+   school = "Doon School"	# class variable (one per class, shared b/w objects)
+   def __init__(self, name):	# initializer
+   	self.name = name 	# self.name is instance variable
+   	self.height = 0		# so is self.height
+   
+   def setHeight(self, height):	# instance method
+   	self.height = height
+   
+   @classmethod
+   def new_student(cls, name):	# class method
+   	return cls(name)
+   
+   @staticmethod
+   def compareHeight(s1, s2):	# static method
+   	return s1.height > s2.height
+   
+   	
+variables declared inside class are class variables, associated with the class object. 
+variables declared with self are instance variables associated with instance. 
+since self has access to the the class using __class__, it can access the class variables and methods (both class and static).
+
+Note:
+class variables should be modified by using "ClassName.class_variable" notation. Using self to set the variable value will create a 
+instance variable that shadows the class variable.
+i.e
+	Student.school = "kendriya vidyalaya" // the right way
+	self.school = "kendriya vidyalaya"	// Incorrect, will create a instance variable that shadows the class variable 
+	
+you can access the school using self though, as self.school  // this is ok.
+
+Methods (instance and class) are functions that are bound to their argument (instance and class) in this case. 
+Hence they are referred to as bound methods.
+for ex:
+	instance methods are passed the object as the first argument through self
+	s.setHeight(20) is the same as Student.setHeight(s,20)
+
+	class methods are passed the class object as the first argument. 
+	Student.new_student("John")
+	
+class methods don't have access to instance methods or variables. they are primarily used to as factories to create instances.	
+static methods don't have access to either class or instance objects.
+
+Note: class and static methods can be invoked through the instance. for ex in case of the Student class above, we can do this
+s = Student("Angus")
+s.new_student("Jason")
+	or
+s.compareHeight(...,...)
+
+This will work, python will just pass the class as the first argument in case of a class method and won't pass class or object in the 
+case of a static method. 
+
+__dict__ attribute
+-------------------------
+Every object in python has a dictionary where <name-object> entries are stored. This is identified by __dict__
+Consider the following class
+    
+    class Student:
+      school = "Doon"
+      def __init__(self, name):
+        self.name = name
+      def setHeight(self, height):
+        self.height = height
+
+let's create an instance s = Student("Narayan")
+the class attribute "school" will be part of Student.__dict__ and the instance attribute "name" will be part of s.__dict__
+
+print(s.__dict__)       --> {"name": "Narayan"}
+print(Student.__dict__)     -->  mappingproxy({'school': 'Doon', 'setHeight':........ })
+
+s.name="Guido" is the same as s.__dict__['name'] = "Guido". We can't directly assign to Student.__dict__[]
+
+
+Object Initialization
+----------------------
+python uses two methods for creating and initializing new objects.. 
+
+1) __new__() method  (object is created, could be thought of as constructor)
+
+	The __new__() is a static method of the object class. It has the following signature:
+	object.__new__(class)
+
+2)  __init__() method (for initializing instance variables)
+
+for ex:
+	p = Person("John") --> is equivalent to 
+	p = object.__new__(Person)
+	p.__init__('John')
+
+The following shows the contents of the __dict__ of the person object after calling the __new__() and __init__() methods:
+
+p = object.__new__(Person)
+print(p.__dict__)
+
+Output: {}
+
+p.__init__('John')
+print(p.__dict__)
+
+Output:
+{'name': 'John'}
+
+Thus initialization happens in __init__ by default. 
+
+We can override the __new__ method, 
+* if we return the newly created object, then __init__ will be automatically called
+* if we don't then we need to call __init__ by ourselves.
+
+ex: 
+class Person:
+    def __new__(cls, name):
+        print(f'Creating a new {cls.__name__} object...{name}')
+        //obj = object.__new__(cls)
+        //return obj
+        	or
+        return super().__new__(cls)
+
+    def __init__(self, name):
+        print(f'Initializing the person object with {name}')
+        self.name = name
+
+
+person = Person('John')
+
+Output:
+Creating a new Person object...John
+Initializing the person object with John
+
+Note: obj.__new__(cls) only takes class parameter, where as the __new__ we define can take a cls as well as other args that we pass to constructor.
+
+We can create and initialize the object in __new__ itself as shown below, but we rarely do this. 
+
+class Person:
+    def __new__(cls, first_name, last_name):
+        # create a new object
+        obj = super().__new__(cls)
+
+        # initialize attributes
+        obj.first_name = first_name
+        obj.last_name = last_name
+
+        # inject new attribute
+        obj.full_name = f'{first_name} {last_name}'
+        return obj
+
+
+person = Person('John', 'Doe')
+print(person.full_name)
+
+print(person.__dict__)
+
+Output:
+John Doe
+{'first_name': 'John', 'last_name': 'Doe', 'full_name': 'John Doe'}
+
+Note: If __new__ doesn't return an obj, we have to invoke __init__ ourselves.
+
+
+Properties -- Getter and Setter
+-------------------------------
+class Celsius:
+	def __init__(self, temp=0)
+		self.set_temp(temp)
+	
+	def set_temp(self, value):
+		self.temp = value
+	
+	def get_temp(self):
+		return self.temp
+		
+c = Celsius()
+c.set_temp(40)
+print(c.get_temp())
+
+Here set_temp and get_temp act as the setter and getter of the temp variable. In python, we can make temp as a class variable that will invoke the
+appropriate setter and getter whenever we set or get its value. 
+
+To accomplish this we use the function "property(fget, fset, fdel, ..)"
+
+class Celsius:
+	def __init__(self, temp=0):
+		self._temp = temp
+		
+	def set_temp(self, value):
+    print(f"setting temp to {value}")
+		self._temp = value
+	
+	def get_temp(self):
+    print("Returning temp")
+		return self._temp
+	
+	temp = property(get_temp, set_temp)
+	
+	# same as the statement above
+	# temp = property()
+	# temp = temp.getter(get_temp)
+	# temp = temp.setter(set_temp)
+	
+c = Celsius()
+c.temp = 40
+print(c.temp)	
+
+Output:
+setting temp to 40
+Returning temp
+40
+
+Note: temp is a class variable
+Celsius.__dict__ = mappingproxy({'temp': property object, :........ })
+c.__dict__ = {'_temp': 40 }
+
+We can also use annotation to accomplish the same above
+
+class Celsius:
+	def __init__(self, temp=0):
+		self._temp = temp
+	
+	@property	
+	def temp(self):
+		return self._temp
+		
+	@temp.setter				
+	def temp(self, val):
+		self._temp = val
+	
+c = Celsius()
+c.temp = 40
+print(c.temp)	 ==> 40
+
+Note: @property must be defined before the setter
+
+Data Descriptors
+-----------------
+How did the property work above?  In the example above, the property temp is a class attribute that is defined as 
+
+	temp = property(get_temp, set_temp) 
+
+The property function basically returns an object that implements the descriptor protocol. What this means is,
+whenever we access or set a new value to the temp attribute, it changes the values of the object it is attached to, by invoking the getters 
+and setters appropriately. The main motivation is to provide a hook allowing objects stored in class variables to control what happens during
+attribute lookup.
+
+Descriptors implements certain methods of the descriptor protocol. Here you can see the correct definition of the descriptor protocol:
+
+__get__(self, obj, objClass=None) -> object
+__set__(self, obj, value) -> None
+__delete__(self, obj) -> None
+__set_name__(self, owner, name)
+
+Here, 
+    self is the instance of the descriptor you’re writing.
+    obj is the object your descriptor is attached to.
+    objClass is the type of the object the descriptor is attached to.
+    
+Define any of these methods and an object is considered a descriptor. If your descriptor implements .__set__() or .__delete__(), then it’s said to be a data descriptor. 
+if it implements just .__get__(), then it's said to be a non-data descriptor.(It is often used for methods)
+
+Now coming back to our temp class variable in the above example. temp is a data descriptor returned by the property funciton.   
+When the value of temp is set as in c.temp = 40, then the runtime invokes the method __set__() in the data descriptor passing the object "c" and value 40 as arguments.
+Similarly when we access temp as in print(c.temp), the runtime invokes __get__() in the data descriptor passing the object "c" and "Celsius" as arguments. 
+
+Why don't we pass the class in case of the __set__() method? 
+Reason is because descriptors are assigned to a class, not to an instance, and modifying the class would actually overwrite or delete the descriptor itself, rather than triggering its code. so only the retrieval method has access to the owner class. so we call .__set__() only on the object. In contrast, you can call .__get__() on both the object and the class.
+
+ex:
+	temp = property(get_temp, set_temp)
+
+We can assume that property returns a data descriptor and the instance belongs to a PropertyDataDesc class as shown below
+
+	class PropertyDataDesc:
+		def __init__(self, getter, setter, deleter):
+			self.getter = getter
+			self.setter = setter
+			self.deleter = deleter
+			return self
+
+		def __get__(self, obj, objClass=None):
+			return self.getter.__call__(obj)
+		
+		def __set__(self, obj, value):
+			self.setter.__call__(obj, value)
+
+c = Celsius()
+c.temp = 40 ---> This invokes __set__() in the data descriptor passing the object "c" and value 40 as arguments
+print(c.temp) --> This invokes __get__() in the data descriptor passing the object "c" and "Celsius" as arguments
+
+Let's look at an another example
+
+ex: 
+Here the age descriptor set/get the _age property on the object it is attached to and also logs the event. 
+
+	import logging
+
+	logging.basicConfig(level=logging.INFO)
+
+	class LoggedAgeAccessDescriptor:
+
+		def __get__(self, obj, objtype=None):
+		    value = obj._age
+		    logging.info('Accessing %r giving %r', 'age', value)
+		    return value
+
+		def __set__(self, obj, value):
+		    logging.info('Updating %r to %r', 'age', value)
+		    obj._age = value
+
+	class Person:
+		age = LoggedAgeAccessDescriptor()             # Descriptor instance
+
+		def __init__(self, name, age):
+		    self.name = name                # Regular instance attribute
+		    self.age = age                  # Calls __set__()
+
+		def birthday(self):
+		    self.age += 1                   # Calls both __get__() and __set__()
+
+
+	>>> mary = Person('Mary M', 30)         # The initial age update is logged
+	INFO:root:Updating 'age' to 30
+	>>> dave = Person('David D', 40)
+	INFO:root:Updating 'age' to 40
+
+	>>> vars(mary)                          # The actual data is in a private attribute
+	{'name': 'Mary M', '_age': 30}
+	>>> vars(dave)
+	{'name': 'David D', '_age': 40}
+
+	>>> mary.age                            # Access the data and log the lookup
+	INFO:root:Accessing 'age' giving 30
+	30
+	>>> mary.birthday()                     # Updates are logged as well
+	INFO:root:Accessing 'age' giving 30
+	INFO:root:Updating 'age' to 31
+
+	>>> dave.name                           # Regular attribute lookup isn't logged
+	'David D'
+	>>> dave.age                            # Only the managed attribute is logged
+	INFO:root:Accessing 'age' giving 40
+	40
+
+Methods are non-data descriptors. 
+---------------------------------
+We know that methods are regular functions that are bound to the first argument reserved for the object instance.
+When you access a method using dot notation, you’re calling the corresponding function and passing the object instance as the first parameter.
+i.e if p = Person(), then p.getName() is the same as Person.getName(p).
+
+The magic that transforms your obj.method(*args) call into method(obj, *args) is inside a .__get__() implementation of the 
+function object that is, in fact, a non-data descriptor. In particular, the function object implements .__get__() so that it 
+returns a bound method when you access it with dot notation. The (*args) that follow invoke the functions by passing all the 
+extra arguments needed.
+
+Note: data descriptors can only be class attributes. functions are actually non-data descriptors.
+
+-------------------------------------------------------------------
+
+
+Python Attribute lookup rules -- summary
+-----------------------------------------
+* if attrname  is special [i.e python provided] attribute for objname then return it
+* check objname.__class__.dict for attrname, if it exists and is a data descriptor return it. search all the bases
+of objname.__class__ for the same
+* check objname.__dict__ for attrname, return if found
+* check objname.__class__.dict for attrname, if it exists and is a non-data descriptor return it, else if it is not a descriptor return it,
+ search bases of objname.__class__ for the same case.
+* Raise AttributeError
+
+
+Python inheritance
+--------------------------
+Python supports multiple inheritance. It can extend from more than one class
+ex:
+	class A:
+		pass
+	class B:
+		pass
+	class C(B, A):
+		pass
+	
+Parent class constructors can be invoked using super().__init__() and methods using super().methodname()
+
+Note: Unlike java, python subclasses don't invoke the super class constructor implicitly.
+We need to invoke it explicitly, if we need to.
+
+	class A:
+		def __init__(self):
+			print("Cons A")
+		
+		def printName(self, name):
+			print(name)
+	
+	class B(A):
+		def __init__(self):
+			super().__init__()
+			print("Cons B")
+		
+		def printName(self):
+			super().printName()
+			
+>>> b = B()
+Cons A
+Cons B
+>> b.printName("chunai")
+chunai
+
+
+Python mro and super()
+------------------------
+mro() stands for Method Resolution Order. It returns a list of types the class is derived from, in the order they are searched for methods.
+To get the method resolution order of a class, use the __mro__ attribute or the mro() method.
+
+# Python program to show the order in which methods are resolved
+
+class A:
+	def rk(self):
+		print(" In class A")
+class B:
+	def rk(self):
+		print(" In class B")
+
+# classes ordering
+class C(A, B):
+	def __init__(self):
+		print("Constructor C")
+
+r = C()
+
+# it prints the lookup order
+print(C.__mro__)
+print(C.mro())
+
+
+Constructor C
+
+(<class '__main__.C'>, <class '__main__.A'>, <class '__main__.B'>, <class 'object'>)
+
+[<class '__main__.C'>, <class '__main__.A'>, <class '__main__.B'>, <class 'object'>]
+
+
+super()
+---------
+super() is used to access methods on base classes. when super() is invoked it returns a bound proxy object to a class or an instance.
+super() doesn't work with the base class but works with the mro of the type of the object on which the method was originally invoked. 
+i.e Given a mro and class C in that mro, super() gives you an object which resolves methods using only the part of the mro that comes after C.
+ 
+super(base-class, derived-class) ---> class bound proxy
+* finds the mro of derived class
+* finds base class in the mro
+* looks for the method in all classes that come after the base class in the mro
+
+super(class, instance_of_class)
+* find mro of the class of the instance_of_class
+* find class in mro
+* looks for the method in classes that come after the class in the mro
+
+In the case of an empty argument super(), python will sort out the arguments. In instance method, method class and self
+in class method, method class and class object.
+
+ex:
+
+class SimpleList:
+	def __init__(self, items):
+		self._items = list(items)
+
+	def add(self, item):
+		self._items.append(item)
+	
+	def __getitem__(self, index):
+		return self._items[index]
+	
+	def sort(self):
+		self._items.sort()
+
+	def __len__(self):
+		return len(self._items)
+
+	def __repr__(self):
+		return "SimpleList({!r})".format(self._items)
+	
+
+class SortedList(SimpleList):
+	def __init__(self, items=()):
+		super().__init__(items)
+		self.sort()
+	
+	def add(self, item):
+		super().add(item)
+		self.sort()
+	
+	def __repr__(self):
+		return "SortedList({!r})".format(list(self))
+	
+
+class IntList(SimpleList):
+	def __init__(self, items=()):
+		for x in items:
+			self._validate(x)
+		super().__init__(items)
+	
+	@staticmethod
+	def _validate(x):
+		if not isinstance(x, int):
+			raise TypeError('IntList only supports integer values.')
+	
+	def add(self, item):
+		self._validate(item)
+		super().add(item)
+
+	def __repr__(self):
+		return "IntList({!r})".format(list(self))
+
+
+class SortedIntList(IntList, SortedList):
+	def __repr__(self):
+		return "SortedIntList({!r})".format(list(self))		
+
+		
+sil = SortedIntList([42, 23, 2])
+sil
+SortedIntList([2, 23, 42])
+
+The list items are sorted and it rejects non-integer values too
+
+SortedIntList([3, 2, '1'])
+
+Traceback (most recent call last):
+File "<stdin>", line 1, in <module>
+File "sorted_int_list.py", line 43, in __init__
+for x in items: self._validate(x)
+File "sorted_int_list.py", line 49, in _validate
+raise TypeError('IntList only supports integer values.')
+TypeError: IntList only supports integer values.
+
+Likewise, the add method maintains both the sorting and type constraints defined by the base-classes:
+
+sil.add(-1234)
+sil
+SortedIntList([-1234, 2, 23, 42])
+
+sil.add('the smallest uninteresting number')
+
+Traceback (most recent call last):
+File "<stdin>", line 1, in <module>
+File "sorted_int_list.py", line 45, in add
+self._validate(item)
+File "sorted_int_list.py", line 42, in _validate
+raise TypeError('IntList only supports integer values.')
+TypeError: IntList only supports integer values		
+
+How does this work????
+
+Let's get the mro for SortedIntList class. 
+
+>>> SortedIntList.__mro__
+(<class '__main__.SortedIntList'>,<class '__main__.IntList'>,<class '__main__.SortedList'>,<class '__main__.SimpleList'>,<class 'object'>)
+
+Resolving the SortedIntList mystery
+-------------------------------------
+So let’s do a quick review of what super() does. Given a class and an MRO that contains
+that class, super() takes everything in the MRO after the class and uses that as a new MRO
+for resolving methods. This is all bundled up into proxy objects which are returned from the
+super() call.
+
+Given that, let’s see if we can resolve the apparent mystery of how SortedIntList
+works. Remember that SortedList and IntList were developed without referencing one
+another, yet when they’re combined in a subclass, both of their constraints are still properly
+maintained.
+
+The key to how this works is that both SortedList and IntList use super() to defer to
+their base-class. But as we now know, super() doesn’t just let us access base-classes, but
+rather it lets us access the complete method resolution order for a class.
+So, when SortedList and IntList are both used as bases for SortedIntList, the
+MRO for SortedIntList contains both of them. A call to add on a SortedIntList 
+resolves to a call to IntList.add() which itself calls super(). The super() call in
+IntList.add() uses the full MRO for SortedIntList, meaning that rather than resolving
+to SimpleList.add() as we initially expected, it actually resolves to SortedList.add().
+This is how SortedIntList maintains two constraints without having to manually combine
+them.
+
+This is a fairly deep result, and if you understand how SortedIntList works, then you
+have a good grasp on super() and method resolution order in Python.
+
+
+Python iterable and iterator protocol
+--------------------------------------
+An object is iterable if it implements __iter__(self) method or __getitem__(self, index) method. The __iter__(self) method
+should return an iterator. An iterator is also iterable and needs to implement the __next__(self) method, along with the __iter__ method
+
+clients that use the iterable will first retrieve an iterator using the iter() method, then iterate through it using next() 
+till StopIteration is raised.
+
+If __iter__ is not present then iter method looks  for __getitem__ and returns the object. next() implementation will 
+invoke __getitem__ with an index till it recieves an IndexError, 
+
+ex: 
+    class ExampleIterable:
+        def __init__(self):
+            self.data = [1,2,3]
+
+        def __iter__(self):
+            return ExampleIterator(self.data)
+
+    class ExampleIterator:
+        def __init__(self, data):
+            self.index = 0
+            self.data = data
+
+        # An iterator has to be iterable itself
+        def __iter__(self):
+            return self
+
+        def __next__(self):
+            if self.index >= len(self.data):
+                raise StopIteration
+            result = self.data[self.index]
+            self.index += 1
+            return result
+
+>>> e = ExampleIterable()
+>>> et = iter(e)
+>>> next(et) 	// 1
+>>> next(et) 	// 2
+>>> next(et) 	// 3
+>>> next(et) 	// StopIteration 
+
+Equivalent to above
+>>> e= ExampleIterable()
+>>> for it in e:
+...     print(it, end=" ")
+>>> 1 2 3
+
+
+Note: ExampleIterator has to implement both the iterable and iterator protocol. (i.e implement __iter__ and __next__)
+
+if __iter__ is not implemented, it can implement __getitem__ method.
+
+ex: 
+    class ExampleIterable:
+        def __init__(self, data):
+            self.data = data
+        
+        def __getitem__(self, idx):
+            if idx >= len(self.data):
+                raise IndexError
+            return self.data[idx]
+
+>>> e = ExampleIterable([1,2,3])
+>> et = iter(e)
+>> next(et)  // 1
+>> next(et)  // 2
+>> next(et)  // 3
+	or
+>>> for it in e:
+...     print(it, end=" ")
+>>> 1 2 3
+
+
+Note: __getitem__ is a dunder method used to allow indexing 
+for ex: We can index the instance of ExampleIterable class defined above as shown below.
+>>> e = ExampleIterable([4,5,6])
+>>> e[0]	// 4
+>>> e[1]	// 5
+>>> e[2]	// 6
+>>> e[3]	// IndexError
+
+Extended Iter form
+-------------------
+iter() has a 2 argument form , that lets you iterate over objects that don't support the iterable protocol
+The first argument is a callable and takes zero arguments, the second argument is a sentinel value. The return 
+value is an iterator which produces values lby calling the callable argument. 
+The iterator terminates when the callable produces a value equal to the sentinel.
+
+ex: here the datetime is printed infinitely since the sentinel is None and the first argument will never return none
+
+    import datetime
+    it = iter(datetime.datetime.now, None)
+    next(it) --> datetime(2022, 07, 15, 12, 14,00)
+    next(it) --> datetime(2022, 07, 15, 12, 14,00)
+    .
+    .
+    .
+    infinity
+
+
+    with open("file.txt", "r") as f:
+        for line in iter(lambda : f.readline().strip(), "END")
+            print(line)
+
+if file.txt has the following contents
+    ONE
+    TWO
+    THREE
+    END
+    .
+    .
+    SEVEN
+    EIGHT
+
+the output would be
+    ONE
+    TWO
+    THREE
+    
+
+Generators
+------------
+There is a lot of work in building an iterator in Python. We have to implement a class with __iter__() and __next__() method, 
+keep track of internal states, and raise StopIteration when there are no values to be returned.
+
+This is both lengthy and counterintuitive. Generator comes to the rescue in such situations.
+Python generators are a simple way of creating iterators. All the work we mentioned above are automatically handled by generators in Python.
+Simply speaking, a generator is a function that returns an object (iterator) which we can iterate over (one value at a time).
+
+To create a generator in Python. It is as easy as defining a normal function, but with a yield statement instead of a return statement.
+
+If a function contains at least one yield statement (it may contain other yield or return statements), it becomes a generator function. 
+Both yield and return will return some value from a function.
+
+Here is how a generator function differs from a normal function.
+
+* Generator function contains one or more yield statements.
+* When called, it returns an object (iterator) but does not start execution immediately.
+* Methods like __iter__() and __next__() are implemented automatically. So we can iterate through the items using next().
+* Once the function yields, the function is paused and the control is transferred to the caller.
+* Local variables and their states are remembered between successive calls.
+* Finally, when the function terminates, StopIteration is raised automatically on further calls.
+
+ex:
+# A simple generator function
+def my_gen():
+    n = 1
+    print('This is printed first')
+    # Generator function contains yield statements
+    yield n
+
+    n += 1
+    print('This is printed second')
+    yield n
+
+    n += 1
+    print('This is printed at last')
+    yield n
+
+>>> # It returns an object but does not start execution immediately.
+>>> a = my_gen()
+
+>>> # We can iterate through the items using next().
+>>> next(a)
+This is printed first
+1
+>>> # Once the function yields, the function is paused and the control is transferred to the caller.
+
+>>> # Local variables and theirs states are remembered between successive calls.
+>>> next(a)
+This is printed second
+2
+
+>>> next(a)
+This is printed at last
+3
+
+>>> # Finally, when the function terminates, StopIteration is raised automatically on further calls.
+>>> next(a)
+Traceback (most recent call last):
+...
+StopIteration
+>>> next(a)
+Traceback (most recent call last):
+...
+StopIteration
+
+One interesting thing to note in the above example is that the value of variable n is remembered between each call.
+Furthermore, the generator object can be iterated only once.
+
+# A simple generator function
+def my_gen():
+    n = 1
+    print('This is printed first')
+    # Generator function contains yield statements
+    yield n
+
+    n += 1
+    print('This is printed second')
+    yield n
+
+    n += 1
+    print('This is printed at last')
+    yield n
+
+
+# Using for loop
+for item in my_gen():
+    print(item)
+
+This is printed first
+1
+This is printed second
+2
+This is printed at last
+3
+
+Generators with a loop    
+------------------------
+Normally, generator functions are implemented with a loop having a suitable terminating condition.
+
+def rev_str(my_str):
+    length = len(my_str)
+    for i in range(length-1, -1, -1):
+        yield my_str[i]
+
+
+# For loop to reverse the string
+for char in rev_str("hello"):
+    print(char, end=' ')
+
+o l l e h    
+
+ExampleIterator using a generator
+---------------------------------
+def example_generator(data):
+	i = 0 
+	while i < len(data):
+		yield data[i]
+		i += 1
+
+a = example_generator([1, 2, 3, 4, 5])
+for it in a:
+	print(it, end=" ")
+print("done")                                                                                                                                   
+
+1 2 3 4 5 done
+
+
+Uses of Generators
+-----------------
+* easy to implement
+* Memory efficient -- A normal function to return a sequence will create the entire sequence in memory before returning the result. 
+Generator implementation of such sequences is memory friendly and is preferred since it only produces one item at a time.
+* Represent infinite stream -- Generators are excellent mediums to represent an infinite stream of data. Infinite streams cannot be stored in memory, and since generators produce only one item at a time, they can represent an infinite stream of data.
+ex: 
+	def all_even():
+    	n = 0
+    	while True:
+    	    yield n
+    	    n += 2
+* Generators can be pipelined -- Multiple generators can be used to pipeline a series of operations.
+
+	def fibonacci_numbers(nums):
+		x, y = 0, 1
+		for _ in range(nums):
+		    x, y = y, x+y
+		    yield x
+
+	def square(nums):
+		for num in nums:
+		    yield num**2
+
+	print(sum(square(fibonacci_numbers(10))))
+	
+	output: 4895
+	
+
+Comprehensions - shorthand for creating collections and iterable objects
+------------------------------------------------------------------------
+List comprehension
+
+	[i * 2 for i in range(1, 10)]	----> [2,4,6,8,10,12,14,16,18]
+same as
+	res = []
+	for i in range(1, 10):
+		res.append(i * 2)
+
+Dictionary Comprehension
+
+	{i: i*2 for i in range(1, 4)} ----> {1:2, 2:4, 3:6}
+same as
+	res = {}
+	for i in range(1, 4):
+		res[i] = i * 2
+
+set comprehension
+
+	{i for i in range(1,5)} ---> {1,2,3,4}
+same as
+	s = set()		
+	for i in range(1,5):
+		s.add(i)
+
+generator comprehension
+
+	g = (i for i in range(5))	--> generator object
+	
+Multi-input comprehension
+
+	[(x,y) for x in range(3) for y in range(2) ]	--> [(0,0),(0,1),(1,0),(1,1),(2,0),(2.1)]
+same as
+	res = []
+	for x in range(3):
+		for y in range(2);
+			res.append((x,y))
+
+multiple if clauses
+
+	[ x / (x-y) for x in range(10) if x > 5 for y in range(10) if x-y != 0 ]	
+same as
+	res = []
+	for x in range(10):
+		if x > 5:	
+			for y in range(10):
+				if x-y != 0:
+					res.append(x/x-y)
+
+Note: Later clauses refer to variables found in earlier clauses. The last if statement refers to x which is found in 
+the first for clause
+similarly the for clause in the comprehension can refer to variables found in earlier parts of the comprehension
+
+	ex: [(x,y) for x in range(3) for y in range(x)]
+same as
+	res = []
+	for x in range(3):
+		for y in range(x):
+			res.append((x,y))
+
+Nested Comprehension
+You can put comprehension in the output expression of a comprehension
+
+	ex: 
+	[[y*3 for y in range(x)] for x in range(10)]
+same as
+	outer = []
+	for x in range(10):
+		inner = []
+		for y in range(x):
+			inner.append(y * 3)
+		outer.append(inner)
+		

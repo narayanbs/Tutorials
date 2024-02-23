@@ -1,0 +1,259 @@
+In JavaScript, objects have a special hidden property [[Prototype]] (as named in the specification), that is either 
+null or references another object. That object is called “a prototype”:
+
+[prototype object]
+	|
+	| [[prototype]]
+	|
+   [object]
+   
+When we read a property from object, and it’s missing, JavaScript automatically takes it from the prototype. 
+In programming, this is called “prototypal inheritance”	
+
+The property [[Prototype]] is internal and hidden, but there are many ways to set it. One of them is to use the 
+special name __proto__, like this:
+
+let animal = {
+  eats: true
+};
+let rabbit = {
+  jumps: true
+};
+rabbit.__proto__ = animal; // sets rabbit.[[Prototype]] = animal
+
+Now if we read a property from rabbit, and it’s missing, JavaScript will automatically take it from animal.
+
+// we can find both properties in rabbit now:
+alert( rabbit.eats ); // true (**)
+alert( rabbit.jumps ); // true
+
+We say "animal is the prototype of rabbit" or "rabbit prototypically inherits from animal"
+if we have a method in animal, it can be called on rabbit:
+
+let animal = {
+  eats: true,
+  walk() {
+    alert("Animal walk");
+  }
+};
+
+let rabbit = {
+  jumps: true,
+  __proto__: animal
+};
+
+// walk is taken from the prototype
+rabbit.walk(); // Animal walk
+
+Note: Prototype is only used for reading properties. 
+
+The prototype chain can be longer:
+
+let animal = {
+  eats: true,
+  walk() {
+    alert("Animal walk");
+  }
+};
+
+let rabbit = {
+  jumps: true,
+  __proto__: animal
+};
+
+let longEar = {
+  earLength: 10,
+  __proto__: rabbit
+};
+
+// walk is taken from the prototype chain
+longEar.walk(); // Animal walk
+alert(longEar.jumps); // true (from rabbit)
+
+Now if we read something from longEar, and it’s missing, JavaScript will look for it in rabbit, and then in animal.
+
+There are only two limitations:
+
+The references can’t go in circles. JavaScript will throw an error if we try to assign __proto__ in a circle.
+The value of __proto__ can be either an object or null. Other types are ignored.
+Also it may be obvious, but still: there can be only one [[Prototype]]. An object may not inherit from two others.
+
+Another thing to note is the value of this. No matter where the method is found: in an object or its prototype. 
+In a method call, this is always the object before the dot.
+
+// animal has methods
+let animal = {
+  walk() {
+    if (!this.isSleeping) {
+      alert(`I walk`);
+    }
+  },
+  sleep() {
+    this.isSleeping = true;
+  }
+};
+
+let rabbit = {
+  name: "White Rabbit",
+  __proto__: animal
+};
+
+// modifies rabbit.isSleeping
+rabbit.sleep();
+
+alert(rabbit.isSleeping); // true
+alert(animal.isSleeping); // undefined (no such property in the prototype)
+
+Note: __proto__ is not the same as the internal [[Prototype]] property. It’s a getter/setter for [[Prototype]]
+The __proto__ property is a bit outdated. It exists for historical reasons, modern JavaScript suggests that we should use Object.getPrototypeOf/Object.setPrototypeOf functions instead that get/set the prototype.
+
+F.prototype
+--------------
+We know that new objects can be created with a constructor function, like new F().
+Every function has the "prototype" property by default. The default "prototype" is an object with the only property 
+constructor that points back to the function itself, like this.
+
+function Rabbit() {}
+/* default prototype
+ *
+ * Rabbit.prototype = { constructor: Rabbit };
+ *
+ */
+alert( Rabbit.prototype.constructor == Rabbit ); // true
+
+When we create a new object using the function, like 
+let rabbit = new Rabbit(); // inherits from {constructor: Rabbit}
+alert(rabbit.constructor == Rabbit);
+alert(rabbit.__proto__ == Rabbit.prototype) // true
+
+Likewise if the prototype is pointing to an object, then the new operator will set that object as the 
+[[prototype]] for the newly created object. for ex:
+
+let animal = {
+  eats: true
+};
+
+function Rabbit(name) {
+  this.name = name;
+}
+Rabbit.prototype = animal;
+
+let rabbit = new Rabbit("White Rabbit"); //  rabbit.__proto__ == animal
+alert( rabbit.eats ); // true
+
+
+
+Native prototypes
+--------------------
+The "prototype" property is widely used by the core of JavaScript itself. All built-in constructor functions use it.
+
+let obj = {};
+alert( obj ); // "[object Object]" ? where does this come from? That’s a built-in toString method. 
+
+obj = {} is the same as obj = new Object(), where Object is a built-in object constructor function, with its own prototype 
+referencing a huge object with toString and other methods.
+
+When new Object() is called (or a literal object {...} is created), the [[Prototype]] of it is set to Object.prototype.
+So then when obj.toString() is called the method is taken from Object.prototype.
+
+We can check it like this:
+let obj = {};
+alert(obj.__proto__ === Object.prototype); // true
+alert(obj.toString === obj.__proto__.toString); //true
+alert(obj.toString === Object.prototype.toString); //true
+
+Please note that there is no more [[Prototype]] in the chain above Object.prototype:
+alert(Object.prototype.__proto__); // null
+
+Other built-in objects such as Array, Date, Function and others also keep methods in prototypes.
+For instance, when we create an array [1, 2, 3], the default new Array() constructor is used internally. 
+So Array.prototype becomes its prototype and provides methods. That’s very memory-efficient. By specification, 
+all of the built-in prototypes have Object.prototype on the top.
+
+let arr = [1, 2, 3];
+// it inherits from Array.prototype?
+alert( arr.__proto__ === Array.prototype ); // true
+// then from Object.prototype?
+alert( arr.__proto__.__proto__ === Object.prototype ); // true
+// and null on the top.
+alert( arr.__proto__.__proto__.__proto__ ); // null
+
+
+The __proto__ is considered outdated and somewhat deprecated (in browser-only part of the JavaScript standard).
+
+The modern methods are:
+
+Object.create(proto, [descriptors]) – creates an empty object with given proto as [[Prototype]] and optional property descriptors.
+Object.getPrototypeOf(obj) – returns the [[Prototype]] of obj.
+Object.setPrototypeOf(obj, proto) – sets the [[Prototype]] of obj to proto.
+These should be used instead of __proto__.
+
+let animal = {
+  eats: true
+};
+
+// create a new object with animal as a prototype
+let rabbit = Object.create(animal);
+
+alert(rabbit.eats); // true
+
+alert(Object.getPrototypeOf(rabbit) === animal); // true
+
+Object.setPrototypeOf(rabbit, {}); // change the prototype of rabbit to {}
+
+Object.create has an optional second argument: property descriptors. We can provide additional properties to the new object there, like this:
+
+let animal = {
+  eats: true
+};
+
+let rabbit = Object.create(animal, {
+  jumps: {
+    value: true
+  }
+});
+
+alert(rabbit.jumps); // true
+
+Iterating over properties
+-----------------------------
+The for..in loop iterates over inherited properties too.
+For instance:
+
+let animal = {
+  eats: true
+};
+
+let rabbit = {
+  jumps: true,
+  __proto__: animal
+};
+
+// Object.keys only returns own keys
+alert(Object.keys(rabbit)); // jumps
+
+// for..in loops over both own and inherited keys
+for(let prop in rabbit) alert(prop); // jumps, then eats
+
+If that’s not what we want, and we’d like to exclude inherited properties, there’s a built-in method obj.hasOwnProperty(key): it returns true if obj has its own (not inherited) property named key.
+
+So we can filter out inherited properties (or do something else with them):
+
+let animal = {
+  eats: true
+};
+
+let rabbit = {
+  jumps: true,
+  __proto__: animal
+};
+
+for(let prop in rabbit) {
+  let isOwn = rabbit.hasOwnProperty(prop);
+
+  if (isOwn) {
+    alert(`Our: ${prop}`); // Our: jumps
+  } else {
+    alert(`Inherited: ${prop}`); // Inherited: eats
+  }
+}

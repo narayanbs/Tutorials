@@ -1,0 +1,482 @@
+Packages -- io, bufio, os 
+========================================
+
+Reader and Writer --> Transfer bytes to/from (strings, files, buffers etc)
+
+read([]byte) int --> number of bytes read
+
+write([]byte) int --> number of bytes written
+
+
+FILES
+================================================
+
+create file
+-----------
+os package
+
+func Open(name string) (*File, error)  --> default read only 
+
+func Create(name string) (*File, error) --> default read/write
+
+func OpenFile(name string, flag int, perm FileMode) (*File, error) --> used with open and create calls
+
+Note: The argument flags may include one of the following access modes: O_RDONLY, O_WRONLY, or O_RDWR. 
+for opening the file in read-only, write-only, or read/write modes respectively.
+
+import os
+
+file := os.Open("Hello.txt") --> its O_RDONLY (for reading -- file must exist)
+
+file := os.Create("hello.txt") --> its O_RDWR (read/write -- file will be created if it doesn't exist)
+
+f, err := os.OpenFile("notes.txt", os.O_RDWR|os.O_CREATE, 0755) -->  (like Create above) 
+
+f, err := os.OpenFile("access.log", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644) --> for append
+
+f, err := os.OpenFile("access.log", os.O_CREATE|os.O_EXCL|os.O_RDWR, 0644) --> for exclusive creation (file must not exist)
+
+f, err := os.OpenFile("notes.txt", os.O_RDONLY, 0755) -->  (like Open above) 
+
+
+Note: 	O_CREATE --> create file if it doesn't exist, 
+	O_CREATE | O_EXCL --> file must not exist (exclusive mode)
+
+
+Read all /Write 
+-----------------
+os package
+
+data, err := os.ReadFile("filename") --> Read the whole file as slice of bytes
+err := os.WriteFile("testdata/hello", []byte("hello, gophers"), 0666) --> write into a the file (create it with permissions if it doesn't exist)
+
+ex:
+
+func main() {
+	// If the file doesn't exist, create it, or append to the file
+	f, err := os.OpenFile("access.log", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	if err != nil {
+		log.Fatal(err)
+	}
+	
+	if err := f.Close(); err != nil {
+		log.Fatal(err)
+	}
+	
+	data, err := os.ReadFile("filname")
+	if err != nil {
+		log.Fatal(err)
+	}
+	os.Stdout.Write(data)
+
+	err := os.WriteFile("testdata/hello", []byte("Hello, Gophers!"), 0666)
+	if err != nil {
+		log.Fatal(err)
+	}
+}	
+
+	
+Read bytes from file
+---------------------
+func (f *File) Read(b []byte) (n int, err error) --> At end of file, Read returns 0, io.EOF.
+
+data := make([]byte, 100)
+count, err := file.read(data)
+
+Write bytes to file
+-------------------
+func (f *File) Write(b []byte) (n int, err error) --> It returns the number of bytes written and an error, if any. Write returns a non-nil error when n != len(b).
+
+Write string to file
+--------------------
+func (f *File) WriteString(s string) (n int, err error) -- WriteString is like Write, but writes the contents of string s 
+rather than a slice of bytes.
+
+Read all from file  
+------------------
+func ReadFile(name string) ([]byte, error) --> reads the whole file, it does not treat an EOF from Read as an error to be reported.
+
+os.ReadFile(...)
+
+Create and Write to file (another way)
+-------------------------------------------
+func WriteFile(name string, data []byte, perm FileMode) error --> 
+WriteFile writes data to the named file, creating it if necessary. If the file does not exist, with permissions perm.
+
+os.WriteFile(...)
+
+
+Examples:
+---------------------------
+import os
+
+file, err := os.Open("file.go")
+if err != nil {
+	log.Fatal(err)
+}
+
+data := make([]byte, 100)
+for {
+	if count, err := file.read(data); err != nil { 
+		if err == io.EOF {
+			break
+		}
+		log.Fatal(err)
+	}
+	fmt.Printf("read %d bytes: %q\n", count, data[:count])
+}
+   
+
+
+file := os.Create("file.go")
+if err != nil {
+	log.Fatal(err)
+}
+f.write([]byte("hello good morning"))
+
+
+file := os.Create("hello.txt") 
+f.writeString("hello good morning")
+
+
+Buffered IO
+========================================================================================================
+
+bufio package 
+
+Default size of buffer is 4k (4096 bytes).
+bufio.Reader provides low-level read capabilities. Use bufio.Scanner whenever convenient and if you don't need such capabilities. 
+
+Create Reader
+----------------
+func NewReader(rd io.Reader) *Reader --> NewReader returns a new Reader whose buffer has the default size.
+
+Reading
+----------
+
+func (b *Reader) Read(p []byte) (n int, err error) --> Read reads data into p. It returns the number of bytes read into p. 
+func (b *Reader) ReadByte() (byte, error) --> ReadByte reads and returns a single byte. If no byte is available, returns an error.
+func (b *Reader) ReadBytes(delim byte) ([]byte, error) --> ReadBytes reads until the first occurrence of delim in the input
+ex: ReadBytes('\n') to read a line of data
+
+func (b *Reader) ReadString(delim byte) (string, error) --> reads upto delim ex: ReadString('\n')
+func (b *Reader) ReadRune() (r rune, size int, err error) --> ReadRune reads a single UTF-8 encoded Unicode character 
+and returns the rune and its size in bytes. If the encoded rune is invalid, it consumes one byte and returns unicode.ReplacementChar (U+FFFD) 
+with a size of 1.
+
+Writing 
+------------
+func NewWriter(w io.Writer) *Writer --> NewWriter returns a new Writer whose buffer has the default size. 
+If the argument io.Writer is already a Writer with large enough buffer size, it returns the underlying Writer.
+
+bufio.Writer
+
+func (b *Writer) Write(p []byte) (nn int, err error) --> Write writes the contents of p into the buffer.
+func (b *Writer) WriteByte(c byte) error --> WriteByte writes a single byte.
+func (b *Writer) WriteString(s string) (int, error) --> WriteString writes a string. It returns the number of bytes written. 
+func (b *Writer) WriteRune(r rune) (size int, err error) --> WriteRune writes a single Unicode code point,
+
+ex: to stdout
+
+w := bufio.NewWriter(os.Stdout)
+fmt.Fprint(w, "Hello, ")
+fmt.Fprint(w, "world!")
+w.Flush() // Don't forget to flush!
+
+
+ex: to file 
+
+f := os.Create("somefile.txt")
+w := bufio.NewWriter(f)
+n4, err := w.WriteString("buffered\n")
+check(err)
+fmt.Printf("wrote %d bytes\n", n4)
+w.Flush()	// Don't forget to flush
+
+
+bufio.Scanner 
+-----------------------
+Scanner provides a convenient interface for reading data such as a file of newline-delimited lines of text.
+
+Create Scanner
+----------------
+func NewScanner(r io.Reader) *Scanner --> NewScanner returns a new Scanner to read from r. The split function defaults to ScanLines.
+
+ex: To read standard input as a set of lines
+
+	scanner := bufio.NewScanner(os.Stdin)
+	for scanner.Scan() {
+		fmt.Println(scanner.Text()) // Println will add back the final '\n'
+	}
+	if err := scanner.Err(); err != nil {
+		fmt.Fprintln(os.Stderr, "reading standard input:", err)
+	}
+
+ex: implement a word count
+
+	// An artificial input source.
+	const input = "Now is the winter of our discontent,\nMade glorious summer by this sun of York.\n"
+	scanner := bufio.NewScanner(strings.NewReader(input))
+
+	// Set the split function for the scanning operation.
+	scanner.Split(bufio.ScanWords)
+
+	// Count the words.
+	count := 0
+	for scanner.Scan() {
+		count++
+	}
+	if err := scanner.Err(); err != nil {
+		fmt.Fprintln(os.Stderr, "reading input:", err)
+	}
+	fmt.Printf("%d\n", count)
+
+
+
+Utility functions
+-------------------------------------
+
+io.ReadAll(...)
+
+func ReadAll(r Reader) ([]byte, error) --> ReadAll reads from r until an error or EOF and returns the data it read. 
+A successful call returns err == nil, not err == EOF. Because ReadAll is defined to read from src until EOF, 
+it does not treat an EOF from Read as an error to be reported.
+
+ex:
+
+func main() {
+	r := strings.NewReader("Go is a general-purpose language designed with systems programming in mind.")
+
+	b, err := io.ReadAll(r)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Printf("%s", b)
+
+}
+
+io.ReadFull(...)
+
+func ReadFull(r Reader, buf []byte) (n int, err error) --> ReadFull reads exactly len(buf) bytes from r into buf. 
+It returns the number of bytes copied and an error if fewer bytes were read. The error is EOF only if no bytes were read. 
+If an EOF happens after reading some but not all the bytes, ReadFull returns ErrUnexpectedEOF. On return, n == len(buf) 
+if and only if err == nil. If r returns an error having read at least len(buf) bytes, the error is dropped.
+
+
+func main() {
+	r := strings.NewReader("some io.Reader stream to be read\n")
+
+	buf := make([]byte, 4)
+	if _, err := io.ReadFull(r, buf); err != nil {
+		log.Fatal(err)
+	}
+	fmt.Printf("%s\n", buf)
+
+	// minimal read size bigger than io.Reader stream
+	longBuf := make([]byte, 64)
+	if _, err := io.ReadFull(r, longBuf); err != nil {
+		fmt.Println("error:", err)
+	}
+
+}
+
+
+io.WriteString(...)
+
+func WriteString(w Writer, s string) (n int, err error) --> WriteString writes the contents of the string s to w, 
+which accepts a slice of bytes. If w implements StringWriter, its WriteString method is invoked directly. Otherwise, 
+w.Write is called exactly once
+
+ex: 
+func main() {
+	if _, err := io.WriteString(os.Stdout, "Hello World"); err != nil {
+		log.Fatal(err)
+	}
+
+}
+
+
+io.Copy(...) 	--> Copying from source to destination
+
+func Copy(dst Writer, src Reader) (written int64, err error)
+The Copy() function in Go language is used to copy from the stated src i.e, source to the dst 
+i.e, destination till either the EOF i.e, end of file is attained on src or an error is thrown.
+
+Use io.Copy and do not use bufio in the scenario Where you are given an *os.File destination.
+The io.Copy buffer size is 32k and the bufio default buffer sizes are 4K. Because the bufio types bypass their own buffers 
+when passed a larger buffer, the bufio types don't do anything other than allocate some extra memory.
+
+
+Note:
+when src is implemented by WriterTo interface then the io.copy is implemented by a call to src.WriteTo(dst). 
+else, if dst is implemented by the ReaderFrom interface then the copy is implemented by a call to dst.ReadFrom(src).
+
+
+ex:
+func main() {
+    // Open original file
+    original, err := os.Open("original.txt")
+    if err != nil {
+        log.Fatal(err)
+    }
+    defer original.Close()
+
+    // Create new file
+    new, err := os.Create("new.txt")
+    if err != nil {
+        log.Fatal(err)
+    }
+    defer new.Close()
+
+    //This will copy
+    bytesWritten, err := io.Copy(new, original)
+    if err != nil {
+        log.Fatal(err)
+    }
+    fmt.Printf("Bytes Written: %d\n", bytesWritten)
+}
+
+Note: 
+
+io.ReadAll(..), io.ReadFull(..), io.WriteString(..) and io.Copy(..) are handy methods to be remembered.
+
+
+Strings
+========================================================================================================
+
+func NewReader(s string) *Reader --> NewReader returns a new Reader reading from s. It is similar to bytes.NewBufferString 
+but more efficient and read-only.
+
+Read a byte
+func (r *Reader) ReadByte() (byte, error)
+
+Read a character (rune)
+func (r *Reader) ReadRune() (ch rune, size int, err error)
+
+
+
+Examples
+========================================================================================================
+
+Read big text data from stdin in Go
+
+
+package main
+import "fmt"
+import "bufio"
+import "os"
+
+func main() {
+    f, _ := os.Create("outputgo.txt")
+    reader := bufio.NewReader(os.Stdin)
+    for  {
+        line, err := reader.ReadString('\n')
+        if err != nil {
+            fmt.Println("%s", line)
+            return
+        }
+        f.WriteString(line)
+    }
+}
+
+//------------
+package main
+
+import (
+	"bufio"
+	"fmt"
+	"os"
+)
+
+func main() {
+	scanner := bufio.NewScanner(os.Stdin)
+	for scanner.Scan() {
+		fmt.Println(scanner.Text()) // Println will add back the final '\n'
+	}
+	if err := scanner.Err(); err != nil {
+		fmt.Fprintln(os.Stderr, "reading standard input:", err)
+	}
+}
+
+//-----------------
+// Create a buffer to hold the stream data
+data := make([]byte, 5000)
+
+// Read data from stdin in a loop
+for {
+    _, err = os.Stdin.Read(data)
+    if err != nil {
+        panic(err)
+    }
+
+    index := bytes.Index(data, []byte("\n"))
+    data = data[:index]
+
+    var myStruct MyStruct
+    err = json.Unmarshal(data, &myStruct)
+    if err != nil {
+        panic(err)
+    }
+
+    //(Do something with myStruct)
+}
+
+//-----------------
+
+import "os"
+import "log"
+import "bufio"
+
+func main() {
+    reader := bufio.NewReader(os.Stdin)
+
+    for {
+        line, err := reader.ReadString('\n')
+
+        if err != nil {
+            // You may check here if err == io.EOF
+            break
+        }
+
+        log.Println(line)
+    }
+}
+
+//---------------
+
+import (
+	"fmt"
+	"io"
+	"log"
+	"strings"
+)
+
+func main() {
+	r := strings.NewReader("Go is a general-purpose language designed with systems programming in mind.")
+
+	b, err := io.ReadAll(r)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Printf("%s", b)
+
+}
+
+//----------------
+
+package main
+
+import (
+	"io"
+	"log"
+	"os"
+)
+
+func main() {
+	if _, err := io.WriteString(os.Stdout, "Hello World"); err != nil {
+		log.Fatal(err)
+	}
+
+}

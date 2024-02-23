@@ -1,0 +1,347 @@
+### C I/O
+
+struct FILE { int fd, char buffer[], int buf_offset, int flags }
+
+##### Text I/O
+
+FILE* fp = fopen("hello.txt", "w") // write mode
+FILE* fp = fopen("hello.txt", "r") // read mode
+FILE* fp = fopen("hello.txt", "a") // append mode
+
+fclose(fp); // close file after use
+
+# Read a character till EOF
+# On success, returns the obtained character as an int,
+# (unsigned char converted to int) EOF can be bigger than char
+# hence these functions return int
+#
+# failure, returns EOF.
+
+int fgetc(FILE *fp) 
+
+ex:
+    int c;
+    while ((c = fgetc(fp), !feof(fp)) { // standard C I/O file reading loop
+       putchar(c);
+    }
+ 
+    if (ferror(fp)) {
+        puts("I/O error when reading");
+    } else if (feof(fp)) {
+        puts("End of file reached successfully");
+        is_ok = EXIT_SUCCESS;
+    }
+
+# Write one character at a time
+fputc('B', fp);
+fputc('\n', fp);
+
+# to stdout
+putchar('a') 
+
+# Read line as string 
+# read bytes from stream into the array pointed to by s, until n-1 bytes are read, 
+# or a <newline> is read and transferred to s or an end-of-file condition is encountered,
+# the string is then terminated with a null byte.
+
+    char buf[1024]
+    int linecount = 0;
+
+    while (fgets(buf, sizeof buf, fp) != NULL)
+          printf("%d: %s", ++linecount, buf);
+ 
+    if (feof(fp))
+       puts("End of file reached");
+    else {
+        perror("error occured while reading");
+        exit(EXIT_FAILURE);
+    }
+    
+# Write a string 
+fputs("hello world\n", fp);
+
+# to stdout
+puts("hello world")
+
+##### Binary I/O
+
+fp = fopen("output.bin", "wb"); // write binary
+fp = fopen("output.bin", "rb"); // read binary
+
+Note: 
+No point using 'b', since it is ignored on POSIX systems including Linux, where i/o is only binary.
+This is strictly for compatibility with ISO C.   (Other systems may treat text files and binary files differently, and adding the
+'b' may be a good idea if you do I/O to a binary file and expect that your program may be ported to non-UNIX environments.)
+
+unsigned char bytes[6] = {5, 37, 0, 88, 255, 12};
+fwrite(bytes, sizeof(char), 6, fp);
+
+char buf[6]
+fread(buf, sizeof(char), 6, fp); // 0 if EOF or return number of bytes read
+
+// Reading a file byte by byte
+unsigned char c;
+while (fread(&c, sizeof(char), 1, fp) > 0)
+    printf("%d\n", c);
+
+if (ferror(fp)) {
+    puts("I/O error when reading");
+} else if (feof(fp)) {
+    puts("End of file reached successfully");
+    is_ok = EXIT_SUCCESS;
+}
+
+Note:
+FILE contains a buffer that needs to be filled up before the written data is transferred to the system. So always use flush() 
+method while writing binary data. We can configure the buffering in FILE to use 
+1.no buffering, 2.line buffering or 3. full buffering. 
+by default it uses full buffering. 
+
+We use the function setvbuf to configure buffering. setvbuf(fp, buffer, (_IONBF | _IOLBF | _IOFBF), size). 
+we also have setbuf(fp, buf) to specify the buffer that can be used. 
+setvbuf(fp. NULL, _IONBF, 0) --> no buffer, same as setbuf(fp, NULL)
+
+
+Formatted Input / Output
+=========================
+
+formatted input
+------------------
+Read formatted input from stdin
+
+int scanf("string with format specifiers", args)
+scanf expects the string from stdin and transfers values into variables based on the format specifier it encounters.
+It returns the number of arguments successfully read. 
+
+* white spaces are ignored in the input. whitespace means space, tab and newline.
+
+	ex: 
+	int num1;
+	float num2;
+	scanf("%d %f", &num1, &num2); 
+	printf("num1 = %d, num2 = %d", num1, num2);
+	
+	i/p: 20 4.0 
+	o/p: num1 = 20, num2 = 4.0
+	
+	i/p: 20
+		 4.0
+	o/p: num1 = 20, num2 = 4.0 
+	
+Note: 
+ 1. whitespace and newline in-between input are ignored till a non-space character is encountered
+ 2. whitespace in between format specifiers is only for readability, i.e scanf("%d%f") is the same as scanf("%d %f")..
+
+* if there is space after the format specifier i.e scanf("%d %f ")... , then the input wont be accepted till a non-white space character is read.
+
+	ex:
+	int num1;
+	float num2;
+	scanf("%d %f ", &num1, &num2); 	// note there is space after %f
+	printf("num1 = %d, num2 = %d", num1, num2);
+	
+	i/p: 20 4.0 
+		or 
+	i/p: 20
+		4.0
+	o/p: No output till the input contains a non space character after 4.0
+	i.e if i/p: 20 4.0 3
+			or
+			i/p: 20
+				 4.0
+				 3
+	o/p: num1 = 20, num2 = 4.0
+
+* The input must be the same as in scanf, Any non-format specifier that is specified must be part of the input string. 
+	
+	ex:
+	scanf("the first is %d and second is %f", &num1, &num2)
+	printf("num1 = %d, num2 = %d", num1, num2);
+	
+	i/p: 20 4.0
+	o/p: num1=junk, num2=junk  
+	
+	i/p: the first is 20 and second is 40.234
+	o/p: num1 = 20, num2 = 40.234
+
+
+* Inside the format specifier * is used to ignore input as required in scanf. for ex %*s ignores the input until the next space or newline. 
+Similarly, if you write %*d it will ignore integers until the next space or newline
+
+	ex:
+	int a;
+	scanf("%*s %d", &a);
+
+	i/p: somerandomstringtillspace 400
+	o/p: a = 400
+
+
+Read formatted input from file
+
+int fscanf(FILE *ptr, const char *format, ...) 
+
+consider a file abc.txt with the following contents
+
+NAME    AGE   CITY
+abc     12    hyderabad
+bef     25    delhi
+cce     65    bangalore
+
+FILE* fp = fopen("abc.txt", "r");
+char buf[100];
+while (fscanf(fp, "%*s %*s %s", buf) == 1)
+    printf("%s\n", buf);
+
+will scan the file ignoring two strings till space or newline and store third into buf, repeating this till EOF.
+
+CITY
+hyderabad
+delhi
+bangalore 
+
+
+Read formatted input from string
+
+int sscanf ( const char * s, const char * format, ...);
+
+ex:
+    char s [] = "3 red balls 2 blue balls"; 
+    char str [10],str2 [10];
+    int i;
+      
+    // %*s is used to skip a word
+    sscanf (s,"%d %*s %*s %*s %s %s", &i, str, str2);
+      
+    printf ("%d %s %s \n", i, str, str2);
+
+    output
+    3 blue balls
+
+
+formatted output
+------------------
+
+#include <stdio.h>
+
+int printf(const char *format, ...);
+int fprintf(FILE *fp, const char *format, ...);
+int sprintf(char *strbuf, const char *format, ...);
+int snprintf(char *strbuf, size_t sizeofbuf, const char *format, ...);
+
+on success the number of characters written is returned, if error a negative number is returned
+
+ex:
+    char buf[50];
+    char* inp = "geeksforgeeks";
+    int j = snprintf(buf, 6, "%s\n", inp);   
+    printf("%s\n", buf);
+
+    output
+    geeks
+
+
+#include <stdarg.h>
+
+int vprintf(const char *format, va_list ap);
+int vfprintf(FILE *stream, const char *format, va_list ap);
+int vsprintf(char *str, const char *format, va_list ap);
+int vsnprintf(char *str, size_t size, const char *format, va_list ap);
+
+
+ex:
+
+    void WriteFrmtd(char *format, ...) {
+       va_list args;
+       
+       va_start(args, format);
+       vprintf(format, args);
+       va_end(args);
+    }
+
+    int main () {
+       WriteFrmtd("%d roses found\n", 100);
+       WriteFrmtd("%d roses %s\n", 200, "Not found");
+       
+       return(0);
+    }
+
+    output
+    100 roses found
+    200 roses Not found
+
+
+Format specifiers
+===============================
+
+The syntax for a format placeholder is
+
+%[flags][width][.precision][length]type  ([...] are optional. only %type is required)
+
+type
+----
+%   prints a literal % character	(%%)
+c   char							(%c)
+s   null-terminated string
+p   pointer
+n   Print nothing, but writes the number of characters written so far into an integer pointer parameter. In Java this prints a newline.
+
+Integers
+
+d, i  signed integers (they are synonymous, except in scanf %i will interpret a number as hexadecimal if it contains 0x or 0X)
+u, o, x, X unsigned integers in decimal, octal and hexadecimal formats (x lowercase, X uppercase)
+
+floating point
+
+e,E double value in exponential form, depending on case (e/E) respectively
+f,F double value in normal form, depending on case (inf/INF, infinity/INFINITY, nan/NAN)
+g,G double value in normal or exponential form whichever is suitable for magnitude
+a,A double in hexadecimal notation (0x or 0X) depending on case
+
+
+flags
+-------
+- (minus)	Left-align the output  (The default is to right-align the output.)
++ (plus)	Prepends a plus for +ve signed-numeric types. +ve = +, -ve = -. (The default doesn't prepend anything for +ve numbers.)
+  (space)	Prepends a space for +ve signed-numeric types. +ve =  , -ve = -. This flag is ignored if the + flag exists.
+        (The default doesn't prepend anything in front of positive numbers.)
+0 (zero)	When the 'width' option is specified, prepends zeros for numeric types. (The default prepends spaces.)
+    For example, printf("%4X",3) produces    3, while printf("%04X",3) produces 0003.
+
+' (apostrophe)	The integer or exponent of a decimal has the thousands grouping separator applied.
+
+# (hash)	Alternate form:
+For g and G types, trailing zeros are not removed.
+For f, F, e, E, g, G types, the output always contains a decimal point.		(%#f....)
+For o, x, X types, the text 0, 0x, 0X, respectively, is prepended to non-zero numbers.	(%#x....)
+
+
+width
+-------
+Specifies a minimum number of characters to output. The width field may be omitted, or a numeric integer value, 
+or a dynamic value when passed as another argument when indicated by an asterisk *
+ex:
+    printf("%*d", 5, 10) will result in    10 being printed, with a total width of 5 characters.
+
+precision
+----------
+The Precision field usually specifies a maximum limit on the output, depending on the particular formatting type.
+For floating point numeric types, it specifies the number of digits to the right of the decimal point that the output should be rounded. 
+For the string type, it limits the number of characters that should be output, after which the string is truncated.
+ex:
+    printf("%.*s", 3, "abcdef") will result in abc being printed.
+
+
+length
+-------
+hh	For integer types, causes printf to expect an int-sized integer argument which was promoted from a char.
+h	For integer types, causes printf to expect an int-sized integer argument which was promoted from a short. (%hd,%hu)
+l	For integer types, causes printf to expect a long-sized integer argument. (%ld,%lu)
+    For floating point types, this is ignored. float arguments are always promoted to double when used in a varargs call.[4]
+
+ll	For integer types, causes printf to expect a long long-sized integer argument. (%lld,%llu)
+L	For floating point types, causes printf to expect a long double argument. (%Lf, %Lg)
+z	For integer types, causes printf to expect a size_t-sized integer argument. (%zd, %zu)
+j	For integer types, causes printf to expect a intmax_t-sized integer argument. (%jd, %ju)
+t   For integer types, causes printf to expect a ptrdiff_t-sized integer argument. (%td, %tu)
+
+

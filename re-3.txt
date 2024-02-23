@@ -1,0 +1,376 @@
+The re.search and re.fullmatch functions return a re.Match object from which various details can be extracted like 
+the matched portion of string, location of matched portion, etc.
+
+>>> re.search(r'ab*c', 'abc ac adc abbbc')
+<re.Match object; span=(0, 3), match='abc'>
+
+>>> re.fullmatch(r'1(2|3)*4', '1233224')
+<re.Match object; span=(0, 7), match='1233224'>
+
+Use span method to get the starting and ending + 1 indexes of the matching portion.
+
+>>> sentence = 'that is quite a fabricated tale'
+>>> m = re.search(r'q.*?t', sentence)
+>>> m.span()
+(8, 12)
+>>> m.span()[0]
+8
+
+# you can also directly use the method without using intermediate variable
+>>> re.search(r'q.*?t', sentence).span()
+(8, 12)
+
+The () grouping is also known as a capture group. It has multiple uses, one of which is the ability to work with matched portions 
+of those groups. When capture groups are used with re.search or re.fullmatch, they can be retrieved using an index or group method 
+on the re.Match object. The first element is always the entire matched portion and rest of the elements are for capture groups 
+if they are present. The leftmost ( in the pattern will get group number 1, second leftmost ( will get group number 2 and so on. 
+Use groups method to get a tuple of only the capture group portions.
+
+>>> re.search(r'b.*d', 'abc ac adc abbbc')
+<re.Match object; span=(1, 9), match='bc ac ad'>
+# retrieving entire matched portion using index
+>>> re.search(r'b.*d', 'abc ac adc abbbc')[0]
+'bc ac ad'
+# retrieving entire matched portion using 'group' method
+# you can also skip passing '0' as that is the default value
+>>> re.search(r'b.*d', 'abc ac adc abbbc').group(0)
+'bc ac ad'
+
+# capture group example
+>>> m = re.fullmatch(r'a(.*?) (.*)d(.*)c', 'abc ac adc abbbc')
+# to get matched portion of second capture group, can also use m.group(2)
+>>> m[2]
+'ac a'
+# to get matched portion of third and first capture groups
+>>> m.group(3, 1)
+('c abbb', 'bc')
+# to get a tuple of all the capture groups
+# note that this will not have the entire matched portion
+>>> m.groups()
+('bc', 'ac a', 'c abbb')
+
+To get the matching locations for the capture groups, pass the group number to span method. You can also use start and end methods 
+to get either of those locations. Passing 0 is optional when you need the information for the entire matched portion.
+
+>>> m = re.search(r'w(.*)me', 'awesome')
+
+>>> m.span()
+(1, 7)
+>>> m.span(1)
+(2, 5)
+
+>>> m.start()
+1
+>>> m.end(1)
+5
+
+>>> pat = re.compile(r'hi.*bye')
+>>> m = pat.search('This is goodbye then', 1, 15)
+>>> m.pos
+1
+>>> m.endpos
+15
+>>> m.re
+re.compile('hi.*bye')
+>>> m.string
+'This is goodbye then'
+
+There are many more methods and attributes available. See docs.python: Match Objects for details.
+
+Since Python 3.8 introduced assignment expressions, it has become easier to work with matched portions in conditional statements.
+
+# print capture group content only if the pattern matches
+>>> if m := re.search(r'(.*)s', 'oh!'):
+...     print(m[1])
+... 
+>>> if m := re.search(r'(.*)s', 'awesome'):
+...     print(m[1])
+... 
+awe
+
+This comes up often when you are processing a text file and the instructions depend on which pattern matches.
+
+>>> text = ['type: fruit', 'date: 2020/04/28']
+>>> for ip in text:
+...     if m := re.search(r'type: (.*)', ip):
+...         print(m[1])
+...     elif m := re.search(r'date: (.*?)/(.*?)/', ip):
+...         print(f'month: {m[2]}, year: {m[1]}')
+... 
+fruit
+month: 04, year: 2020
+
+Functions can be used in replacement section of re.sub instead of a string.
+
+# m[0] will contain entire matched portion
+# a^2 and b^2 for the two matches in this example
+>>> re.sub(r'(a|b)\^2', lambda m: m[0].upper(), 'a^2 + b^2 - C*3')
+'A^2 + B^2 - C*3'
+
+>>> re.sub(r'2|3', lambda m: str(int(m[0])**2), 'a^2 + b^2 - C*3')
+'a^4 + b^4 - C*9'
+
+Using dict in replacement section
+
+# one to one mappings
+>>> d = { '1': 'one', '2': 'two', '4': 'four' }
+>>> re.sub(r'1|2|4', lambda m: d[m[0]], '9234012')
+'9two3four0onetwo'
+
+# if the matched text doesn't exist as a key, default value will be used
+# you'll later learn a much easier way to specify all digits
+>>> re.sub(r'0|1|2|3|4|5|6|7|8|9', lambda m: d.get(m[0], 'X'), '9234012')
+'XtwoXfourXonetwo'
+
+For swapping two or more portions without using intermediate result, using a dict object is recommended.
+
+>>> swap = { 'cat': 'tiger', 'tiger': 'cat' }
+>>> words = 'cat tiger dog tiger cat'
+
+>>> re.sub(r'cat|tiger', lambda m: swap[m[0]], words)
+'tiger cat dog cat tiger'
+
+re.findall --> The re.findall function returns all the matched portions as a list of strings.
+
+re.findall(pattern, string, flags=0)
+
+>>> re.findall(r'ab*c', 'abc ac adc abbbc')
+['abc', 'ac', 'abbbc']
+
+>>> re.findall(r'ab+c', 'abc ac adc abbbc')
+['abc', 'abbbc']
+
+>>> s = 'PAR spar apparent SpArE part pare'
+>>> re.findall(r'\bs?pare?\b', s, flags=re.I)
+['PAR', 'spar', 'SpArE', 'pare']
+
+Presence of capture groups affects re.findall in different ways depending on number of groups used.
+
+If a single capture group is used, output will be a list of strings. Each element will have only the portion matched by the capture group.
+If more than one capture group is used, output will be a list of tuples. Each element will be a tuple containing portions matched by all 
+the capturing groups
+
+# without capture groups
+>>> re.findall(r'ab*c', 'abc ac adc abbc xabbbcz bbb bc abbbbbc')
+['abc', 'ac', 'abbc', 'abbbc', 'abbbbbc']
+# with single capture group
+>>> re.findall(r'a(b*)c', 'abc ac adc abbc xabbbcz bbb bc abbbbbc')
+['b', '', 'bb', 'bbb', 'bbbbb']
+
+# multiple capture groups
+# note that last date didn't match because there's no comma at the end
+# you'll later learn better ways to match such patterns
+>>> re.findall(r'(.*?)/(.*?)/(.*?),', '2020/04/25,1986/Mar/02,77/12/31')
+[('2020', '04', '25'), ('1986', 'Mar', '02')]
+
+Capture groups affects re.split function as well. If the pattern used to split contains capture groups, the portions matched by those groups will also be a part of the output list.
+
+# without capture group
+>>> re.split(r'1*4?2', '31111111111251111426')
+['3', '5', '6']
+
+# to include the matching portions of the pattern as well in the output
+>>> re.split(r'(1*4?2)', '31111111111251111426')
+['3', '11111111112', '5', '111142', '6']
+
+
+
+
+re.finditer --> Use re.finditer to get an iterator object with each element as re.Match objects for each matched portion.
+
+If part of the pattern is outside a capture group, the text thus matched won't be in the output. If a capture group didn't participate, it will be represented by None in the output list.
+
+
+# here 4?2 is outside capture group, so that portion won't be in output
+>>> re.split(r'(1*)4?2', '31111111111251111426')
+['3', '1111111111', '5', '1111', '6']
+
+# multiple capture groups example
+# note that the portion matched by b+ isn't present in the output
+>>> re.split(r'(a+)b+(c+)', '3.14aabccc42')
+['3.14', 'aa', 'ccc', '42']
+
+# here (4)? matches zero times on the first occasion
+>>> re.split(r'(1*)(4)?2', '31111111111251111426')
+['3', '1111111111', None, '5', '1111', '4', '6']
+Use of capture groups and maxsplit=1 gives behavior similar to str.partition method.
+
+
+# first element is portion before the first match
+# second element is portion matched by the pattern itself
+# third element is rest of the input string
+>>> re.split(r'(a+b+c+)', '3.14aabccc42abc88', maxsplit=1)
+['3.14', 'aabccc', '42abc88']
+
+
+re.finditer(pattern, string, flags=0)
+
+# output of finditer is an iterator object
+>>> re.finditer(r'ab+c', 'abc ac adc abbbc')
+<callable_iterator object at 0x7fb65e103438>
+
+# each element is a re.Match object corresponding to the matched portion
+>>> m_iter = re.finditer(r'ab+c', 'abc ac adc abbbc')
+>>> for m in m_iter:
+...     print(m)
+... 
+<re.Match object; span=(0, 3), match='abc'>
+<re.Match object; span=(11, 16), match='abbbc'>
+
+
+re.subn --> The re.subn has the same functionality as re.sub except that the output is a tuple. 
+
+re.subn(pattern, repl, string, count=0, flags=0)
+
+>>> greeting = 'Have a nice weekend'
+
+>>> re.sub(r'e', 'E', greeting)
+'HavE a nicE wEEkEnd'
+
+# with re.subn, you can infer that 5 substitutions were made
+>>> re.subn(r'e', 'E', greeting)
+('HavE a nicE wEEkEnd', 5)
+
+
+Custom character sets
+---------------------
+Characters enclosed inside [] metacharacters is a character class (or set). It will result in matching any one of those characters once.
+
+>>> words = ['cute', 'cat', 'cot', 'coat', 'cost', 'scuttle']
+
+# same as: r'cot|cut' or r'c(o|u)t'
+>>> [w for w in words if re.search(r'c[ou]t', w)]
+['cute', 'cot', 'scuttle']
+
+# same as: r'(a|e|o)+t'
+>>> re.sub(r'[aeo]+t', 'X', 'meeting cute boat site foot')
+'mXing cute bX site fX'
+
+
+Character classes have their own metacharacters to help define the sets succinctly. Metacharacters outside of character classes like 
+^, $, () etc either don't have special meaning or have completely different one inside the character classes.
+
+Range of characters - the - metacharacter helps to define a range of characters instead of having to specify them all individually
+
+# all digits
+>>> re.findall(r'[0-9]+', 'Sample123string42with777numbers')
+['123', '42', '777']
+
+# whole words made up of lowercase alphabets and digits only
+>>> re.findall(r'\b[a-z0-9]+\b', 'coat Bin food tar12 best')
+['coat', 'food', 'tar12', 'best']
+
+# whole words made up of lowercase alphabets, but starting with 'p' to 'z'
+>>> re.findall(r'\b[p-z][a-z]*\b', 'coat tin food put stoop best')
+['tin', 'put', 'stoop']
+
+# whole words made up of only 'a' to 'f' and 'p' to 't' lowercase alphabets
+>>> re.findall(r'\b[a-fp-t]+\b', 'coat tin food put stoop best')
+['best']
+
+
+Negating character sets - specify ^ as the first character of the character class to negate a set of characters
+
+# all non-digits
+>>> re.findall(r'[^0-9]+', 'Sample123string42with777numbers')
+['Sample', 'string', 'with', 'numbers']
+
+# remove first two columns where : is delimiter
+>>> re.sub(r'\A([^:]+:){2}', '', 'foo:123:bar:baz', count=1)
+'bar:baz'
+
+# deleting characters at end of string based on a delimiter
+>>> re.sub(r'=[^=]+\Z', '', 'foo=42; baz=123', count=1)
+'foo=42; baz'
+
+>>> dates = '2020/04/25,1986/Mar/02,77/12/31'
+# Note that the third character set negates comma as well
+# and comma is matched optionally outside the capture groups
+>>> re.findall(r'([^/]+)/([^/]+)/([^/,]+),?', dates)
+[('2020', '04', '25'), ('1986', 'Mar', '02'), ('77', '12', '31')]
+
+
+Matching metacharacters literally --  prefix \ to character class metacharacters to match them literally.
+
+- should be first or last character or escaped using \
+
+>>> re.findall(r'\b[a-z-]{2,}\b', 'ab-cd gh-c 12-423')
+['ab-cd', 'gh-c']
+
+>>> re.findall(r'\b[a-z\-0-9]{2,}\b', 'ab-cd gh-c 12-423')
+['ab-cd', 'gh-c', '12-423']
+
+^ should be other than first character or escaped using \
+
+>>> re.findall(r'a[+^]b', 'f*(a^b) - 3*(a+b)')
+['a^b', 'a+b']
+
+>>> re.findall(r'a[\^+]b', 'f*(a^b) - 3*(a+b)')
+['a^b', 'a+b']
+
+[ can be escaped with \ or placed as last character. ] can be escaped with \ or placed as first character.
+
+>>> re.search(r'[]a-z0-9[]+', 'words[5] = tea')[0]
+'words[5]'
+
+>>> re.search(r'[a-z\[\]0-9]+', 'words[5] = tea')[0]
+'words[5]'
+
+\ should be escaped using \
+
+# note that the input string is using raw-string format
+>>> print(re.search(r'[a\\b]+', r'5ba\babc2')[0])
+ba\bab
+
+
+Escape sequence sets
+Commonly used character sets have predefined escape sequences:
+
+\w is similar to [a-zA-Z0-9_] for matching word characters (recall the definition for word boundaries)
+\d is similar to [0-9] for matching digit characters
+\s is similar to [ \t\n\r\f\v] for matching whitespace characters
+These escape sequences can be used as a standalone sequence or inside a character class.
+
+>>> re.split(r'\d+', 'Sample123string42with777numbers')
+['Sample', 'string', 'with', 'numbers']
+
+>>> re.findall(r'\d+', 'foo=5, bar=3; x=83, y=120')
+['5', '3', '83', '120']
+
+>>> ''.join(re.findall(r'\b\w', 'sea eat car rat eel tea'))
+'secret'
+
+>>> re.findall(r'[\w\s]+', 'tea sea-pit sit-lean\tbean')
+['tea sea', 'pit sit', 'lean\tbean']
+
+ Use \W, \D, and \S respectively for their negated sets.
+
+ >>> re.sub(r'\D+', '-', 'Sample123string42with777numbers')
+'-123-42-777-'
+
+>>> re.sub(r'\W+', '', 'foo=5, bar=3; x=83, y=120')
+'foo5bar3x83y120'
+
+# this output can be achieved with normal string method too, guess which one!
+>>> re.findall(r'\S+', '   1..3  \v\f  foo_baz 42\tzzz   \r\n1-2-3  ')
+['1..3', 'foo_baz', '42', 'zzz', '1-2-3']
+
+
+Numeric ranges
+
+# numbers between 10 to 29
+>>> re.findall(r'\b[12]\d\b', '23 154 12 26 98234')
+['23', '12', '26']
+
+# numbers >= 100
+>>> re.findall(r'\b\d{3,}\b', '23 154 12 26 98234')
+['154', '98234']
+
+# numbers >= 100 if there are leading zeros
+>>> re.findall(r'\b0*[1-9]\d{2,}\b', '0501 035 154 12 26 98234')
+['0501', '154', '98234']
+
+
+
+
+

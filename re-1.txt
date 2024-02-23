@@ -1,0 +1,312 @@
+Regular Expression - Python
+---------------------------
+
+simple search: 'the' in 'thesaurus' --> True
+
+re.search
+---------
+import re
+re.search(pattern,string,flags=0)
+bool(re.search(r'the', 'thesaurus)) --> True
+bool(re.search(r'THE', 'thesaurus', flags=re.I)) --> True, flags = re.IGNORECASE or re.I
+
+sentence = "This is a sample string"
+if re.search(r'ring', sentence):
+    print("mission success")
+
+--> Mission Success
+
+if not re.search(r'xyz', sentence):
+    print('mission failed')
+
+--> Mission Failed
+
+words = ["cat", "attempt", "tattle"]
+[w for w in words if re.search(r'tt', w)] --> ["attempt", "tattle"]
+
+re.sub (substitution)
+------ 
+re.sub(pattern, replacement, string, count=0, flags=0)
+
+greeting = "have a nice weekend"
+re.sub(r'e', 'E', greeting) --> "havE a nicE wEEkEnd"
+
+re.sub(r'e', 'E', greeting, count=2) --> "havE a nicE weekend"
+
+re.compile (compiling regular expressions)
+----------
+re.compile(pattern, flags=0) --> re.Pattern
+
+re.Pattern.search(string[,pos[, endpos]])
+
+
+pet = re.compile(r'dog')
+bool(pet.search("They bought a dog")) --> True
+
+sentence = 'This is a sample string'
+word = re.compile(r'is')
+bool(word.search(sentence, 4)) --> starting from 5th character of sentence --> True
+bool(word.search(sentence,6)) --> False
+bool(word.search(sentence, 2, 4)) --> True (between 3rd and 4th characters)
+
+bytes
+-----
+byte_data = b"This is a byte string"
+re.search(r'is', byte_data) --> TypeError: string pattern on byte-like obj
+
+bool(re.search(rb'is', byte_data)) --> True
+bool(re.search(rb'xyz', byte_data)) --> False
+
+MetaCharacters
+--------------
+Regular expression grammar assigns special meaning to certain characters and escape sequences. The characters with special meaning are known as metacharacters in regular expressions parlance.In case you need to match those characters literally, you need to escape them with a \ character 
+
+These include . ^ $ ? * + | \ [ ] ( ) { } 
+
+. --> Dot metacharacter (matches any character except newline \n)
+^ $  --> Line anchors (specify start and end of a line)
+? * + --> repetition quantifier
+| --> Alternate specifier
+\ --> escape character
+[] --> character class specifier
+() --> Group specifier
+{} --> range quantifier 
+
+
+
+Matching - Qualifying a pattern
+--------------------------------
+We can qualify a pattern i.e instead of matching anywhere in the given input string, restrictions can be specified.
+
+String Anchors
+--------------
+Similar to startswith and endswith. 
+Escape sequence \A restricts the matching to the start of string
+Escape sequence \Z restricts the matching to the end of string.
+
+bool(re.search(r'\Acat', 'cater')) --> True
+bool(re.search(r'\Acat', 'concatenation')) --> False
+
+bool(re.search(r'are\Z', 'spare')) --> True
+bool(re.search(r'are\Z', 'nearest')) --> False
+
+words = ['surrender', 'unicorn', 'newer', 'door', 'empty', 'eel', 'pest']
+[w for w in words if re.search(r'er\Z', w)] --> ['surrender', 'newer']
+
+re.sub(r'\A', 're', 'live') --> 'relive' (insert string at start of text)
+re.sub(r'\A', 're', 'send') --> 'resend'
+
+re.sub(r'\Z', 'er', 'cat') --> cater (appending text)
+re.sub(r'\Z', 'er', 'hack') --> hacker 
+
+Note: slicing is entirely new string, so re.search behaves like the following
+word_pat = re.compile(r'\Aat')
+bool(word_pat.search('cater', 1)) --> False but
+bool(word_pat.search('cater'[1:])) --> True
+
+For matching the full string 
+
+word_pat = re.compile(r'\Acat\Z') --> matching whole string similar to == operator
+bool(word_pat.search('cat')) --> True
+
+re has an in-built fullmatch function to ensure the pattern matches only the whole input string.
+re.fullmatch(pattern, string, flags=0)
+word_pat = re.compile(r'cat', flags=re.I)
+bool(word_pat.fullmatch('Cat')) --> True
+bool(word_pat.fullmatch('Scatter')) --> False
+
+Line Anchors
+------------
+A string input may contain single or multiple lines. The newline character \n is used as the line separator. There are two line anchors, ^ metacharacter for matching the start of line and $ for matching the end of line. If there are no newline characters in the input string, these will behave same as \A and \Z respectively.
+
+pets = 'cat and dog'
+bool(re.search(r'^cat',pets)) --> True
+bool(re.search(r'^dog', pets)) --> False
+bool(re.search(r'dog$', pets)) --> True
+bool(re.search(r'^dog$', pets)) --> False
+
+By default the input string is considered as a single line even if it contains newlines. \A and \Z work that way. they don't
+care even if you specify a flag mentioning that the string is multiline : flags=re.M. but ^ and $ behave differently as shown below.
+
+greeting = 'hi there\nhave a nice day\n'
+bool(re.search(r'there$', greeting)) --> False
+bool(re.search(r'day$', greeting)) --> True
+bool(re.search(r'day\n$', greeting)) --> True
+
+To indicate the input string should be treated at multiline, you need to 
+use the re.MULTILINE (re.M) flag.
+
+greeting = 'hi there\nhave a nice day\n'
+bool(re.search(r'there$', greeting, flags=re.M)) --> True
+bool(re.search(r'^have', greeting, flags=re.M)) --> True
+
+
+Note: $ metacharacter can match both the end of string and just before \n if it is the last character. However, \Z will always match the end of string, irrespective of the characters present.
+
+greeting = 'hi there\nhave a nice day\n'
+
+bool(re.search(r'day$', greeting)) --> True
+bool(re.search(r'day\n$', greeting)) --> True
+
+bool(re.search(r'day\Z', greeting)) --> False
+bool(re.search(r'day\n\Z', greeting)) --> True
+
+elements = ['spare\ntool', 'par\n', 'dare']
+[e for e in elements if re.search(r'are$', e, flags=re.M)] --> ['spare\ntool', 'dare']
+bool(re.search(r'^par$', 'spare\npar\ndare', flags=re.M)) --> True
+
+# line boundary as a pattern
+ip_lines = 'catapults\nconcatenate\ncat'
+print(re.sub(r'^', '* ', ip_lines, flags=re.M))
+* catapults
+* concatenate
+* cat
+
+Note that there is no \n at the end of this input string
+print(re.sub(r'$', '.', ip_lines, flags=re.M))
+catapults.
+concatenate.
+cat.
+
+Note: If you are dealing with Windows OS based text files, you'll have to convert \r\n line endings to \n first. Which is easily handled by many of the Python functions and methods.
+
+Word Anchors
+------------
+Alphabets (irrespective of case), digits and the underscore character qualify as word characters. (a-zA-Z0-9_ just like programming languages)
+Start of word means either the character prior to the word is a non-word character or there is no character (start of string). Similarly, end of word means the character after the word is a non-word character or no character (end of string). 
+The escape sequence \b denotes a word boundary. This works for both the start of word and end of word anchoring. 
+
+words = "par spar apparent spare part"
+re.sub(r'par', 'X', words) --> 'X sX apXent Xt'
+re.sub(r'\bpar', 'X', words) --> 'X spar apparent spare Xt'
+re.sub(r'par\b', 'X', words) --> 'X sX apparent spare part'
+re.sub(r'\bpar\b', 'X', words) --> 'X spare apparent spare part'
+
+#word boundary as a pattern
+words = 'par spare apparent spare part'
+print(re.sub(r'\b', '"', words).replace(' ', ',')) --> "par","spar","apparent","spare","part"
+
+re.sub(r'\b',' ','-----hello-----') --> '----- hello -----'
+Note: '-' is a non-word character, so word starts only at hello
+
+re.sub(r'\b', ' ', 'foo_baz=num1+35*42/num2') --> ' foo_baz = num1 + 35 * 42 / num2 '
+
+re.sub(r'\b', ' ', 'foo_baz=num1+35*42/num2').strip() --> 'foo_baz = num1 + 35 * 42 / num2'
+
+
+The word boundary has an opposite anchor too. \B matches wherever \b doesn't match. 
+words = 'par spar apparent spare part'
+re.sub(r'\Bpar', 'X', words) --> 'par sX apXent sXe part'
+re.sub(r'\Bpar\b', 'X', words) --> 'par sX apparent spare part'
+re.sub(r'par\B', 'X', words) --> 'par spar apXent sXe Xt'
+re.sub(r'\Bpar\B', 'X', words) --> 'par spar apXent sXe part'
+
+some more
+
+re.sub(r'\b', ':', 'copper') --> ':copper:'
+re.sub(r'\B', ':', 'copper') --> 'c:o:p:p:e:r'
+re.sub(r'\b', ' ', '-----hello-----') --> '----- hello -----'
+re.sub(r'\B', ' ', '-----hello-----') --> ' - - - - -h e l l o- - - - - '
+
+Alternation
+-----------
+In RE you can use | metacharacter to combine multiple patterns to indicate logical OR.
+
+bool(re.search(r'cat|dog', 'I like cats')) --> True
+bool(re.search(r'cat|dog', 'I like dogs')) --> True
+bool(re.search(r'cat|dog', 'I like parrots')) --> False
+
+re.sub(r'\Acat|cat\b', 'X', 'catapults concatenate cat scat') --> 'Xapults concatenate X sX'
+re.sub(r'cat|dog|fox', 'mammal', 'cat dog bee parrot fox') --> 'mammal mammal bee parrot mammal'
+
+words = ['cat','dog','fox']
+re.sub('|'.join(words), 'mammal','cat dog parrot fox') --> 'mammal mammal parrot mammal'
+
+Grouping
+--------
+without grouping
+re.sub(r'reform|rest', 'X', 'red reform read arrest') --> 'red X read arX'
+with grouping
+re.sub(r're(form|st)', 'X', 'red reform read arrest') --> 'red X read arX'
+
+without grouping
+re.sub(r'\bpar\b|\bpart\b', 'X', 'par spare part party') --> 'X spare X party'
+with grouping
+re.sub(r'\b(par|part)\b', 'X', 'par spare part party') --> 'X spare X party'
+
+re.sub(r'\bpar(|t)\b', 'X', 'par spare part party') --> 'X spare X party'
+
+alt = re.compile(r'\b(' + '|'.join(words) + r')\b')
+only whole words will be replaced now
+alt.sub('X', 'cater cat concatenate par spare') --> 'cater X concatenate X spare'
+
+this is how the above RE looks as a normal string
+alt.pattern --> '\\b(cat|par)\\b' 
+alt.pattern == r'\b(cat|par)\b' --> True
+
+In the above example, you had to concatenate strings to add word boundaries. If you needed to add string anchors so that the pattern only matches whole string, you can use re.fullmatch instead of manually adding the anchors.
+
+terms = ['no', 'ten', 'it']
+items = ['dip', 'nobody', 'it', 'oh', 'no', 'bitten']
+
+pat = re.compile('|'.join(terms))
+
+# matching only whole elements
+[w for w in items if(pat.fullmatch(w))] --> ['it', 'no']
+# matching anywhere
+[w for w in items if(pat.search(w))] --> ['nobody', 'it', 'no', 'bitten']
+
+Precedence rules
+----------------
+There's some tricky situations when using alternation. If it is used for testing a match to get True/False against a string input, there is no ambiguity. However, for other things like string replacement, it depends on a few factors. Say, you want to replace either "are or spared" — which one should get precedence? The bigger word "spared" or the substring "are" inside it or based on something else?
+
+In Python, the alternative which matches earliest in the input string gets precedence. re.Match output comes handy to illustrate this concept.
+
+>>> words = 'lion elephant are rope not'
+
+# span shows the start and end+1 index of matched portion
+# match shows the text that satisfied the search criteria
+re.search(r'on', words) --> <re.Match object; span=(2, 4), match='on'>
+re.search(r'ant', words) --> <re.Match object; span=(10, 13), match='ant'>
+
+# starting index of 'on' < index of 'ant' for given string input
+# so 'on' will be replaced irrespective of order
+# count optional argument here restricts no. of replacements to 1
+re.sub(r'on|ant', 'X', words, count=1) --> 'liX elephant are rope not'
+re.sub(r'ant|on', 'X', words, count=1) --> 'liX elephant are rope not'
+
+What happens if alternatives match on same index? The precedence is then left to right in the order of declaration.
+
+mood = 'best years'
+re.search(r'year', mood) --> <re.Match object; span=(5, 9), match='year'>
+re.search(r'years', mood) --> <re.Match object; span=(5, 10), match='years'>
+
+# starting index for 'year' and 'years' will always be same
+# so, which one gets replaced depends on the order of alternation
+re.sub(r'year|years', 'X', mood, count=1) --> 'best Xs'
+re.sub(r'years|year', 'X', mood, count=1) --> 'best X'
+
+Another example (without count restriction) to drive home the issue:
+
+words = 'ear xerox at mare part learn eye'
+
+# this is going to be same as: r'ar'
+re.sub(r'ar|are|art', 'X', words) --> 'eX xerox at mXe pXt leXn eye'
+
+# this is going to be same as: r'are|ar'
+re.sub(r'are|ar|art', 'X', words) --> 'eX xerox at mX pXt leXn eye'
+
+# phew, finally this one works as needed
+re.sub(r'are|art|ar', 'X', words) --> 'eX xerox at mX pX leXn eye'
+
+If you do not want substrings to sabotage your replacements, a robust workaround is to sort the alternations based on length, longest first.
+
+words = ['hand', 'handy', 'handful']
+
+alt = re.compile('|'.join(sorted(words, key=len, reverse=True)))
+alt.pattern --> 'handful|handy|hand'
+
+alt.sub('X', 'hands handful handed handy') --> 'Xs X Xed X'
+
+# without sorting, alternation order will come into play
+re.sub('|'.join(words), 'X', 'hands handful handed handy') --> 'Xs Xful Xed Xy'

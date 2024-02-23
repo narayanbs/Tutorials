@@ -1,0 +1,136 @@
+Input/Output:
+-------------
+Primarily involves Reading and Writing bytes. for ex: in the case of Text IO, the bytes will be interpreted according to the character
+encoding rules and returned back. But bottom line is, its just reading and writing bytes with the additional step of interpretation. 
+
+Linux provides two system calls for reading and writing.
+	int read(int fd, char buf[], size_t len);
+	int write(int fd, char buf[], size_t len); 
+
+They take a file descriptor and a buffer with a certain length and perform i/o.
+
+read() attempts to read up to len bytes from file descriptor fd into the buffer starting at buf. 
+
+On success, the number of bytes read is returned and the file position is advanced by this number. It is not an error if this number is 
+smaller than the number of bytes requested;
+if number is zero, it indicates EOF.
+If the file offset is at or past the end of file, no bytes are read, and read() returns zero. it indicates end of file. 
+if the length of the supplied buffer "len" is zero, and if there are no errors when read() is performed, the result is 
+returns zero with no side effects.
+
+On error, -1 is returned, and errno is set to indicate the error.
+
+write() writes up to len bytes from the buffer starting at buf to the file referred to by the file descriptor fd.
+
+On success, the number of bytes written is returned.  
+
+On error, -1 is returned, and errno is set to indicate the error.
+
+Note: The number of bytes written may be less than len if, for example, there is insufficient space on the underlying physical medium, 
+or the RLIMIT_FSIZE resource limit is encountered. In the event of a partial write, the caller can make another write() call to transfer the
+remaining bytes. The subsequent call will either transfer further bytes or may result in an error (e.g., if the disk is now full).
+
+
+-------------------
+
+Imagine a library using these system calls, like the C library or the golang library and request single bytes. The overhead of system 
+calls adds to inefficiency. So libraries normally use a buffer so as to reduce system calls.
+
+For ex: 
+In c library, FILE internally contains a buffer of 4096 bytes. when a call like fgets or fread or fgetc is made with a buffer that
+is less that this, then FILE just makes a single system call and handles the read.
+
+ex:
+int main() {
+	FILE* fp;
+	if((fp = fopen("somefile.txt", "r")) == NULL) {
+		fprintf(stdout, "Error opening file\n");
+		exit(1);
+	}
+	// If you uncomment below, then fp will be used without buffer
+	// and each call to fgetc(fp) and putchar will invoke system calls
+	// read and write respectively.
+
+	// setvbuf(fp, NULL, _IONBF, 0);
+	int c = 0;
+	while(c=fgetc(fp), !feof(fp)) {
+		putchar(c);
+	}
+}
+
+
+
+This is the point of Buffered I/O in languages in golang. 
+Normal Reader and Writer, provide Read and Write methods, that lets you choose the size of the buffer you provide. sometimes if the buffer
+size is too less then there may be many system calls, By default bufio uses a buffer of 4096 and makes your job easier. 
+
+ex: 
+suppose we have a file somefile.txt with 96 bytes of data inside it. 
+Now if we read this file using golang, and we retrieve only 10 bytes at a time
+
+func main() {
+  f, err := os.Open("somefile.txt")
+  if err != nil {
+    fmt.Fprintf(os.Stderr, "fatal error:%s\n", err.Error())
+    os.Exit(1)
+  }
+  defer f.Close()
+  buf := make([]byte, 10)
+  for {
+    if n, err := f.Read(buf); err != nil {
+      if err == io.EOF {
+        fmt.Printf("%d\n", n)
+        break
+      }
+      os.Exit(1)
+    }
+  }
+}
+
+and if we use strace to see the system call invocation.
+
+$ strace -e trace=desc ./ioex
+
+we notices a series of system calls
+
+read(3, " to fill\ns", 10)              = 10
+read(3, "ome random", 10)               = 10
+read(3, " sentence ", 10)               = 10
+read(3, "to fill\nso", 10)              = 10
+read(3, "me random ", 10)               = 10
+read(3, "sentence t", 10)               = 10
+read(3, "o fill\nsom", 10)              = 10
+read(3, "e random s", 10)               = 10
+read(3, "entence to", 10)               = 10
+read(3, " fill\n", 10)                  = 6
+read(3, "", 10)                         = 0
+
+
+Now suppose we rewrite the same program but use buffered input/output (bufio)
+
+func main() {
+  f, err := os.Open("somefile.txt")
+  if err != nil {
+    fmt.Fprintf(os.Stderr, "fatal error:%s\n", err.Error())
+    os.Exit(1)
+  }
+  defer f.Close()
+  r := bufio.NewReader(f)
+  buf := make([]byte, 10)
+  for {
+    if n, err := r.Read(buf); err != nil {
+      if err == io.EOF {
+        fmt.Printf("%d\n", n)
+        break
+      }
+      os.Exit(1)
+    }
+  }
+}
+
+
+We notice a single system call where the size of the buffer is 4k. 
+
+read(3, "some random sentence to fill\nsom"..., 4096) = 116
+
+This is where buffered io helps.

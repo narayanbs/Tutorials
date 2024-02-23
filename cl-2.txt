@@ -1,0 +1,228 @@
+Useful commands
+---------------
+pwd -- Will display the present working directory
+
+file <filename>	--> Will print the details about file
+less <filename>  --> Will scroll through a file
+
+cd <dirname> | cd ~ (home dir) | cd <blank> (home dir) | cd .. (parent dir) |
+cd - (changes from present to previous working directory) 
+
+du --> size of disk usage by files/directories
+ex: du -sh var/ --> 8.5G /var   
+  du -sh asterix.pdf --> 1.2M asterix.pdf  (-s summarize)
+  du -ch ~/Desktop --> 43M total (-c total )
+
+ls --> list files/dirs in the current folder 
+for ex: if we are inside ~/Desktop, then ls lists all the files/directories inside ~/Desktop
+
+Note: 
+	. (indicates the current directory)
+	.. (indicates the parent directory)
+
+ls * --> will list files and directories(including contents) in the current directory.
+Note:
+* wildcard matches any number of characters
+if we are inside ~/Desktop, then * will match names of all files and directories inside ~/Desktop.
+ls * will take these names and will pass them as arguments to ls. 
+for ex:  ls one-tab.txt golang React. so ls will list one-tab.txt and also the contents of golang and React folders. 
+
+ls */ --> will list only dirs(and contents) but not files. 
+
+ls -l --> Long mode, get more details rather than just file/dir names (By default all are sorted by name)
+ls -al --> all files (including hidden) and directories in current dir in long mode
+ls -Al --> almost all files (except curdir and pardir) in long mode
+ls -lR --> list all files/dirs along with their contents (files/dirs) recursively 
+ls -lR <dir> --> list contents of dir and sub-directories of the mentioned folder recursively.
+
+ls -d --> list details
+ls -ld  -->  list long mode details. 
+ls -ld <dir> -->  list details of directory without content.
+ex: ls -ld ~/Desktop --> drwxr-xr-x 9 mordor mordor 4096 Mar  8 18:08 /home/mordor/Desktop
+
+ls -ld * -->  will just display details of files/dirs inside current folder (but not contents)
+ls -ld */ --> lists details of all the directories in the current folder.(but not contents)
+ls -ld Revision/*  --> lists details of all the files/directories (not contents) in the Revision folder
+ls -ld Revision/*/ --> lists details of all the directories in the Revision folder. (but not contents)
+           
+ls -lF --> classify directory with / at the end or * for files
+ls -lh --> human readable file size (K,M,G)
+ls -lt --> list files in recent modification time order
+ls -lS --> list files in order of size
+ls -lSh --> list files in order of size in human readable (K,M,G)
+ls -r --> reverse anything 
+for ex: ls -lr (reverse name order), ls -lrt (reverse modification time order, old first), ls -lrS --> reverse size order
+
+mkdir dir1 dir2 dir2 --> makes directories
+mkdir -p dir1/subdir1/subsubdir1 --> creates all the directories in the path.
+
+cp --> copy command
+
+cp item1 item2 item3.... dir -> copies item<x> files into dir
+
+cp item1 item2 --> in case of files (copies contents from item1 to item2, if item2 doesn't exist it is created)
+
+cp -r item1 item2 or cp -r item1/ item2
+--> if item2 exists, copies item1 and its contents recursively into item2. (item1 becomes sub directory of item2)
+--> else item2 is created and contents of item1 are copied into item2. (basically a replica of item1 with the name item2)
+
+cp item1/* item2 -> files (not directories) inside item1 is copied into item2 (item2 directory should exist otherwise error)
+cp -r item/* item2 -> content of item1 including sub-directories (recursively) is copied into item2 (item2 directory should exist otherwise error)
+
+cp -i (interactive option, will prompt the user if the file is being overwritten)
+cp -u (copy only those whose modification time is newer)
+
+
+mv --> move command, similar to cp, except the source is deleted
+mv item1 item2 item3.... dir -> moves item<x> files into dir
+
+mv item1 item2 --> in case of files if file exists copies contents from item1 to item2 and deletes item1, if item2 doesn't exist 
+item1 is renamed as item2.
+
+In case of directories, (we don't use -r as in cp)
+
+mv item1 item2 or mv item1/ item2
+-> if item2 exists, moves item1 and its contents recursively into item2.
+-> else item1 is renamed item2
+
+mv item1/* item2 -> content of item1 is moved into item2 (item2 directory should exist otherwise error)
+
+rm --> remove
+
+rm item1 item2 ... -> removes files item<x>...
+rm -r dir 
+   or	-> removes dir and its contents
+rm -r dir/
+
+rm -r dir/* -> removes all the contents of dir without deleting dir
+
+remember rm cannot be undone, so it's wise to set alias rm='rm -i' so that we are prompted before deleting anything.
+
+rm -rf --> force deletion
+
+ln -s item link --> create symbolic link to the item
+ex: ln -s ~/devide/nvim.appimage /usr/local/bin/vim
+
+
+Commands can be executables, shell builtins, shell functions and an alias (command that is built from other commands)
+------------------------------------------------------------------------------------------------------------------------
+type --> to find out the type of a command
+ex: type cd (shell builtin), type ls (alias for ls --color=auto), type cp (command /usr/bin/cp) --> executable
+
+sometimes there are more than one version of a executable. to know which one we are
+using we use the "which" . this only works for executables, not shell built-ins or aliases
+ex: which python3
+
+help --> use help command for getting help about shell builtins, for ex: help cd 
+
+for executables, try using --help, it will work for most of the commands
+ex: cp --help
+
+most executables intended for command line provide a manual called man page. you can
+find the man page of an executable by typing
+man <executable>
+for ex; type find --> /usr/bin/find (so executable)
+	man find
+
+creating alias --> ex: alias foo='cd /usr; ls; cd -'
+
+Redirection
+------------
+< --> redirect stdin
+> --> Redirecting stdout ex: ls -l > test.txt
+2> --> Redirecting stderr ex: ls -l /null/dev 2> test.txt
+
+>> --> Redirection but appending. 
+
+&> --> Redirecting stdout and stderr simultaneously,  for ex: to the same file, ls -l /null/dev &> test.txt
+
+Note: In older versions we used 2>&1 - ls -l /null/dev > test.txt 2>&1, 
+The reason we don't use  ls -l /null/dev 2>&1 test.txt, is because it  will work only if test.txt is already present, where as  
+ls -l /null/dev > test.txt 2>&1 will create test.txt and redirect stdout and stderr.
+
+&>> --> if you want to append
+
+if you want to suppress message from a command use > /dev/null
+error messages too can be suppressed by using 2> /dev/null
+
+cat --> reads from stdin and write it to stdout, if no file is specified. 
+ex: cat <enter> i.e blank line will produce one more line
+(Note: eof -- ctrl-d in linux or ctrl+z in windows marks end of stdin)
+
+cat file.... ---> reads from files and writes to stdout
+ex: if we have movie.mpeg01, movie.mpeg02..... then we can concatenate it all by
+cat movie.mpeg0* > movie.mpeg since wildcard expands in sorted order it will work
+
+cat -A --> shows everything including newline as $ and tab as ^I
+ex: cat -A one_tab.txt --> will print the contents to stdout that includes newlines ($), space and tab (^I) characters
+
+cat < test.txt --> redirects source of stdin from keyboard to test.txt (the file will not be passed as argument, so cat will
+read the contents from stdin which the shell has set to the contents of test.txt)
+
+Pipeline | --> the standard output of one command is piped into the standard input of another
+ex: cat test.txt | wc -l 
+
+wc –-> Print Line, Word, and Byte Counts 
+ex: wc ls-output.txt --> 7902 64566 503634 ls-output.txt
+wc -l for only line count, wc -c for byte count and wc -w for word count
+
+sort f1 -> sorts a file and prints to stdout
+sort f1 f2 --> concatenates file contents, sorts the lines, and prints to stdout
+
+when no file or '-' then read from stdin for ex: 
+$ sort
+hello
+there
+must
+be
+some
+mistake
+<eof> (ctrl-d)
+
+be
+hello
+mistake
+must
+some
+there
+
+uniq --> used in conjunction with sort.. it accepts a sorted list of data from stdin or a single file and removes duplicates 
+and writes it to stdout or other o/p
+ex: sort - | uniq
+hello
+hello
+there
+there
+must
+must
+mistake
+<eof> ctrl-d
+
+hello
+mistake
+must
+there
+
+ex: ls /bin /usr/bin | sort | uniq | wc -l
+2728 (lines)
+
+head or tail –-> Print First or Last Part of Files
+ex: head -n 5 ls-output.txt  or tail -n 5 ls-output.txt
+ls /usr/bin | tail -n 5
+
+use -f or --follow option to show real-time changing output of a file
+tail -f /var/log/auth.log
+
+tee –-> The tee program reads standard input and copies it to both standard output (allowing the data to continue down the pipeline) and to one or more files.
+ex: ls /usr/bin | tee ls.txt | grep zip
+Here tee captures the entire directory listing to the file ls.txt before grep filters the pipeline's contents:
+
+xargs --> it reads input from stdin or file and converts them into arguments to a command
+ex: find /path -type f -print | xargs rm    --> takes filenames and passes it as arguments to the rm command
+
+from stdin: This becomes echo hello this is narayan 
+$  xargs echo
+hello this is narayan
+--> hello this is narayan
+
+

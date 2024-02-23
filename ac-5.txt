@@ -1,0 +1,310 @@
+Summary: Basics, Transport Layer: TCP/UDP
+=============================================
+
+* We have seen that application layer operates as processes that
+  communicate between hosts. Transport layer provides
+  process-to-process delivery of messages. The underlying network
+  layer provides host-to-host delivery of messages, without any
+  reliability guarantees. So, job of transport layer is to take this
+  host-to-host delivery service from the network layer, and provide
+  process-to-process delivery abstraction to the application layer.
+
+* Processes send messages via sockets. So, we can also think of the
+  transport layer as providing a data delivery service from socket to
+  socket.
+
+* Some terminology: application layer "message" -> transport layer
+  "segment" -> IP/network layer "datagram".
+
+* Main functions of transport layer:
+
+- Multiplexing and demultiplexing (mux/demux): several processes on a
+  host may be sending messages. Each application process is assigned a
+  port number. Transport layer takes the application layer message,
+  appends port number, and passes to network layer. At the receiver
+  end, it hands over message to correct application process based on
+  port number. Both TCP and UDP provide this basic mux/demux
+  functionality. In fact, UDP is a barebones transport layer that
+  provides ONLY this functionality.
+
+- Reliable data delivery: TCP provides reliable data delivery. That
+  is, the application can be assured that the message will reach the
+  other side (or it will know if lost). TCP provides reliability using
+  several mechanisms, on top of a unreliable network layer.
+
+- Congestion control: TCP ensures that data from one application does
+  not swamp all the links and routers on the path. Congestion control
+  is not so much a service to the application as it is a service to
+  the Internet.
+
+* What are function that transport layer cannot provide? It cannot
+  provide bandwidth or delay guarantees because the underlying network
+  layer does not provide guarantees. Note that IP layer does not
+  provide security either, but TCP has special mechanisms (SSL) to
+  provide security over unsecure transport. But bandwidth/delay
+  guarantee is harder.
+
+* Two main transport protocols: TCP and UDP.
+
+* TCP is a connection oriented protocol, i.e., there are a few
+  connection establishment messages before data can be sent from
+  sender to receiver. However, this connection state resides only at
+  end hosts; unlike connections in circuit switching where state is
+  established at all routers on path. The side that initiates
+  connection is called TCP client. The side that responds is called
+  server. Data flow can happen both ways, TCP is full duplex.
+
+* Recall from socket programming: both client and server first create
+  sockets. Client sends a connect request to server IP and port. Then,
+  the "TCP handshake" takes place. TCP client sends a SYN packet to
+  server to initiate connection. Server responds with SYNACK. Client
+  then sends SYN ACK ACK (or simply ACK), along with any data
+  possibly. At this point, the accept call at the server returns,
+  i.e., the server accepts the request, a new client socket is created
+  for this connection, and connection is said to be established. Once
+  connection is established, both client and server may send data
+  through the TCP connection via the sockets. This data exchange
+  translates to read/write on sockets.
+
+* So when a packet arrives at a host, how does TCP know which client
+  socket to deliver message to? TCP uses 4-tuple (source IP, source
+  port, destination IP, destination port) as the demux key to identify
+  appropriate socket. Why can't it just use destination IP and port?
+  Because server can have several sockets open for different clients.
+
+* How is mux/demux done in UDP? Note that there is no handshake in
+  UDP. Sender and receiver applications create sockets, and fill in
+  the destination port and IP in the socket structures. Then they
+  simply send and receive messages using the socket handle. The source
+  and destination port numbers are embedded in the UDP header. Note
+  that a UDP-based server only has one listening socket, not one per
+  client. When a packet reaches the destination IP address (via
+  network layer), the destination port is looked up to identify the
+  correct socket to deliver the message to. That is, the demux "key"
+  is the 2-tuple (destination IP, destination port). 
+
+* Why is demux key different for UDP (2-tuple) vs TCP (4-tuple)?
+  Because TCP maintains a separate socket for every client-server
+  communication (connection-oriented), whereas UDP server processes
+  all clients via the same socket. So, next question, why is TCP
+  connection oriented and why does it have to maintain a separate
+  socket for every connection? Because TCP implements reliability, it
+  is easier with separate sockets. For example, when a message arrives
+  at a socket, it is easy to simply see the source IP/port associated
+  with that socket and send ACK. If you want to send a reply to a UDP
+  message, you need to extract the source IP and port from the UDP
+  header for every message.
+
+* There is not much else to UDP other than mux/demux. UDP is just
+  barebones transport: mux/demux with light error detection (checksum
+  over header: includes port numbers and checksum (IP addresses are from IP
+  header). Lower header overhead than TCP (UDP-8 bytes, TCP-20 bytes).
+
+* Which applications use UDP?
+
+- DNS: simple request reply does not justify the overhead of
+  connection setup of TCP.
+
+- Multimedia applications: they have more control over what data is
+  sent when. For example, if the voice sample is stale, no point in
+  TCP retransmitting it.
+
+
+--------------------------------------------------------------------------------
+what does readable/writable mean in a socket file descriptor
+
+During calls like select, we register sockets along with interesting events like read/write/exceptions. The 
+select command returns sockets that are readable or writable? But what does it really mean?
+
+A socket is readable if
+* The number of bytes in the socket receive buffer is equal/greater than the low-water mark specified.
+  A read operation on the socket will not block and return a value greater than 0.
+* The read half of the connection is closed i.e the tcp connection has received a FIN
+  A read operation on the socket will not block and will return 0
+* The socket is a listening socket and the number of completed connections is non-zero
+* A socket error is pending
+  A read operation will not block and will return an error (-1)
+
+A socket is writable if
+* The number of bytes of available space in the socket send buffer is greater its low-water mark.
+  and either (i) the socket is connected, or (ii) the socket does not require a connection (e.g., UDP). 
+  This means that if we set the socket to nonblocking, a write operation will not block and will return 
+  a positive value (e.g., the number of bytes accepted by the transport layer). [...]
+* The write half of the connection is closed. A write operation on the socket will generate SIGPIPE.
+* A socket using a non-blocking connect has completed the connection, or the connect has failed.
+* A socket error is pending. A write operation on the socket will not block and will return an error (–1)
+
+--------------------------------------------------------------------------------
+
+
+It is only necessary to bind() a server, because the clients need a fixed port number to send to. 
+A client needn't bind() at all: an automatic bind() will take place on the during the connect call, or 
+during the first send()/sendto()/recv()/recvfrom() using a system-assigned local port number.
+
+accept() is for TCP. It has nothing to do with UDP.
+
+connect() in tcp initiates the tcp handshake. 
+connect() in UDP doesn't do anything to the other end, it just conditions the local API to know who you are sending to and receiving from.
+
+If you don't already know that, or don't care, or want to send to multiple destinations with the same socket, you don't use connect(), 
+you use sendto() instead. Similarly for receiving.
+
+Consider a UDP server for example. It would call recvfrom(), so it would get the source address information, process the request, 
+create the response, and send it to that address via sendto(). No connect() involved anywhere, therefore not possible to use either send() or recv().
+
+TCP connection -- connect, listen and accept()
+----------------------------------------------
+connect() is called by the client process to connect to a server process.
+Internally in the TCP stack this is what happens.
+If client process has not explicitly issued a bind call, implicit binding 
+on the local socket is taken care by the stack.
+The foreign socket pair (IP and port) specified by connect is checked if its unique
+or not. It updates its internet control block with the foreign address and port 
+number.The request is sent to the address and the status of the client socket is set to SYN_SENT.
+The connect call is put to sleep
+
+On the server_side the syn packet is received. A listener socket is looked 
+up. If it's found its state is TCP_LISTEN. 
+A request socket (a mini-socket) is created and added to a ehash accept queue.
+It's status is set to SYN_RCVD. A syn-ack is sent back. 
+
+The SYN_ACK is received on the client side. The packet is now processed
+and the connect is woken up. The socket on the client side is established.
+ACK packet is sent back to the server. 
+
+The server removes the incomplete request socket from the accept queue
+and puts it into the completed socket queue. Then wakeup() is called to 
+wake up the accept call. The socket on the server side is now establised.
+
+Not send and recv happens between the established sockets. 
+
+For More details refer to :
+Articles/TCP%20Connection%20Establishment%20Process1.html
+Articles/TCP system call sequences.html
+
+
+TCP connection -- listen() and accept()
+----------------------------------------
+What happens when a server accepts client sockets?>> accept() 
+
+When you create a socket and do a bind on that socket and then a listen, what you have is what is called a listening socket. When a connection 
+is established this socket is basically cloned to a new socket, and this socket is called the servicing socket the port to which it bound is 
+still the same as the original port.
+
+But there is an important distinction between this socket and the listening socket from before. Namely it is part of a socket pair. 
+It is the socket pair that uniquely identifies the connection. so as there are 2 sockets in the picture for a socket pair, 
+there are 2 IP addresses and 2 ports for both ends of the TCP communication channel. During the cloning of the servicing socket, 
+the TCP kernel will allocate what is called a TCB (Transmission control block) and in it it will store those 2 IPs and 2 ports. 
+The TCB also contains the socket number that belongs to the TCB.
+
+Each time a TCP segment comes in , the TCP header is checked and whether or not it is a SYN, for a SYN you would have connection 
+establishment so that you passed already, but then the kernel is going through its list of listening sockets. 
+If it is a normal TCP packet, not a SYN, both port numbers are in the TCP header and the IPs are part of the IP header, 
+so using this information the kernel is able to find the TCB that belongs to this TCP connection.
+(For a SYN, this information is also there, but as I said, for a SYN you have to process only the listening sockets)
+
+That is in a nutshell how it works.
+
+This information can be found in UNIX Network Programming: the sockets networking API. 
+In there the link to the sockets is described whereas in other reference material it is usually not described that much in detail, 
+rather the nitty grits of TCP are usually highlighted.
+
+
+
+Connected and Unconnected sockets
+----------------------------------
+User Datagram Protocol (UDP) socket processes, unlike TCP socket processes, are not clearly distinguished by server and client roles.
+The distinction is between connected and unconnected sockets. An unconnected socket can be used to communicate with any host; 
+but a connected socket, because it has a dedicated destination, can send data to, and receive data from, only one host.
+
+Connected sockets have a full 4-tuple associated {source ip, source port, destination ip, destination port}, unconnected sockets 
+have 2-tuple {bind ip, bind port}.
+
+Traditionally the connected sockets were mostly used for outgoing flows, while unconnected for inbound "server" side connections.
+
+UDP Client
+----------
+consider these two snippets. They do the same thing — send a packet to the DNS resolver. 
+
+First snippet is using a connected socket:
+
+cd = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+cd.connect(("1.1.1.1", 53))
+cd.send(b"Hello world")
+data = cd.recv(2048)
+
+If we use connect in the case of UDP, then addr is the address to which datagrams are sent by default, and the only
+address from which datagrams are received.
+
+so here we can only send datagrams to 1.1.1.1 and receive from 1.1.1.1
+
+Second snippet is using unconnected one:
+
+sd = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+sd.bind(("0.0.0.0", 0))
+sd.sendto(b"Hello world", ("1.1.1.1", 53))
+data = sd.recv(2048)
+
+The socket is bound to a local address and datagram is sent to the address mentioned in the sendto() function. 
+similarly the socket can receive datagrams from any other source that has the local address as the destination. 
+
+
+Generally speaking for outbound traffic it's preferable to use connected UDP sockets.
+
+UDP Server
+-----------
+Traditionally on the server side UDP requires unconnected sockets.
+
+sd = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+sd.bind((host, port))
+while True:
+	data, addr = sd.revfrom(2048)
+	sd.sendto(data,addr)
+
+
+-----------------------------------------------------
+getaddrinfo -- Network Address and Service translation. Returns one or more addrinfo structures, each of which contains 
+an Internet address that can be specified in a call to bind(2) or connect(2).
+
+struct addrinfo {
+               int              ai_flags;
+               int              ai_family;
+               int              ai_socktype;
+               int              ai_protocol;
+               socklen_t        ai_addrlen;
+               struct sockaddr *ai_addr;
+               char            *ai_canonname;
+               struct addrinfo *ai_next;
+           };
+
+int getaddrinfo(const char *restrict node,
+                       const char *restrict service,
+                       const struct addrinfo *restrict hints,
+                       struct addrinfo **restrict res);
+
+node --> Identifies an internet host
+
+service --> Identifies a service, 
+		if a service name (/etc/services) then it is translated to corresponding port number
+		If a decimal number it is simply converted to binary.  
+		If service is NULL, then the port number of the returned socket addresses will be left uninitialized
+		
+hints --> points to an addrinfo structure that specifies criteria for selecting the socket address structures returned in the list pointed to by res.
+	hints.ai_family --> AF_INET, AF_INET6, AF_UNSPEC
+	hints.ai_socktype --> SOCK_STREAM, SOCK_DGRAM
+	hints.ai_protocol --> 0
+	hints.ai_flags -->
+			AI_NUMERICHOST then node must be numeric network address, thus skips lengthy network lookups.
+			AI_PASSIVE: is set then 
+				if node is null, then returned socket address will contain wildcard address
+					i.e INADDR_ANY for ipv4 or IN6ADDR_ANY_INIT for ipv6
+				if node is not null, AI_PASSIVE is ignored.
+			AI_PASSIVE: is not set then 
+				sockets are suitable for use in connect, sendto
+				if node is null, then network address will be loopback addresses
+					i.e INADDR_LOOPBACK for ipv4 or IN6ADDR_LOOPBACK_INIT ipv6 
+			
+Specifying hints as NULL is equivalent to setting ai_socktype and ai_protocol to 0; 
+	ai_family to AF_UNSPEC; and ai_flags to (AI_V4MAPPED | AI_ADDRCONFIG).  
+	
+

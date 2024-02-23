@@ -1,0 +1,339 @@
+Everything is bits in computers, (0 and 1). The text that we see on our display (characters, numbers, symbols) and understand,
+are all bits or bytes that are interpreted in a certain way. The way it is interpreted is dependent on a standard known as 
+character encoding. "Character encoding" is the process of converting characters into their byte mappings according to a specific
+character set. Using character encoding, computers can digitally translate characters from a single language into others.
+The applications store the encoded characters either in bits or bytes.
+
+All characters are encoded before being displayed on a terminal, written to a disk, printed on paper, or transmitted through a digital medium
+
+You edit a file and save it. It stores information in a particular encoding. Applications that use the file will need to know the encoding
+to retrieve the information they seek. 
+for ex: For the vim editor we can set the encoding in .vimrc as shown below
+set fileencoding=utf-8    // the output encoding of the file that is written.
+
+Similarly terminals use their own encoding to display text. 
+for ex: for the vim editor we can set the output encoding as shown below
+set encoding=utf-8    
+
+If encoding is not specified explicitly then programs usually get it from the locale through the OS. 
+
+Each program will have a default encoding, that decides how the characters are represented internally. Most programs default to UTF-8 these days.
+Vim does not actually default 'encoding' to UTF-8. It defaults to latin1, but will change based on the locale of your environment.
+It's a good idea to always put set encoding=utf-8 in your vimrc. It automatically enables saner encoding detection settings for 'fileencodings' and supports any characters that you'll need to store.
+
+Neovim decided to only support encoding=utf-8. This vastly simplifies the code, since now everything is working with UTF-8 internally, 
+and only has to encode/decode when interfacing with the outside world (saving files in specific encodings, 
+converting input from the locale's encoding, etc.).
+
+When it comes to text, there are two things that is done
+* Encoding: mapping characters to numbers.. this is where standards such as unicode, iso8859... come to picture
+* Display: Displaying these numbers as characters on the display hardware. These require fonts that has the character and render it. 
+There are default fonts in OS or user provided ones that the OS must use to map numbers to characters and render it.
+
+-----------------------------------------------------
+How does font rendering actually work??
+
+In general, applications such as terminals use libraries provided by the OS or a GUI toolkit to do font rendering.
+Typical font engines allow a number of modes of operation. For the simple case, an application can ask for a string of text to be drawn 
+at a certain position, and the engine takes care of everything (measurement, positioning, drawing the pixels to the display, etc).
+
+For applications which require a finer degree of control - browsers or word processors, for example - the engine will expose interfaces 
+where the app can ask for a given piece of text to be measured in advance. 
+The app can then use this knowledge to work out how much text it can fit on a line, where the line-breaks should be,
+how much room a paragraph will take, etc. The app can still ask the engine to do the actual rendering of the pixels.
+
+(There may be an in-between scenario where the engine can take a maximum-width parameter, and possibly some kerning/padding parameters, 
+and automatically render as much text as it can fit.)
+
+Finally, the font engine might allow the app to take over the final rendering of the text, by returning bitmaps of glyphs pre-rendered 
+at a certain size, allowing the app to position and composite it onto the final display. 
+Or the engine might even offer to return the raw glyph outline data for rendering with some vector toolkit.
+
+-------------------------------------------------------
+
+
+Locale
+---------
+A locale is a set of parameters that defines the user's language, region and any special variant preferences that the user wants to see in 
+their user interface. Usually a locale identifier consists of at least a language code and a country/region code. The locale settings are 
+about formatting output given a locale. These settings usually include the following display (output) format settings:
+
+Number format setting
+Character classification, case conversion settings
+Date-time format setting
+String collation setting
+Currency format setting
+Paper size setting
+Color setting
+
+On ubuntu, use locale command to get the current locale settings. 
+
+$ locale
+
+LANG=en_IN
+LANGUAGE=en_IN:en
+LC_CTYPE="en_IN"
+LC_NUMERIC="en_IN"
+LC_TIME="en_IN"
+LC_COLLATE="en_IN"
+LC_MONETARY="en_IN"
+LC_MESSAGES="en_IN"
+LC_PAPER="en_IN"
+LC_NAME="en_IN"
+LC_ADDRESS="en_IN"
+LC_TELEPHONE="en_IN"
+LC_MEASUREMENT="en_IN"
+LC_IDENTIFICATION="en_IN"
+LC_ALL=
+
+LANG:  This variable determines the locale category for native language, local customs and coded character set in the absence of the LC_ALL and other LC_* (LC_COLLATE, LC_CTYPE, LC_MESSAGES, LC_MONETARY, LC_NUMERIC, LC_TIME) environment variables. This can be used by applications to determine the language to use for error messages and instructions, collating sequences, date formats, and so forth.
+
+LC_CTYPE This variable determines the locale category for character handling functions, such as tolower(), toupper() and isalpha(). This environment variable determines the interpretation of sequences of bytes of text data as characters (for example, single- as opposed to multi-byte characters), the classification of characters (for example, alpha, digit, graph) and the behaviour of character classes. Additional semantics of this variable, if any, are implementation-dependent.
+
+LC_ALL: This variable determines the values for all locale categories. The value of the LC_ALL environment variable has precedence over any of the other environment variables starting with LC_ (LC_COLLATE, LC_CTYPE, LC_MESSAGES, LC_MONETARY, LC_NUMERIC, LC_TIME) and the LANG environment variable. Normally LC_ALL is unset i.e "", this means we are not overriding any LC_* variables.
+
+
+The environment variables that affect locale selection can be grouped into three priority classes: high, medium, and low. 
+Environment variables in the high priority class are:
+	LC_ALL
+	LC_COLLATE
+	LC_CTYPE
+Environment variables in the medium priority class are:
+	LC_MESSAGES
+	LC_MONETARY
+	LC_NUMERIC
+	LC_TIME
+The environment variable in the low priority class is:
+	LANG
+
+
+$ locale -a to get all the available locales.
+$ locale -m to get the available charmaps (character set description files), available in the OS. These files describe how
+locales and agents are mapped to character encodings.
+
+$ locale -m 
+
+NS_4551-1
+NS_4551-2
+PT
+PT154
+PT2
+RK1048
+SAMI
+SAMI-WS2
+SEN_850200_B
+SEN_850200_C
+SHIFT_JIS
+SHIFT_JISX0213
+T.101-G2
+T.61-7BIT
+T.61-8BIT
+TCVN5712-1
+TIS-620
+TSCII
+UTF-8
+VIDEOTEX-SUPPL
+VISCII
+WIN-SAMI-2
+WINDOWS-31J
+
+$ locale -c to get information for a specific category. 
+
+For ex: locale -c charmap displays “LC_CTYPE” followed by the name of the charset,  the current character set for the locale 
+
+$ locale -c charmap
+LC_CTYPE
+UTF-8
+
+Note:
+The LC_ALL variable sets all locale variables output by the command 'locale -a'.  It is a convenient way of specifying a language environment 
+with one variable, without having to specify each LC_* variable. 
+for ex:
+	$ LC_TIME=fr_FR.UTF-8 date
+	jeudi 22 août 2013, 10:41:30 (UTC+0100)
+		Or:
+	$ LC_MONETARY=fr_FR.UTF-8 locale currency_symbol
+	€
+		Or override everything with LC_ALL.
+	$ LC_ALL=es_ES man
+	¿Qué página de manual desea?
+
+	$ LC_ALL=C man
+	What manual page do you want?
+
+$ LC_ALL=C locale -c charmap
+LC_CTYPE
+ANSI_X3.4-1968
+
+Another example: forcing sorting bytewise
+
+	$ LC_ALL=en_US sort <<< $'a\nb\nA\nB'
+	a
+	A
+	b
+	B
+
+	$ LC_ALL=C sort <<< $'a\nb\nA\nB'
+	A
+	B
+	a
+	b
+
+
+Read Articles/Python locale module.html for more information.  
+
+----------------------------------------------------------------------------------------------
+--------------------------------------------------------------------
+Character encoding is basically set of characters encoded into numbers. 
+
+ISO 646 -- Ascii taking values -- 0 to 127 
+ISO 8859-x -- 0 to 127 is the same ascii, 127 to 255 is different
+for ex: ISO 8859-1 is Latin-1, ISO 8859-2 is Latin-2.. 
+
+There are various other encodings that use a byte of values, with the base ascii and others after for ex: windows-1252 or cp-1252
+
+ISO 10646 -- Unicode. 
+
+Unicode specifies code points, with each code point (hexadecimal numbers) indicating a character. Initially the code points were 16-bit and could represent 65536
+characters, but now the number of characters has extended to 21-bit. The initial set of 16-bit encodings is known as Basic Multilingual Plane (BMP).
+
+Fixed-length UCS-2 (16-bit i.e 2 bytes) was used to represent these code points. UCS-2 is redundant now since it can only represent the BMP.
+UCS-4 is another fixed-length encoding that uses 4 bytes to represent the code points. 
+
+Fixed length encodings waste space, so (multi-byte) variable length encodings were used, These include utf-8, utf-16 and utf-32.
+
+utf-8 -- uses 1 to 3 bytes to represent the unicode code points
+utf-16 -- uses 2 to 4 bytes to represent the unicode code points
+utf-32 -- uses 4 bytes.
+
+C specification basically specifies a basic character set and an extended character set. The extended character set is implementation defined.
+* All characters in the basic character set should be represented in a byte
+* All bits in the null character '\0' should be zero.
+* The characters representing the digits 0 - 9 should have values that are obtained by incrementing the previous number by 1. 
+
+Multibyte characters 
+--------------------
+When someone says "C string", you know that they are referring to an array of multi-byte characters that are terminated by null character '\0'.
+for ex:
+    char s[128] = "Hello World";
+
+What we’re saying here is that a particular character that’s not in the basic character set could be composed of multiple bytes. 
+Up to MB_LEN_MAX of them (from <limits.h>). Sure, it only looks like one character on the screen, but it could be multiple bytes.
+The MB_LEN_MAX macro is the maximum number of bytes needed to represent a single wide character, in any of the supported locales.
+In glibc, MB_LEN_MAX is typically 16, while sizeof(wchar_t) is 4.
+
+You can throw Unicode values in there, as well, as we saw earlier:
+
+char *s = "\u20AC1.23";
+printf("%s\n", s);  // €1.23
+
+But here we’re getting into some weirdness, because check this out:
+
+char *s = "\u20AC1.23";  // €1.23
+printf("%zu\n", strlen(s));  // 7
+
+The string length of "€1.23" is 7?! Yes! Well, on my system, yes! Remember that strlen() returns the number of bytes in the string, not the 
+number of characters. 
+
+How about char constants?????
+while C allows individual multibyte char constants, the behavior of these varies by implementation and your compiler might warn on it.
+GCC, for example, warns of multi-character character constants for the following two lines (and, on my system, prints out the UTF-8 encoding):
+
+printf("%x\n", '€');
+printf("%x\n", '\u20ac');
+
+Wide Characters
+-----------------------------
+A wide character is a single value that can uniquely represent any character in the current locale. 
+Basically, where multibyte character strings are arrays of bytes, wide character strings are arrays of characters. So you can start thinking 
+on a character-by-character basis rather than a byte-by-byte basis
+
+Wide characters can be represented by a number of types, but the big standout one is wchar_t. It’s like char, except wide.
+It could be 16 bits or it could be 32 bits. To use wchar_t, include <wchar.h>. 
+
+But wait, you’re saying—if it’s only 16 bits, it’s not big enough to hold all the Unicode code points, is it? You’re right—it’s not. 
+The spec doesn’t require it to be. It just has to be able to represent all the characters in the current locale.
+This can cause grief with Unicode on platforms with 16-bit wchar_ts (ahem—Windows).
+
+You can declare a string or character of this type with the L prefix, and you can print them with the %ls (“ell ess”) format specifier. 
+Or print an individual wchar_t with %lc.
+
+wchar_t *s = L"Hello, world!";
+wchar_t c = L'B'; // or wchar_t c = L'\u20AC';
+printf("%ls %lc\n", s, c);
+
+Now—are those characters stored as Unicode code points, or not? Depends on the implementation. But you can test if they are with the 
+macro __STDC_ISO_10646__. If this is defined, the answer is, “It’s Unicode!”
+
+Multibyte to wchar_t Conversions
+----------------------------------
+So how do we get from the byte-oriented standard strings to the character-oriented wide strings and back?
+
+We can use a couple string conversion functions to make this happen.
+
+First, some naming conventions you’ll see in these functions:
+
+* mb: multibyte
+* wc: wide character
+* mbs: multibyte string
+* wcs: wide character string
+
+Conversion Function	Description
+-------------------------------
+mbtowc()	Convert a multibyte character to a wide character.
+wctomb()	Convert a wide character to a multibyte character.
+mbstowcs()	Convert a multibyte string to a wide string.
+wcstombs()	Convert a wide string to a multibyte string.
+
+ex:
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <wchar.h>
+#include <string.h>
+#include <locale.h>
+
+int main(void)
+{
+    // Get out of the C locale to one that likely has the euro symbol
+    // If locale is an empty string, "", each part of the locale that should be modified is set according to the environment variables
+    setlocale(LC_ALL, "");
+
+    // Original multibyte string with a euro symbol (Unicode point 20ac)
+    char *mb_string = "The cost is \u20ac1.23";  // €1.23
+    size_t mb_len = strlen(mb_string);
+
+    // Wide character array that will hold the converted string
+    wchar_t wc_string[128];  // Holds up to 128 wide characters
+
+    // Convert the MB string to WC; this returns the number of wide chars
+    size_t wc_len = mbstowcs(wc_string, mb_string, 128);
+
+    // Print result--note the %ls for wide char strings
+    printf("multibyte: \"%s\" (%zu bytes)\n", mb_string, mb_len);
+    printf("wide char: \"%ls\" (%zu characters)\n", wc_string, wc_len);
+    printf("Length of wide string: %ls is %zu\n", wc_string, wcslen(wc_string));
+}
+
+Output:
+multibyte: "The cost is €1.23" (19 bytes)
+wide char: "The cost is €1.23" (17 characters)
+
+One interesting thing to note is that mbstowcs(), in addition to converting the multibyte string to wide, returns the length (in characters) 
+of the wide character string. On POSIX-compliant systems, you can take advantage of a special mode where it only returns the length-in-characters
+of a given multibyte string: you just pass NULL to the destination, and 0 to the maximum number of characters to convert (this value is ignored).
+
+(In the code below, I’m using my extended source character set—you might have to replace those with \u escapes.)
+
+setlocale(LC_ALL, "");
+
+// The following string has 7 characters
+size_t len_in_chars = mbstowcs(NULL, "§¶°±π€•", 0);
+
+printf("%zu", len_in_chars);  // 7
+
+Again, that’s a non-portable POSIX extension.
+And, of course, if you want to convert the other way, it’s wcstombs().
+
+
+

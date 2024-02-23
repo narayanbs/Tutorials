@@ -1,0 +1,224 @@
+Escaping Metacharacters
+-----------------------
+You have seen a few metacharacters and escape sequences that help to compose a RE. To match the metacharacters literally, i.e. to remove their special meaning, prefix those characters with a \ (backslash) character. To indicate a literal \ character, use \\. Assuming these are all part of raw string, not normal strings.
+
+# even though ^ is not being used as anchor, it won't be matched literally
+bool(re.search(r'b^2', 'a^2 + b^2 - C*3')) --> False
+# escaping will work
+bool(re.search(r'b\^2', 'a^2 + b^2 - C*3')) --> True
+
+# match ( or ) literally
+re.sub(r'\(|\)', '', '(a*b) + c') --> 'a*b + c'
+
+# note that here input string is also a raw string
+re.sub(r'\\', '/', r'\learn\by\example') --> '/learn/by/example'
+
+
+re.escape
+---------
+expr = '(a^b)'
+# print used here to show results similar to raw string
+print(re.escape(expr)) --> \(a\^b\)
+
+# replace only at end of string
+eqn = 'f*(a^b) - 3*(a^b)'
+re.sub(re.escape(expr) + r'\Z', 'c', eqn) --> 'f*(a^b) - 3*c'
+
+# iterable of strings, assume alternation precedence sorting isn't needed
+terms = ['a_42', '(a^b)', '2|3']
+# using 're.escape' and 'join' to construct the pattern
+pat1 = re.compile('|'.join(re.escape(s) for s in terms))
+# using only 'join' to construct the pattern
+pat2 = re.compile('|'.join(terms))
+
+print(pat1.pattern) --> a_42|\(a\^b\)|2\|3
+print(pat2.pattern) --> a_42|(a^b)|2|3
+
+s = 'ba_423 (a^b)c 2|3 a^b'
+pat1.sub('X', s) --> 'bX3 Xc X a^b'
+pat2.sub('X', s) --> 'bXX (a^b)c X|X a^b'
+
+Certain characters like tab and newline can be expressed using escape sequences as \t and \n respectively. These are similar to how they are treated in normal string literals. However, \b is for word boundaries as seen earlier, whereas it stands for backspace character in normal string literals
+
+re.sub(r'\t', ':', 'a\tb\tc') --> 'a:b:c'
+re.sub(r'\n', ' ', '1\n2\n3') --> '1 2 3'
+
+if an escape character is missing 
+re.search(r'\e', 'hello') --> re.error: bad escape \e at position 0
+
+Hexadecimal escape sequences
+# \x20 is space character
+re.sub(r'\x20', '', 'h e l l o') --> 'hello'
+
+# \x7c is '|' character
+re.sub(r'2\x7c3', '5', '12|30') --> '150'
+re.sub(r'2|3', '5', '12|30') --> '15|50'
+
+Dot Metacharacter
+------------------
+The dot metacharacter serves as a placeholder to match any character except the newline character.
+# matches character 'c', any character and then character 't'
+re.sub(r'c.t', 'X', 'tac tin cat abc;tuv acute') --> 'taXin X abXuv aXe'
+
+# matches character 'r', any two characters and then character 'd'
+re.sub(r'r..d', 'X', 'breadth markedly reported overrides') --> 'bXth maXly repoX oveXes'
+
+# matches character '2', any character and then character '3'
+re.sub(r'2.3', '8', '42\t35') --> '485'
+
+# by default, dot metacharacter doesn't match newline character
+bool(re.search(r'a.b', 'a\nb')) --> False
+
+Use re.S or re.DOTALL to allow . metacharacter to match newline character as well.
+# by default, the . metacharacter doesn't match newline
+re.sub(r'the.*ice', 'X', 'Hi there\nHave a Nice Day') --> 'Hi there\nHave a Nice Day'
+
+# re.S flag will allow newline character to be matched as well
+re.sub(r'the.*ice', 'X', 'Hi there\nHave a Nice Day', flags=re.S) --> 'Hi X Day'
+
+re.split function
+For normal strings, you'd use the str.split method. For regular expressions, use the re.split function.
+re.split(pattern, string, maxsplit=0, flags=0)
+
+# same as: 'apple-85-mango-70'.split('-')
+re.split(r'-', 'apple-85-mango-70') --> ['apple', '85', 'mango', '70']
+
+# maxsplit determines the maximum number of times to split the input
+re.split(r'-', 'apple-85-mango-70', maxsplit=1) --> ['apple', '85-mango-70']
+
+# example with dot metacharacter
+re.split(r':.:', 'bus:3:car:5:van') --> ['bus', 'car', 'van']
+
+Greedy Quantifiers
+------------------
+Quantifiers have functionality like the string repetition operator and range function. They can be applied to characters and groupings 
+First up, the ? metacharacter which quantifies a character or group to match 0 or 1 times. In other words, you make that character or group as something to be optionally matched.
+
+# same as: r'ear|ar'
+re.sub(r'e?ar', 'X', 'far feat flare fear') --> 'fX feat flXe fX'
+
+# same as: r'\bpar(t|)\b'
+re.sub(r'\bpart?\b', 'X', 'par spare part party') --> 'X spare X party'
+
+# same as: r'\b(re.d|red)\b'
+words = ['red', 'read', 'ready', 're;d', 'road', 'redo', 'reed', 'rod']
+[w for w in words if re.search(r'\bre.?d\b', w)] --> ['red', 'read', 're;d', 'reed']
+
+# same as: r'part|parrot'
+re.sub(r'par(ro)?t', 'X', 'par part parrot parent') --> 'par X X parent'
+# same as: r'part|parent|parrot'
+re.sub(r'par(en|ro)?t', 'X', 'par part parrot parent') --> 'par X X X'
+
+The * metacharacter quantifies a character or group to match 0 or more times.
+# match 't' followed by zero or more of 'a' followed by 'r'
+re.sub(r'ta*r', 'X', 'tr tear tare steer sitaara') --> 'X tear Xe steer siXa'
+# match 't' followed by zero or more of 'e' or 'a' followed by 'r'
+re.sub(r't(e|a)*r', 'X', 'tr tear tare steer sitaara') --> 'X X Xe sX siXa'
+# match zero or more of '1' followed by '2'
+re.sub(r'1*2', 'X', '3111111111125111142') --> '3X511114X'
+
+# last element is empty because there is nothing after 2 at the end of string
+re.split(r'1*2', '3111111111125111142') --> ['3', '511114', '']
+# later, you'll see how maxsplit helps to get behavior like str.partition
+re.split(r'1*2', '3111111111125111142', maxsplit=1) --> ['3', '5111142']
+
+# empty string matches at start and end of string
+# it matches between every character
+# and, there is an empty match after the split at u
+re.split(r'u*', 'cloudy') --> ['', 'c', 'l', 'o', '', 'd', 'y', '']
+
+The + metacharacter quantifies a character or group to match 1 or more times. Similar to * quantifier, there is no upper bound. More importantly, this doesn't have surprises like matching empty string in between patterns or at the start/end of string.
+
+re.sub(r'ta+r', 'X', 'tr tear tare steer sitaara') --> 'tr tear Xe steer siXa'
+re.sub(r't(e|a)+r', 'X', 'tr tear tare steer sitaara') --> 'tr X Xe sX siXa'
+
+re.sub(r'1+2', 'X', '3111111111125111142') --> '3X5111142'
+
+re.split(r'1+', '3111111111125111142') --> ['3', '25', '42']
+re.split(r'u+', 'cloudy') --> ['clo', 'dy']
+
+You can specify a range of integer numbers, both bounded and unbounded, using {} metacharacters. There are four ways to use this quantifier as shown below:
+
+Pattern	Description
+{m,n}	match m to n times
+{m,}	match at least m times
+{,n}	match up to n times (including 0 times)
+{n}	match exactly n times
+
+demo = ['abc', 'ac', 'adc', 'abbc', 'xabbbcz', 'bbb', 'bc', 'abbbbbc']
+
+[w for w in demo if re.search(r'ab{1,4}c', w)] --> ['abc', 'abbc', 'xabbbcz']
+[w for w in demo if re.search(r'ab{3,}c', w)] --> ['xabbbcz', 'abbbbbc']
+[w for w in demo if re.search(r'ab{,2}c', w)] --> ['abc', 'ac', 'abbc']
+[w for w in demo if re.search(r'ab{3}c', w)] --> ['xabbbcz']
+
+Conditional AND using . and quantifiers
+---------------------------------------
+# match 'Error' followed by zero or more characters followed by 'valid'
+bool(re.search(r'Error.*valid', 'Error: not a valid input')) --> True
+
+bool(re.search(r'Error.*valid', 'Error: key not found')) --> False
+
+To allow matching in any order, you'll have to bring in alternation as well. That is somewhat manageable for 2 or 3 patterns.
+seq1 = 'cat and dog'
+seq2 = 'dog and cat'
+bool(re.search(r'cat.*dog|dog.*cat', seq1)) --> True
+bool(re.search(r'cat.*dog|dog.*cat', seq2)) --> True
+
+# if you just need True/False result, this would be a scalable approach
+patterns = (r'cat', r'dog')
+all(re.search(p, seq1) for p in patterns) --> True
+all(re.search(p, seq2) for p in patterns) --> True
+
+Greedy
+--------
+When you are using the ? quantifier, how does Python decide to match 0 or 1 times, if both quantities can satisfy the RE? For example, consider the expression re.sub(r'f.?o', 'X', 'foot') — should foo be replaced or fo? It will always replace foo, because these are greedy quantifiers, meaning they try to match as much as possible.
+
+re.sub(r'f.?o', 'X', 'foot') --> 'Xt'
+
+# a more practical example
+# prefix '<' with '\' if it is not already prefixed
+# both '<' and '\<' will get replaced with '\<'
+# note the use of raw string for all the three arguments
+print(re.sub(r'\\?<', r'\<', r'blah \< foo < bar \< blah < baz')) --> blah \< foo \< bar \< blah \< baz
+
+# say goodbye to r'handful|handy|hand' shenanigans
+re.sub(r'hand(y|ful)?', 'X', 'hand handy handful') --> 'X X X'
+
+But wait, how did the r'Error.*valid' example work? Shouldn't .* consume all the characters after Error? Good question. The regular expression engine actually does consume all the characters. Then realizing that the match failed, it gives back one character from end of string and checks again if the overall RE is satisfied. This process is repeated until a match is found or failure is confirmed. In regular expression parlance, this is called backtracking.
+
+sentence = 'that is quite a fabricated tale'
+
+# r't.*a' will always match from first 't' to last 'a'
+# also, note that count argument is set to 1 for illustration purposes
+re.sub(r't.*a', 'X', sentence, count=1) --> 'Xle'
+re.sub(r't.*a', 'X', 'star', count=1) --> 'sXr'
+
+# matching first 't' to last 'a' for t.*a won't work for these cases
+# the engine backtracks until .*q matches and so on
+re.sub(r't.*a.*q.*f', 'X', sentence, count=1) --> 'Xabricated tale'
+re.sub(r't.*a.*u', 'X', sentence, count=1) --> 'Xite a fabricated tale'
+
+Non-greedy quantifiers
+----------------------
+As the name implies, these quantifiers will try to match as minimally as possible. Also known as lazy or reluctant quantifiers. Appending a ? to greedy quantifiers makes them non-greedy.
+
+re.sub(r'f.??o', 'X', 'foot', count=1) --> 'Xot'
+re.sub(r'f.??o', 'X', 'frost', count=1) --> 'Xst'
+
+re.sub(r'.{2,5}?', 'X', '123456789', count=1) --> 'X3456789'
+
+re.split(r':.*?:', 'green:3.14:teal::brown:oh!:blue') --> ['green', 'teal', 'brown', 'blue']
+
+Like greedy quantifiers, lazy quantifiers will try to satisfy the overall RE.
+
+sentence = 'that is quite a fabricated tale'
+
+# r't.*?a' will always match from first 't' to first 'a'
+re.sub(r't.*?a', 'X', sentence, count=1) --> 'Xt is quite a fabricated tale'
+
+# matching first 't' to first 'a' for t.*?a won't work for this case
+# so, engine will move forward until .*?f matches and so on
+re.sub(r't.*?a.*?f', 'X', sentence, count=1) --> 'Xabricated tale'
+
+
