@@ -1,0 +1,252 @@
+Python Networking
+-----------------
+module ipaddress - allows us to view and manipulate ip addresses as objects
+
+Essential classes 
+		* IPv4Address, IPv6Address
+		* IPv4Network, IPv6Network
+		* IPv4Interface, IPv6Interface
+
+IP Address
+---------
+IP addresses are basically integers. An ipv4 address is a 32-bit integer represented in dot-decimal form. 
+for ex: 220.14.9.37
+So what's the underlying integer? 
+(
+    220 * (256 ** 3) +
+     14 * (256 ** 2) +
+      9 * (256 ** 1) +
+     37 * (256 ** 0)
+)
+
+It is 3,691,907,365. 
+
+Inside ipaddress module, IPv4Address/IPv6Address are used to represent IP addresses. 
+ex:
+>>> addr = IPv4Address("202.160.8.12")
+>>> addr = IPv6Address("2001:db8::1")
+
+We can also use the factory function ip_address to retrieve an address. This will return the instance of the appropiate class.
+>>> addr = ip_address("202.160.8.12")
+>>> isinstance(addr, IPv4Address)
+>>> True
+>>> addr = ip_address("2001:db8::1")
+>>> isinstance(addr, IPv6Address)
+>>> True
+
+Now let's get the integer value of the ip address
+
+>>> addr = IPv4Address("220.14.9.37")
+>>> int(addr)  
+3691907365 
+>>> addr.packed
+b'\xdc\x0e\t%
+
+The packed version is the bytes representation of the address that you encounter if you are working with TCP packet data, 
+
+Instances of IPv4Address and IPv6Address are hashable. 
+>>> hash(IPv4Address("220.14.9.37"))
+4035855712965130587
+
+so we can use them as keys in a dictionary
+
+>>> num_connections = {
+...     IPv4Address("220.14.9.37"): 2,
+...     IPv4Address("100.201.0.4"): 16,
+...     IPv4Address("8.240.12.2"): 4,
+... }
+
+On top of that, IPv4Address also implements methods that allow for comparisons using the underlying integer:
+>>> IPv4Address("220.14.9.37") > IPv4Address("8.240.12.2")
+True
+
+>>> addrs = (
+...     IPv4Address("220.14.9.37"),
+...     IPv4Address("8.240.12.2"),
+...     IPv4Address("100.201.0.4"),
+... )
+>>> for a in sorted(addrs):
+...     print(a)
+...
+8.240.12.2
+100.201.0.4
+220.14.9.37
+
+
+IP Network
+----------
+A network is a group of IP addresses. for ex: 192.4.2.0 -- 192.4.2.255, is a network with 256 addresses.
+A CIDR notation is a more succint notation of a network. It defines a network  as <network_address>/<prefix>
+Note:CIDR (classless inter-domain routing)
+
+for ex:
+>>> from ipaddress import IPv4Network
+>>> net = IPv4Network("192.4.2.0/24")		
+# or using the factory function 
+>>> net = ip_network("192.4.2.0/24")
+
+>>> net.num_addresses
+256
+
+Here 24 is the prefix, it is the leading bits that represent the network part of the address. 
+
+>>> net.prefixlen
+24
+
+It translates to a netmask that as the name specifies is used to mask bits in the address, to identify the network.
+
+>>> net.netmask
+IPv4Address('255.255.255.0')
+>>> net.network_address
+IPv4Address('192.4.2.0')
+
+In fact, we can construct an IPv4Network directly from two addresses:
+
+>>> IPv4Network("192.4.2.0/255.255.255.0")
+IPv4Network('192.4.2.0/24')
+
+The netmask is useful to check if an address is part of a network.
+
+>>> net = IPv4Network("192.4.2.0/24")
+>>> IPv4Address("192.4.2.12") in net
+True
+>>> IPv4Address("192.4.20.2") in net
+False
+
+At the other end of the spectrum in a network is its final address, or broadcast address, which is a single address 
+that can be used to communicate to all the hosts on its network:
+
+>>> net.broadcast_address
+IPv4Address('192.4.2.255')
+
+
+There’s one more point worth mentioning about the netmask. You’ll most often see prefix lengths that are multiples of 8:
+
+Prefix Length	Number of Addresses		Netmask
+8				16,777,216				255.0.0.0
+16				65,536					255.255.0.0
+24				256						255.255.255.0
+32				1						255.255.255.255
+
+However, any integer between 0 and 32 is valid, though less common:
+>>> net = IPv4Network("100.64.0.0/10")
+>>> net.num_addresses
+4194304
+>>> net.netmask
+IPv4Address('255.192.0.0')
+
+Looping Through Networks
+The IPv4Network class supports iteration, meaning that you can iterate over its individual addresses in a for loop:
+>>> net = IPv4Network("192.4.2.0/28")
+>>> for addr in net:
+...     print(addr)
+...
+192.4.2.0
+192.4.2.1
+192.4.2.2
+...
+192.4.2.13
+192.4.2.14
+192.4.2.15
+
+Similarly, net.hosts() returns a generator that will yield the addresses shown above, excluding the network and broadcast addresses:
+>>> h = net.hosts()
+>>> type(h)
+<class 'generator'>
+>>> next(h)
+IPv4Address('192.4.2.1')
+>>> next(h)
+IPv4Address('192.4.2.2')
+
+Subnet -- is a subdivision of an IP network.
+
+>>> small_net = IPv4Network("192.0.2.0/28")
+>>> big_net = IPv4Network("192.0.0.0/16")
+>>> small_net.subnet_of(big_net)
+True
+>>> big_net.supernet_of(small_net)
+True
+
+Above, small_net contains only 16 addresses,  big_net contains 65,536 addresses.
+A common way to achieve subnetting is to take a network and increase its prefix length by 1
+
+for ex:
+>>> net = IPv4Network("200.100.10.0/24")
+
+Subnetting by increasing the prefix length from 24 to 25 involves shifting bits around to break up the network into smaller parts. 
+IPv4Network provides a method .subnets() that returns an iterator over the subnets:
+
+>>> for sn in net.subnets():
+...     print(sn)
+...
+200.100.10.0/25
+200.100.10.128/25
+
+You can also tell .subnets() what the new prefix should be. A higher prefix means more and smaller subnets
+
+>>> for sn in net.subnets(new_prefix=28):
+...     print(sn)
+...
+200.100.10.0/28
+200.100.10.16/28
+200.100.10.32/28
+...
+200.100.10.208/28
+200.100.10.224/28
+200.100.10.240/28
+
+
+Host Interfaces
+------------
+It a compact way to describe, both a host IP address and a network that it sits in. Note: This has nothing to do with Network interfaces (NIC).
+
+>>> from ipaddress import IPv4Interface
+
+>>> ifc = IPv4Interface("192.168.1.6/24")
+# or using the factory function
+>>> ifc = ip_interface("192.168.1.6/24")
+>>> ifc.ip  # The host IP address
+IPv4Address('192.168.1.6')
+>>> ifc.network  # Network in which the host IP resides
+IPv4Network('192.168.1.0/24')
+
+Finally a note about special address ranges
+-------------------------------------------
+The Internet Assigned Numbers Authority (IANA), in tandem with the Internet Engineering Task Force (IETF), oversees the allocation of different 
+address ranges. IANA’s IPv4 Special-Purpose Address Registry is a very important table dictating that certain address ranges should have special meanings.
+
+A common example is that of a private address. A private IP address is used for internal communication between devices on a network 
+that doesn’t require connectivity to the public Internet. The following ranges are for private use
+
+Range			Number of Addresses		Network Address		Broadcast Address
+10.0.0.0/8		16,777,216				10.0.0.0			10.255.255.255
+172.16.0.0/12	1,048,576				172.16.0.0			172.31.255.255
+192.168.0.0/16	65,536					192.168.0.0			192.168.255.255
+
+>>> IPv4Address("10.243.156.214") in IPv4Network("10.0.0.0/8")
+True
+
+A second special address type is a link-local address, which is one reachable only from within a given subnet
+>>> timesync_addr = IPv4Address("169.254.169.123")
+>>> timesync_addr.is_link_local
+True
+
+Other address type is loopback address. 
+
+ipaddress module provides a set of properties for checking if the address is of a special type
+
+>>> IPv4Address("10.243.156.214").is_private
+True
+>>> IPv4Address("127.0.0.1").is_loopback
+True
+
+>>> [i for i in dir(IPv4Address) if i.startswith("is_")]  # "is_X" properties
+['is_global',
+ 'is_link_local',
+ 'is_loopback',
+ 'is_multicast',
+ 'is_private',
+ 'is_reserved',
+ 'is_unspecified']
+
+
