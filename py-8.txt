@@ -232,12 +232,20 @@ A second special address type is a link-local address, which is one reachable on
 True
 
 Other address type is loopback address. 
+A loopback address is 127.0.0.1. Packets sent to this address will not reach the network but will loop back to the host
+i.e looped throuh the network interface card only.
+>>> IPv4Address("127.0.0.1").is_loopback
+True
+
+Another interesting address is 0.0.0.0, it basically indicates no-valid address. So depending on the context, the no-valid
+address will work in a different way. for instance, In the context of a route entry, it usually means the default route.
+In the context of servers, 0.0.0.0 means "all IPv4 addresses on the local machine". If a host has two IP addresses, 
+192.168.1.1 and 10.1.2.1, and a server running on the host listens on 0.0.0.0, it will be reachable at both of those IPs.
+
 
 ipaddress module provides a set of properties for checking if the address is of a special type
 
 >>> IPv4Address("10.243.156.214").is_private
-True
->>> IPv4Address("127.0.0.1").is_loopback
 True
 
 >>> [i for i in dir(IPv4Address) if i.startswith("is_")]  # "is_X" properties
