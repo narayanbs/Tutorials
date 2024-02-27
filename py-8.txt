@@ -76,67 +76,38 @@ True
 IP Network
 ----------
 A network is a group of IP addresses. for ex: 192.4.2.0 -- 192.4.2.255, is a network with 256 addresses.
-A CIDR notation is a more succint notation of a network. It defines a network  as <network_address>/<prefix>
+A CIDR notation is a more succint notation of a network. It defines a network as <network_address>/<prefix>
 Note:CIDR (classless inter-domain routing)
 
-for ex:
+So 192.4.2.0/24 indicates the network address 192.4.2.0 with prefixlen of 24. Prefix is the number of leading bits
+that translate into a mask that identifies the network. In this case 24 bits indicate a mask of 255.255.255.0,
+that indicates a network with 256 host addresses (192.4.2.0 to 192.4.2.255). 
+Just as 192.4.2.0 is the network address, the final address at the end of the spectrum in a network is called
+the broadcast address. This address can be used to communicate with all the hosts in the network.
+
 >>> from ipaddress import IPv4Network
+
 >>> net = IPv4Network("192.4.2.0/24")		
 # or using the factory function 
 >>> net = ip_network("192.4.2.0/24")
 
->>> net.num_addresses
-256
-
-Here 24 is the prefix, it is the leading bits that represent the network part of the address. 
+>>> net.network_address
+IPv4Address('192.4.2.0')
 
 >>> net.prefixlen
 24
 
-It translates to a netmask that as the name specifies is used to mask bits in the address, to identify the network.
+>>> net.num_addresses
+256
 
 >>> net.netmask
 IPv4Address('255.255.255.0')
->>> net.network_address
-IPv4Address('192.4.2.0')
-
-In fact, we can construct an IPv4Network directly from two addresses:
-
->>> IPv4Network("192.4.2.0/255.255.255.0")
-IPv4Network('192.4.2.0/24')
-
-The netmask is useful to check if an address is part of a network.
-
->>> net = IPv4Network("192.4.2.0/24")
->>> IPv4Address("192.4.2.12") in net
-True
->>> IPv4Address("192.4.20.2") in net
-False
-
-At the other end of the spectrum in a network is its final address, or broadcast address, which is a single address 
-that can be used to communicate to all the hosts on its network:
 
 >>> net.broadcast_address
 IPv4Address('192.4.2.255')
 
+We can loop through all the Network addresses, as the network classes (IPv4Network & IPv6Network) support iteration. 
 
-There’s one more point worth mentioning about the netmask. You’ll most often see prefix lengths that are multiples of 8:
-
-Prefix Length	Number of Addresses		Netmask
-8				16,777,216				255.0.0.0
-16				65,536					255.255.0.0
-24				256						255.255.255.0
-32				1						255.255.255.255
-
-However, any integer between 0 and 32 is valid, though less common:
->>> net = IPv4Network("100.64.0.0/10")
->>> net.num_addresses
-4194304
->>> net.netmask
-IPv4Address('255.192.0.0')
-
-Looping Through Networks
-The IPv4Network class supports iteration, meaning that you can iterate over its individual addresses in a for loop:
 >>> net = IPv4Network("192.4.2.0/28")
 >>> for addr in net:
 ...     print(addr)
@@ -157,6 +128,34 @@ Similarly, net.hosts() returns a generator that will yield the addresses shown a
 IPv4Address('192.4.2.1')
 >>> next(h)
 IPv4Address('192.4.2.2')
+
+We can also check if an address is part of a network.
+
+>>> net = IPv4Network("192.4.2.0/24")
+>>> IPv4Address("192.4.2.12") in net
+True
+>>> IPv4Address("192.4.20.2") in net
+False
+
+There’s one more point worth mentioning about the netmask. You’ll most often see prefix lengths that are multiples of 8:
+
+Prefix Length	Number of Addresses		Netmask
+8				16,777,216				255.0.0.0
+16				65,536					255.255.0.0
+24				256						255.255.255.0
+32				1						255.255.255.255
+
+However, any integer between 0 and 32 is valid, though less common:
+>>> net = IPv4Network("100.64.0.0/10")
+>>> net.num_addresses
+4194304
+>>> net.netmask
+IPv4Address('255.192.0.0')
+
+Note: 
+We can also construct an IPv4Network directly from two addresses:
+>>> IPv4Network("192.4.2.0/255.255.255.0")
+IPv4Network('192.4.2.0/24')
 
 Subnet -- is a subdivision of an IP network.
 
@@ -205,8 +204,10 @@ It a compact way to describe, both a host IP address and a network that it sits 
 >>> ifc = IPv4Interface("192.168.1.6/24")
 # or using the factory function
 >>> ifc = ip_interface("192.168.1.6/24")
+
 >>> ifc.ip  # The host IP address
 IPv4Address('192.168.1.6')
+
 >>> ifc.network  # Network in which the host IP resides
 IPv4Network('192.168.1.0/24')
 
