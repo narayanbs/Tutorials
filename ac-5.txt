@@ -136,7 +136,6 @@ A socket is writable if
 
 --------------------------------------------------------------------------------
 
-
 It is only necessary to bind() a server, because the clients need a fixed port number to send to. 
 A client needn't bind() at all: an automatic bind() will take place on the during the connect call, or 
 during the first send()/sendto()/recv()/recvfrom() using a system-assigned local port number.
@@ -145,6 +144,7 @@ accept() is for TCP. It has nothing to do with UDP.
 
 connect() in tcp initiates the tcp handshake. 
 connect() in UDP doesn't do anything to the other end, it just conditions the local API to know who you are sending to and receiving from.
+Hence we can use the send and recv functions.
 
 If you don't already know that, or don't care, or want to send to multiple destinations with the same socket, you don't use connect(), 
 you use sendto() instead. Similarly for receiving.
@@ -154,27 +154,20 @@ create the response, and send it to that address via sendto(). No connect() invo
 
 TCP connection -- connect, listen and accept()
 ----------------------------------------------
-connect() is called by the client process to connect to a server process.
-Internally in the TCP stack this is what happens.
-If client process has not explicitly issued a bind call, implicit binding 
-on the local socket is taken care by the stack.
-The foreign socket pair (IP and port) specified by connect is checked if its unique
-or not. It updates its internet control block with the foreign address and port 
-number.The request is sent to the address and the status of the client socket is set to SYN_SENT.
-The connect call is put to sleep
+connect() is called by the client process to connect to a server process. Internally in the TCP stack this is what happens.
+If client process has not explicitly issued a bind call, implicit binding on the local socket is taken care by the stack.
+The destination socket pair (IP and port) specified by connect is checked if its unique or not. It updates its internet control block
+with the destination address and port number. The request is sent to the address and the status of the client socket is set to SYN_SENT. 
+The connect call is put to sleep.
 
-On the server_side the syn packet is received. A listener socket is looked 
-up. If it's found its state is TCP_LISTEN. 
-A request socket (a mini-socket) is created and added to a ehash accept queue.
-It's status is set to SYN_RCVD. A syn-ack is sent back. 
+On the server_side the syn packet is received. A listener socket is looked up. If it's found its state is TCP_LISTEN. 
+A request socket (a mini-socket) is created and added to a ehash accept queue. It's status is set to SYN_RCVD. A syn-ack is sent back. 
 
-The SYN_ACK is received on the client side. The packet is now processed
-and the connect is woken up. The socket on the client side is established.
-ACK packet is sent back to the server. 
+The SYN_ACK is received on the client side. The packet is now processed and the connect is woken up. 
+The socket on the client side is established. ACK packet is sent back to the server. 
 
-The server removes the incomplete request socket from the accept queue
-and puts it into the completed socket queue. Then wakeup() is called to 
-wake up the accept call. The socket on the server side is now establised.
+The server removes the incomplete request socket from the accept queue, and puts it into the completed socket queue. 
+Then wakeup() is called to wake up the accept call. The socket on the server side is now establised.
 
 Not send and recv happens between the established sockets. 
 
@@ -208,19 +201,6 @@ That is in a nutshell how it works.
 This information can be found in UNIX Network Programming: the sockets networking API. 
 In there the link to the sockets is described whereas in other reference material it is usually not described that much in detail, 
 rather the nitty grits of TCP are usually highlighted.
-
-
-
-Connected and Unconnected sockets
-----------------------------------
-User Datagram Protocol (UDP) socket processes, unlike TCP socket processes, are not clearly distinguished by server and client roles.
-The distinction is between connected and unconnected sockets. An unconnected socket can be used to communicate with any host; 
-but a connected socket, because it has a dedicated destination, can send data to, and receive data from, only one host.
-
-Connected sockets have a full 4-tuple associated {source ip, source port, destination ip, destination port}, unconnected sockets 
-have 2-tuple {bind ip, bind port}.
-
-Traditionally the connected sockets were mostly used for outgoing flows, while unconnected for inbound "server" side connections.
 
 UDP Client
 ----------
