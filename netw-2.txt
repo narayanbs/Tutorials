@@ -135,15 +135,20 @@ ghs.google.com has address 142.250.77.179
 ghs.google.com has IPv6 address 2404:6800:4007:80f::2013k
 
 
-How do we get the fully qualified domain name? FQDN is the result of a reverse lookup of the IP address
+Fully Qualified Domain Name and Reverse Lookup
+***********************************************
 
-Reverse lookup
+How do we get the fully qualified domain name? FQDN is the result of a reverse lookup of the IP address
 
 We can use the following commands to do a reverse lookup
 
 $ dig -x 142.250.77.179'
 
-	or
+Note: The output should have an Answer section with PTR record, i.e a reverse lookup zone file should exist. Otherwise
+you will not be able to reverse lookup an ip address.
+
+
+You can use the host command as well.
 
 $ host 142.250.77.179
 
