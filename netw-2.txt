@@ -1,0 +1,233 @@
+Understand what dns calls retrieve
+
+>>> socket.gethostbyname("www.google.com") 
+or
+>>> socket.gethostbyname_ex("www.google.com")
+
+1. We as DNS Client or (stub resolver) will query our recursive resolver for www.google.com
+2. The recursive resolver (usually our internet provider), will send a query to the DNS root nameserver. 
+3. The root nameserver will refer our recursive resolver to the .com tld (top level domain) authoritative server.
+4. The recursive resolver queries the .com TLD authoritative server for www.example.com.
+5. The server refers your recursive server to the authoritative servers for example.com.
+6. Your recursive resolver queries the authoritative servers for www.example.com, and receives 1.2.3.4 as the answer.
+7. Your recursive resolver caches the answer for the duration of the time-to-live (TTL) specified on the record, and returns it to you.
+
+Let's try it with an example:
+
+Let's resolve "research.swtch.com"
+
+step1: Query a root nameserver. There are 13 root nameservers in the world. (try: dig +trace www.google.com), we'll select a random one
+
+$ dig @h.root-servers.net research.swtch.com
+
+h.root-servers.net is one of the 13 DNS root nameservers, and dig @h.root-servers.net means “send the query to h.root-servers.net”.
+
+Response...... We are interested only in the authority section
+
+;; AUTHORITY SECTION:
+com.			172800	IN	NS	a.gtld-servers.net.
+com.			172800	IN	NS	b.gtld-servers.net.
+com.			172800	IN	NS	c.gtld-servers.net.
+com.			172800	IN	NS	d.gtld-servers.net.
+com.			172800	IN	NS	e.gtld-servers.net.
+com.			172800	IN	NS	f.gtld-servers.net.
+
+step2: Query a tld nameserver
+$ dig @a.gtld-servers.net. research.swtch.com
+
+Response.... Again only interested in the authority section
+
+;; AUTHORITY SECTION:
+swtch.com.		172800	IN	NS	a.dns.gandi.net.
+swtch.com.		172800	IN	NS	b.dns.gandi.net.
+swtch.com.		172800	IN	NS	c.dns.gandi.net.
+
+step3: Query the authoritative nameserver
+$ dig @a.dns.gandi.net. research.swtch.com
+
+Response... We need to look at the answer section 
+
+;; ANSWER SECTION:
+research.swtch.com.	28800	IN	CNAME	ghs.google.com.
+
+So the resolution let to a cname record. According to the rule, if we get a cname record then the dns client 
+will restart the resolution with the cname domain.
+So let's try that now
+
+$ dig @h.root-servers.net ghs.google.com
+
+Response... 
+
+;; AUTHORITY SECTION:
+com.			172800	IN	NS	a.gtld-servers.net.
+com.			172800	IN	NS	b.gtld-servers.net.
+com.			172800	IN	NS	c.gtld-servers.net.
+com.			172800	IN	NS	d.gtld-servers.net.
+com.			172800	IN	NS	e.gtld-servers.net.
+
+
+$ dig @a.gtld-servers.net ghs.google.com
+
+Response...
+
+;; AUTHORITY SECTION:
+google.com.		172800	IN	NS	ns2.google.com.
+google.com.		172800	IN	NS	ns1.google.com.
+google.com.		172800	IN	NS	ns3.google.com.
+google.com.		172800	IN	NS	ns4.google.com.
+
+$ dig @ns2.google.com ghs.google.com
+
+Response...
+
+;; ANSWER SECTION:
+ghs.google.com.		300	IN	A	142.250.193.179
+
+There it is, we have finally got the IP of (research.swtch.com)
+
+$ dig @ns2.google.com ghs.google.com
+
+Response...
+
+;; ANSWER SECTION:
+ghs.google.com.		300	IN	A	142.250.193.179
+
+There it is, we have finally got the IP of (research.swtch.com). It is 142.250.193.179
+
+
+Reference:https://jvns.ca/blog/2022/01/11/how-to-find-a-domain-s-authoritative-nameserver/
+
+
+Point to remember:  How does Authoritative DNS server deal with CNAME type?
+
+if there is a DNS zone as follows:
+
+NAME                    TYPE   VALUE
+--------------------------------------------------
+bar.example.com.        CNAME  foo.example.com.
+foo.example.com.        A      192.0.2.23
+when an A record lookup for bar.example.com is carried out, the resolver will see a CNAME record and restart the checking 
+at foo.example.com and will then return 192.0.2.23.
+
+
+Let's look at the python api.
+
+>>> import socket
+>>> socket.gethostbyname_ex("research.swtch.com")
+('ghs.google.com', ['research.swtch.com'], ['142.250.77.179'])
+
+It says that research.swtch.com is an alias for ghs.google.com. 
+ghs.google.com is  mapped to the ip 142.250.77.179
+
+
+We can also try the following command for a succint response. 
+
+$ dig +noall +answer +multiline research.swtch.com
+
+research.swtch.com.	7389 IN	CNAME ghs.google.com.
+ghs.google.com.		300 IN A 142.250.77.179
+
+	or
+
+$ host research.swtch.com
+
+research.swtch.com is an alias for ghs.google.com.
+ghs.google.com has address 142.250.77.179
+ghs.google.com has IPv6 address 2404:6800:4007:80f::2013k
+
+
+How do we get the fully qualified domain name. FQDN is the result of a reverse lookup of the IP address
+
+Reverse lookup
+
+We can use the following commands to do a reverse lookup
+
+$ dig -x 142.250.77.179'
+
+	or
+
+$ host 142.250.77.179
+
+179.77.250.142.in-addr.arpa domain name pointer maa05s17-in-f19.1e100.net.
+
+	or 
+
+>>> socket.gethostbyaddr("142.258.77.179")
+('maa05s17-in-f19.1e100.net', [], ['142.250.77.179'])
+
+
+'maa05s17-in-f19.1e100.net' is the fully qualified domain name. 
+
+But why is this different from ghs.google.com. We need to understand the concept of forward lookup zone and reverse lookup zone. 
+Forward lookup zone maps names to ip addresses, while reverse lookup zone maps ipaddress to network hosts. 
+
+One important fact to understand about forward and reverse lookup records is that they are separate zone files. Combined with that fact, 
+the relationship of forward to reverse is a many to one, while the relationship between reverse to forward is a one to one.
+Meaning, you can map many different names to a single IP address, and they will resolve correctly. On the other hand, you can only effectively 
+map any given IP address to a singular name. In DNS records, when there are keys with multiple values, 
+DNS uses a functionality called round-robin to randomly return the value.
+
+For example, if you have two reverse records that map 192.168.0.1 to test1.xzy.local and test2.xzy.local, 
+half of the time you do a reverse lookup on 192.168.0.1, it will return test1, and the other half, it will return test2.
+
+All this to say that sometimes the reverse records do not match up perfectly with the forward records, and this is one scenario that describes why.
+
+A Forward-confirmed reverse DNS (FCrDNS), also known as full-circle reverse DNS, double-reverse DNS, or iprev, is a 
+networking parameter configuration in which a given IP address has both forward (name-to-address) and reverse (address-to-name) 
+Domain Name System (DNS) entries that match each other. Clearly in the above case it is not a FCrDNS.
+
+
+
+Let's look at another example
+
+~ ⚡ dig www.skyscanner.net
+
+; <<>> DiG 9.18.18-0ubuntu0.22.04.2-Ubuntu <<>> www.skyscanner.net
+;; global options: +cmd
+;; Got answer:
+;; ->>HEADER<<- opcode: QUERY, status: NOERROR, id: 14069
+;; flags: qr rd ra; QUERY: 1, ANSWER: 5, AUTHORITY: 0, ADDITIONAL: 1
+
+;; OPT PSEUDOSECTION:
+; EDNS: version: 0, flags:; udp: 65494
+;; QUESTION SECTION:
+;www.skyscanner.net.		IN	A
+
+;; ANSWER SECTION:
+www.skyscanner.net.	3264	IN	CNAME	www.skyscanner.net.cdn.skyscannerplatform.net.
+www.skyscanner.net.cdn.skyscannerplatform.net. 60 IN A 18.161.216.37
+www.skyscanner.net.cdn.skyscannerplatform.net. 60 IN A 18.161.216.62
+www.skyscanner.net.cdn.skyscannerplatform.net. 60 IN A 18.161.216.32
+www.skyscanner.net.cdn.skyscannerplatform.net. 60 IN A 18.161.216.8
+
+;; Query time: 40 msec
+;; SERVER: 127.0.0.53#53(127.0.0.53) (UDP)
+;; WHEN: Tue Feb 27 21:13:40 IST 2024
+;; MSG SIZE  rcvd: 167
+
+~ ⚡ host 18.161.216.37
+;; communications error to 127.0.0.53#53: timed out
+37.216.161.18.in-addr.arpa domain name pointer server-18-161-216-37.blr50.r.cloudfront.net.
+~ took 5s ⚡ python
+Python 3.12.0 (main, Feb 15 2024, 08:24:06) [GCC 12.3.0] on linux
+Type "help", "copyright", "credits" or "license" for more information.
+>>> import socket
+
+>>> socket.gethostbyname_ex("www.skyscanner.net")
+('www.skyscanner.net.cdn.skyscannerplatform.net', ['www.skyscanner.net'], ['18.161.216.32', '18.161.216.8', '18.161.216.62', '18.161.216.37'])
+
+>>> socket.gethostbyaddr("18.161.216.37")
+('server-18-161-216-37.blr50.r.cloudfront.net', [], ['18.161.216.37'])
+
+>>> socket.getfqdn("www.skyscanner.net")
+'server-18-161-216-32.blr50.r.cloudfront.net'
+
+This is not FCrDNS as well. 
+--------------------------------------------------------------------------------------------------------
+
+Forward vs. Reverse DNS Lookup Zones: Do You Need Both?
+
+Typically, when you need DNS services, your first and only thought is converting names to IP addresses via a forward lookup. 
+The reverse lookup is usually an afterthought or something that is not well maintained. It is not required for forward lookups to work, 
+but as mentioned above, some services may rely on it like mail services that query reverse lookup records to determine if the source is a spammer. 
+In other cases, it can be helpful on things like traceroutes to see the name associated with the IP address.

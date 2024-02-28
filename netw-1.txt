@@ -198,6 +198,7 @@ You can also tell .subnets() what the new prefix should be. A higher prefix mean
 Host Interfaces
 ------------
 It a compact way to describe, both a host IP address and a network that it sits in. Note: This has nothing to do with Network interfaces (NIC).
+That is discussed at the end of this tutorial.
 
 >>> from ipaddress import IPv4Interface
 
@@ -259,3 +260,89 @@ True
  'is_unspecified']
 
 
+Generally an IP address can either be static or dynamic. A static ip doesn't change with time. A dynamic ip will change
+from time to time, as they are allocated by the DHCP server in the network.
+
+Network Interface Overview
+--------------------------
+Now, let’s understand how any Linux system connects itself with the network. There’s special hardware called NIC (network interface card),
+which does this magic of connecting any device to the network. Network interface controller, network adapter, or LAN adapter are the other
+names for the NIC hardware.
+
+A system can have one or more NICs for network connectivity. Each NIC will identify itself with a unique IP address within a network. 
+In short, any system can have one or multiple IP addresses (due to many NICs attached). Even if the system has many NICs associated, 
+there will be only one primary IP address at any point in time
+
+A network interface is the software representation of the network interface card. The network interface is a medium to communicate
+with the network hardware (NIC card) to configure it and to get information regarding the hardware like IP address, MAC address, 
+link status, and packet transfer. Let’s check the network interface details of our system using the ip utility:
+
+$ ip address show
+1: lo: <LOOPBACK,UP,LOWER_UP> mtu 65536 qdisc noqueue state UNKNOWN group default qlen 1000
+    link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
+    inet 127.0.0.1/8 scope host lo
+       valid_lft forever preferred_lft forever
+    inet6 ::1/128 scope host 
+       valid_lft forever preferred_lft forever
+2: ens33: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc fq_codel state UP group default qlen 1000
+    link/ether 00:0c:29:d5:cd:03 brd ff:ff:ff:ff:ff:ff
+    altname enp2s1
+    inet 192.168.207.128/24 brd 192.168.207.255 scope global dynamic noprefixroute ens33
+       valid_lft 1773sec preferred_lft 1773sec
+    inet6 fe80::37c:eba3:2365:23b7/64 scope link noprefixroute 
+       valid_lft forever preferred_lft forever
+
+Our system has two network interfaces, ens33 and lo (loopback interface)
+
+In a Linux system, there can be only one primary active connection to the network. As a result, only a single primary interface
+will be present. The kernel routing table will help us identify the primary interface.
+
+As we already know, the primary interface is the one with the default route, which means the primary interface should be able 
+to reach the default gateway. That is to say, the kernel routing table’s gateway entry should be linked to the primary active 
+interface of the system.
+Now, let’s use the route utility to check the kernel routing table:
+
+$ route
+Kernel IP routing table
+Destination     Gateway         Genmask         Flags Metric Ref    Use Iface
+default         _gateway        0.0.0.0         UG    100    0        0 ens33
+link-local      0.0.0.0         255.255.0.0     U     1000   0        0 ens33
+192.168.207.0   0.0.0.0         255.255.255.0   U     100    0        0 ens33
+
+Checking the IP Address of the Primary Active Interface (Primary IP address)
+-------------------------------------------------------------------------------
+There are many Linux utilities to find the primary IP address, like ip, ifconfig, nmcli
+
+ip
+------
+$ ip address show dev ens33 
+2: ens33: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc fq_codel state UP group default qlen 1000
+    link/ether 00:0c:29:d5:cd:03 brd ff:ff:ff:ff:ff:ff
+    altname enp2s1
+    inet 192.168.207.128/24 brd 192.168.207.255 scope global dynamic noprefixroute ens33
+       valid_lft 1086sec preferred_lft 1086sec
+    inet6 fe80::37c:eba3:2365:23b7/64 scope link noprefixroute 
+       valid_lft forever preferred_lft forever
+
+In the above code snippet, using the ip utility, we got all the details like IP address, MAC address, and traffic details 
+regarding the primary active interface, ens33. Subsequently, to display only the primary IP address, we use the snipping tools
+like grep and awk over the fetched primary interface details:
+
+$ ip address show dev ens33 | grep -w inet | awk '{print $2}'
+192.168.207.128/24
+
+Here, the ip utility displays the netmask along with the IP address.
+
+In addition to the above method, we can find the primary IP address using the ip utility. The ip utility is capable of finding 
+the route to any destination. We can use this feature to find the primary IP address because it’s the interface that uses the default route.
+
+Let’s find out the route to reach any random IP address (1.1.1.1) using the ip utility:
+$ ip route get 1.1.1.1
+1.1.1.1 via 192.168.207.2 dev ens33 src 192.168.207.128 uid 1000 
+    cache 
+
+External IP Address
+-------------------
+To check the external IP address of a system:
+$ curl ifconfig.me
+220.158.158.132
