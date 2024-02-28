@@ -294,6 +294,7 @@ $ ip address show
 
 Our system has two network interfaces, ens33 and lo (loopback interface)
 
+Primary Network Interface:
 In a Linux system, there can be only one primary active connection to the network. As a result, only a single primary interface
 will be present. The kernel routing table will help us identify the primary interface.
 
@@ -309,9 +310,13 @@ default         _gateway        0.0.0.0         UG    100    0        0 ens33
 link-local      0.0.0.0         255.255.0.0     U     1000   0        0 ens33
 192.168.207.0   0.0.0.0         255.255.255.0   U     100    0        0 ens33
 
+In the above snippet, we see that the ens33 interface is the one connected to the default gateway, 
+hence, it’s the primary active interface of the system.
+
 Checking the IP Address of the Primary Active Interface (Primary IP address)
 -------------------------------------------------------------------------------
-There are many Linux utilities to find the primary IP address, like ip, ifconfig, nmcli
+Subsequently, after identifying the primary active interface, the final step is checking the primary IP address — that is, the IP address 
+of the primary active interface. There are many Linux utilities to find the primary IP address: ip, ifconfig, nmcli
 
 ip
 ------
@@ -340,6 +345,37 @@ Let’s find out the route to reach any random IP address (1.1.1.1) using the ip
 $ ip route get 1.1.1.1
 1.1.1.1 via 192.168.207.2 dev ens33 src 192.168.207.128 uid 1000 
     cache 
+
+The nmcli Utility
+-----------------
+The nmcli utility is for configuring and displaying network settings on systems that have network-manager installed.
+It’s usually present in all modern-day Linux distributions. This utility will get details regarding all interfaces present in the system, 
+so the user has to peruse and find the primary IP address of the primary active network interface:
+
+$ nmcli 
+ens33: connected to Wired connection 1
+        "Intel 82545EM"
+        ethernet (e1000), 00:0C:29:D5:CD:03, hw, mtu 1500
+        ip4 default
+        inet4 192.168.207.128/24
+        route4 0.0.0.0/0
+        route4 192.168.207.0/24
+        route4 169.254.0.0/16
+        inet6 fe80::37c:eba3:2365:23b7/64
+        route6 fe80::/64
+
+lo: unmanaged
+        "lo"
+        loopback (unknown), 00:00:00:00:00:00, sw, mtu 65536
+
+DNS configuration:
+        servers: 192.168.207.2
+        domains: localdomain
+        interface: ens33
+
+Use "nmcli device show" to get complete information about known devices and
+"nmcli connection show" to get an overview of active connection profiles.
+
 
 External IP Address
 -------------------
