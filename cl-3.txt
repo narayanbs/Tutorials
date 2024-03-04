@@ -86,7 +86,7 @@ userdel <user_name> or deluser <user_name> (preferred in debian) can be used for
 to remove the home directory too use userdel -r <user_name> 
 $ userdel -r john
 
-To create groups use the grouadd command 
+To create groups use the groupadd command 
 groupadd <group_name> for adding groups.. check groupadd --help
 groupadd engineers
 cat /etc/group for checking the entry --> engineers:x:1001:

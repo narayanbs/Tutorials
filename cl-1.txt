@@ -4,24 +4,24 @@ for ex:
   $ hello  --> hello command not found
 
 Each time we type inside a shell, and press the Enter key,  the text undergoes "word-splitting" into commands and arguments. 
-But how does the shell split the words???
 The shell looks for spaces, tabs and line feed/newline characters (' ', '\t', '\n') and treats them as delimiters between words. 
-this is specified in bash as internal field seperator, IFS.
+
+In bash the delimiters are specified by a property known as internal field seperator, IFS.
 
 echo "$IFS" | cat -et  -->  ^I$  (space, ^I tab character and $ newline character)
 
-This means unquoted spaces, tabs, and newlines are not considered as separators, not part of the text. 
+This means unquoted spaces, tabs, and newlines are considered as separators, not part of the text. 
 
 ex: this is a           test  --> becomes -->  this is a test 
 The spaces serve only as seperators and hence the above string is split into 4 words.
 so our command line contains a command followed by three distinct arguments.
 
-Additionally bash performs several expansions and substitutions upon the text. These include parameter expansion, 
-pathname expansion, arithmetic expansion, brace expansion and command line substitution.
-
 If the words are enclosed by quotes(double/single) then it is considered a single entity, word splitting is not done. 
 ex: "this is a      test" --> this is a single entity. It is not split into 4 words.  If the words are enclosed by single quote 
 then expansions and substitutions are not done. 
+
+Additionally bash performs several expansions and substitutions upon the text. These include parameter expansion, 
+pathname expansion, arithmetic expansion, brace expansion and command line substitution.
 
 Now let us look at some expansions and substitutions. 
 
@@ -46,8 +46,8 @@ echo ${test}.
 ${test} will involve a parameter expansion,  to this is           bunny. Now bash will split it into three words using space as a seperator. 
 
 But what about echo "${test}"
-Again parameter expansion will occur to echo "this is           bunny" 
-this is                 bunny will be printed 
+Again parameter expansion will occur and ${test} will be expanded, but inside quotes. 
+i.e echo "this is           bunny" so the output, this is                 bunny will be printed on the screen.
 
 similarly if test="this
 		is
@@ -140,6 +140,14 @@ test/one/file2.txt
 Another example, to find all Markdown files recursively that end with .md, the pattern would be **/*.md
 Note: *.md would only return the file paths in the current directory, which is why we append **/ at the beginning.
 
+command substitution
+--------------------
+$() will execute the command and substitute the results of the command in its place. 
+ls -l $(which cp) --> ls -l /usr/bin/cp
+echo $(ls) --> echo Desktop Downloads .... 
+file $(ls -d /usr/bin/* | grep zip) --> get list of files/dir with zip in their name and output what they are
+
+older shell use this syntax for command substitution. ls -l `which cp`
 
 Arithmetic expansion
 --------------------
@@ -170,15 +178,6 @@ echo a{A{1,2},B{3,4}}b --> a{A1,A2,B3,B4}b --> aA1b, aA2b, aB3b, aB4b
 Primary use of brace expansion is to make lists of files/dirs to be created
 mkdir {2007..2009}-{01..12}
 creates folders 2007-01 2007-02 2007-03... etc 
-
-command substitution
---------------------
-$() will execute the command and substitute the results of the command in its place. 
-ls -l $(which cp) --> ls -l /usr/bin/cp
-echo $(ls) --> echo Desktop Downloads .... 
-file $(ls -d /usr/bin/* | grep zip) --> get list of files/dir with zip in their name and output what they are
-
-older shell use this syntax for command substitution. ls -l `which cp`
 
 ------------------------------------------
 Suppressing expansions and interpolations

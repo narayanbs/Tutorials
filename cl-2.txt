@@ -62,12 +62,13 @@ cp item1 item2 item3.... dir -> copies item<x> files into dir
 
 cp item1 item2 --> in case of files (copies contents from item1 to item2, if item2 doesn't exist it is created)
 
-cp -r item1 item2 or cp -r item1/ item2
+cp -r item1/ item2 or cp -r item1 item2
 --> if item2 exists, copies item1 and its contents recursively into item2. (item1 becomes sub directory of item2)
 --> else item2 is created and contents of item1 are copied into item2. (basically a replica of item1 with the name item2)
 
-cp item1/* item2 -> files (not directories) inside item1 is copied into item2 (item2 directory should exist otherwise error)
 cp -r item/* item2 -> content of item1 including sub-directories (recursively) is copied into item2 (item2 directory should exist otherwise error)
+
+cp item1/* item2 -> files (not directories) inside item1 is copied into item2 (item2 directory should exist otherwise error)
 
 cp -i (interactive option, will prompt the user if the file is being overwritten)
 cp -u (copy only those whose modification time is newer)
@@ -121,131 +122,10 @@ ex: cp --help
 most executables intended for command line provide a manual called man page. you can
 find the man page of an executable by typing
 man <executable>
-for ex; type find --> /usr/bin/find (so executable)
+for ex: type find --> /usr/bin/find (so executable)
 	man find
 
 creating alias --> ex: alias foo='cd /usr; ls; cd -'
-
-Redirection
-------------
-#### Redirection 
-
-**Redirecting input**
-`[n]<word`
-* This causes the file denoted by the word to be opened for reading on file descriptor n.
-* If n is not specified then stdin (fd 0) is assumed.
-
-Ex:
-
-cat < sample.txt - sample.txt is opened for reading using stdin
-cat 10< sample.txt - sample.txt is opened for reading using the fd 10
-
-**Redirecting output**
-`[n]>word`
-* This causes the file denoted by word to be opened for writing on file descriptor n.
-* If n is not specified then stdout (fd 1) is assumed. File is created if it doesn't exist.
-
-Ex:
-ls > sample.txt - sample.txt is opened (or created) for writing using stdout
-ls 10> sample.txt - sample.txt is opened (or created) for writing using fd 10
-
-**Appending Redirected output**
-`[n]>>word`
-* This causes the file denoted by word to be opened for appending on file descriptor n.
-* If n is not specified then stdout (fd 1) is assumed. File is created if it doesn't exist.
-
-ls >> sample.txt - sample.txt is opened (or created) for appending using stdout
-ls 10>> sample.txt - sample.txt is opened (or created) for appending using fd 10
-
-**Redirecting stdout and stderr**
-`&>word` and it is semantically equivalent to `>word 2>&1`
-* This causes stdout and stderr to be redirected to the file denoted by the word.
-
-Ex:
-ls /bin/usr &> /dev/null
-ls /bin/usr > /dev/null 2>&1
-
-**Appending stdout and stderr
-`&>>word` and it is semantically equivalent to `>>word 2>&1`
-* This causes stdout and stderr to be appended to the file denoted by the word.
-
-Ex:
-ls /bin/usr &>> /dev/null
-ls /bin/usr >> /dev/null 2>&1
-
-**Duplicating File Descriptors**
-`[n]<&word`
-* This is used to duplicate input file descriptors. 
-* The fd denoted by n is made a copy of the fd denoted by the word. If n is not specified then stdin (fd 0) is used.
-
-Ex:
-`exec 10<&0` --> fd 10 is a copy of the fd 0 (stdin). So reading from 10 is similar to reading from stdin
-
-`[n]>&word`
-* This is used to duplicate output file descriptors.
-* The fd denoted by n is made a copy of the fd denoted by the word. If n is not specified then stdout (fd 1) is used.
-
-Ex:
-exec 2>&1 --> fd 2 is a copy of fd 1 (stdout). So writing to 2 is similar to writing to stdout. 
-
-**Moving File Descriptors**
-`[n]<&digit-`
-* moves file descriptor digit to file descriptor n, or stdin if n is not not specified.
-* digit is closed after being duplicated to n. 
-
-Ex:
-`exec 10<&-` - close file descriptor 10
-
-`[n]>&digt-`
-* moves file descriptor digit to file descriptor n, or stdout if n is not not specified.
-* digit is closed after being duplicated to n.
-
-**Opening File descriptors for reading and writing**
-`[n]<>word`
-* This causes the file denoted by the word to be opened for both reading and writing on the descriptor n or on fd 0 if n is not specified. 
-* If the file doesn't exist, it is created.
-
-**Here Documents and Here strings**
-The format of Here documents is:
-```
-[n]<<[-]word
-        here-document
-delimiter
-```
-Ex:
-Suppose we need to send several commands over ssh, like
-	ssh -T baeldung@example.com "touch log1.txt"
-	ssh -T baeldung@example.com "touch log2.txt"
-
-However, if we’ve more commands to execute, the solution above will become cluttered and verbose. To make it more succinct, we can replace it with a heredoc:
-
-	ssh -T baeldung@host.com << EOF
-	touch log1.txt
-	touch log2.txt
-	EOF
-
-Ex:
-	cat << EOF
-	This is line1
-	Another line
-	Finally 3rd line
-	EOF
-
-The format of Here strings is:
-```
-[n]<<< word
-```
-
-Ex:
-	COMMAND <<< $VAR
-	What it essentially does is expanding the variable _VAR_ and redirect the output string to the _COMMAND_
-
-cat <<< "This is a string"
-
-WELCOME_MESSAGE="Welcome to dashboard"
-cat <<< $WELCOME_MESSAGE
-
------------------------------------------
 
 cat --> reads from stdin and write it to stdout, if no file is specified. 
 ex: cat <enter> i.e blank line will produce one more line
@@ -327,4 +207,172 @@ $  xargs echo
 hello this is narayan
 --> hello this is narayan
 ----------------------------
+
+Redirection
+------------
+#### Redirection 
+
+**Redirecting input**
+`[n]<word`
+* This causes the file denoted by the word to be opened for reading on file descriptor n.
+* If n is not specified then stdin (fd 0) is assumed.
+
+Ex:
+cat < sample.txt - sample.txt is opened for reading using stdin, same as cat 0< sample.txt
+exec 10< sample.txt - sample.txt is opened for reading and fd 10 is associated with it
+
+**Redirecting output**
+`[n]>word`
+* This causes the file denoted by word to be opened for writing on file descriptor n.
+* If n is not specified then stdout (fd 1) is assumed. File is created if it doesn't exist.
+
+Ex:
+ls > sample.txt - sample.txt is opened (or created) for writing using stdout, same as ls 1> sample.txt 
+exec 10> sample.txt - sample.txt is opened (or created) for writing and fd 10 is associated with it
+
+**Appending Redirected output**
+`[n]>>word`
+* This causes the file denoted by word to be opened for appending on file descriptor n.
+* If n is not specified then stdout (fd 1) is assumed. File is created if it doesn't exist.
+
+ls >> sample.txt - sample.txt is opened (or created) for appending using stdout, same as ls 1>> sample.txt
+exec 10>> sample.txt - sample.txt is opened (or created) for appending and fd 10 is associated with it
+
+**Duplicating File Descriptors**
+`[n]<&word`
+* This is used to duplicate input file descriptors. 
+* The fd denoted by n is made a copy of the fd denoted by the word. If n is not specified then stdin (fd 0) is used.
+
+Ex:
+`exec 10<&0` --> fd 10 is a copy of the fd 0 (stdin). So reading from 10 is similar to reading from stdin
+
+`[n]>&word`
+* This is used to duplicate output file descriptors.
+* The fd denoted by n is made a copy of the fd denoted by the word. If n is not specified then stdout (fd 1) is used.
+
+Ex:
+exec 2>&1 --> fd 2 is a copy of fd 1 (stdout). So writing to 2 is similar to writing to stdout. 
+
+**Closing File Descriptors**
+`[n]<&-`
+* Close file descriptor n or stdin (fd 0) if n is not specified
+
+Ex:
+`exec 6< bar.txt` -- Open bar.txt for reading through fd 6
+`exec 6<&-` -- Close file descriptor 6
+We can alose close stdout (fd 1) and stderr (fd 2)
+`exec 0<&-`
+`exec 2<&-`
+
+**Redirecting stdout and stderr**
+`&>word` and it is semantically equivalent to `>word 2>&1`
+* This causes stdout and stderr to be redirected to the file denoted by the word.
+
+Ex:
+ls /bin/usr &> /dev/null
+ls /bin/usr > /dev/null 2>&1
+
+**Appending stdout and stderr
+`&>>word` and it is semantically equivalent to `>>word 2>&1`
+* This causes stdout and stderr to be appended to the file denoted by the word.
+
+Ex:
+ls /bin/usr &>> /dev/null
+ls /bin/usr >> /dev/null 2>&1
+
+
+**Moving File Descriptors**
+`[n]<&digit-`  -- Moving input file descriptor
+* moves file descriptor digit to file descriptor n, or stdin (fd 0) if n is not specified.
+* digit is closed after being duplicated to n. 
+
+Ex:
+~~~bash
+$ echo "hello world" > foo.txt
+$ exec 6< foo.txt
+$ read input <& 6 && echo "${input}"
+hello world
+$ exec 7<&6-
+$ read input <& 6 && echo "${input}"
+bash: 6: Bad file descriptor
+$ read input <& 7 && echo "${input}"
+hello world
+~~~
+n the above code snippet, we see that once file descriptor 6 has been moved to 7, one can no longer 
+access input from the file foo.txt using fd 6. However, one can access input from the file using fd 7.
+
+`[n]>&digit-` -- Moving output file descriptor
+* moves file descriptor digit to file descriptor n, or stdout if n is not not specified.
+* digit is closed after being duplicated to n.
+
+~~~bash
+$ touch foo.txt
+$ exec 6> foo.txt
+$ echo "hello, world"  >& 6
+$ cat foo.txt
+hello, world
+$ echo "bye, world"  >& 6
+$ cat foo.txt
+hello, world
+bye, world
+$ exec 8>&6-
+$ echo "hello again, world"  >& 6
+bash: 6: Bad file descriptor
+$ echo "hello again, world"  >& 8
+$ cat foo.txt
+hello, world
+bye, world
+hello again, world
+~~~
+In the above snippet, we first assign fd 6 to file foo.txt for output. We can then redirect output to fd 6 instead
+of specifying the file by name. Next, we move fd 6 to fd 8, after which we can no longer use fd 6 to refer to the 
+file for output redirection. However, we can use fd 8 for output redirection.
+
+**Opening File descriptors for reading and writing**
+`[n]<>word`
+* This causes the file denoted by the word to be opened for both reading and writing on the descriptor n or on fd 0 if n is not specified. 
+* If the file doesn't exist, it is created.
+
+**Here Documents and Here strings**
+The format of Here documents is:
+```
+[n]<<[-]word
+        here-document
+delimiter
+```
+Ex:
+Suppose we need to send several commands over ssh, like
+	ssh -T baeldung@example.com "touch log1.txt"
+	ssh -T baeldung@example.com "touch log2.txt"
+
+However, if we’ve more commands to execute, the solution above will become cluttered and verbose. To make it more succinct, 
+we can replace it with a heredoc:
+
+	ssh -T baeldung@host.com << EOF
+	touch log1.txt
+	touch log2.txt
+	EOF
+
+Ex:
+	cat << EOF
+	This is line1
+	Another line
+	Finally 3rd line
+	EOF
+
+The format of Here strings is:
+```
+[n]<<< word
+```
+
+Ex:
+	COMMAND <<< $VAR
+	What it essentially does is expanding the variable _VAR_ and fed to the stdinr of the _COMMAND_
+
+WELCOME_MESSAGE="Welcome to dashboard"
+cat <<< $WELCOME_MESSAGE
+
+cat <<< "This is a string"
+-----------------------------------------
+
 
