@@ -62,17 +62,16 @@ cp item1 item2 item3.... dir -> copies item<x> files into dir
 
 cp item1 item2 --> in case of files (copies contents from item1 to item2, if item2 doesn't exist it is created)
 
+cp item1/* item2 -> files (not directories) inside item1 directory, is copied into item2 (item2 directory should exist otherwise error)
+
 cp -r item1/ item2 or cp -r item1 item2
 --> if item2 exists, copies item1 and its contents recursively into item2. (item1 becomes sub directory of item2)
 --> else item2 is created and contents of item1 are copied into item2. (basically a replica of item1 with the name item2)
 
 cp -r item/* item2 -> content of item1 including sub-directories (recursively) is copied into item2 (item2 directory should exist otherwise error)
 
-cp item1/* item2 -> files (not directories) inside item1 is copied into item2 (item2 directory should exist otherwise error)
-
 cp -i (interactive option, will prompt the user if the file is being overwritten)
 cp -u (copy only those whose modification time is newer)
-
 
 mv --> move command, similar to cp, except the source is deleted
 mv item1 item2 item3.... dir -> moves item<x> files into dir
@@ -206,11 +205,10 @@ from stdin: This becomes echo hello this is narayan
 $  xargs echo
 hello this is narayan
 --> hello this is narayan
-----------------------------
+----------------------------------------------------------------------------
 
-Redirection
-------------
-#### Redirection 
+##### Redirection
+-----------------
 
 **Redirecting input**
 `[n]<word`
@@ -218,8 +216,8 @@ Redirection
 * If n is not specified then stdin (fd 0) is assumed.
 
 Ex:
-cat < sample.txt - sample.txt is opened for reading using stdin, same as cat 0< sample.txt
-exec 10< sample.txt - sample.txt is opened for reading and fd 10 is associated with it
+cat < sample.txt --> sample.txt is opened for reading using stdin, same as cat 0< sample.txt
+exec 10< sample.txt --> sample.txt is opened for reading and fd 10 is associated with it
 
 **Redirecting output**
 `[n]>word`
@@ -252,17 +250,6 @@ Ex:
 
 Ex:
 exec 2>&1 --> fd 2 is a copy of fd 1 (stdout). So writing to 2 is similar to writing to stdout. 
-
-**Closing File Descriptors**
-`[n]<&-`
-* Close file descriptor n or stdin (fd 0) if n is not specified
-
-Ex:
-`exec 6< bar.txt` -- Open bar.txt for reading through fd 6
-`exec 6<&-` -- Close file descriptor 6
-We can alose close stdout (fd 1) and stderr (fd 2)
-`exec 0<&-`
-`exec 2<&-`
 
 **Redirecting stdout and stderr**
 `&>word` and it is semantically equivalent to `>word 2>&1`
@@ -328,6 +315,17 @@ In the above snippet, we first assign fd 6 to file foo.txt for output. We can th
 of specifying the file by name. Next, we move fd 6 to fd 8, after which we can no longer use fd 6 to refer to the 
 file for output redirection. However, we can use fd 8 for output redirection.
 
+**Closing File Descriptors**
+`[n]<&-`
+* Close file descriptor n or stdin (fd 0) if n is not specified
+
+Ex:
+`exec 6< bar.txt` -- Open bar.txt for reading through fd 6
+`exec 6<&-` -- Close file descriptor 6
+We can alose close stdout (fd 1) and stderr (fd 2)
+`exec 0<&-`
+`exec 2<&-`
+
 **Opening File descriptors for reading and writing**
 `[n]<>word`
 * This causes the file denoted by the word to be opened for both reading and writing on the descriptor n or on fd 0 if n is not specified. 
@@ -360,19 +358,17 @@ Ex:
 	Finally 3rd line
 	EOF
 
-The format of Here strings is:
-```
-[n]<<< word
-```
-
+Here string is a kind of string that is used for input redirection from a text or variable.
 Ex:
-	COMMAND <<< $VAR
-	What it essentially does is expanding the variable _VAR_ and fed to the stdinr of the _COMMAND_
-
-WELCOME_MESSAGE="Welcome to dashboard"
-cat <<< $WELCOME_MESSAGE
 
 cat <<< "This is a string"
+
+cat <<< $WELCOME_MESSAGE
+WELCOME_MESSAGE="Welcome to dashboard"
+
+COMMAND <<< $VAR
+What it essentially does is expanding the variable _VAR_ and fed to the stdin of the _COMMAND_
+
 -----------------------------------------
 
 

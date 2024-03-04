@@ -13,6 +13,17 @@ python file structure
 #-*- coding: utf-8 -*-
 
     .....
+    .....
+    .....
+    .....
+
+Note: The shebang line (#!) tells the shell (bash) that it needs to use the interpreter program specified in the line, to execute the file. 
+for ex: A shell script may have the following shebang line. It informs the shell to use the bash interpreter to execute the file
+ #!/bin/bash 
+
+#!/usr/bin/env python3 --> informs the shell that it needs to invoke env with python as the argument when it needs to execute the python file.
+What env does is it sets the environment variables and runs the python command. 
+-------------
 
 
 Built-in types
