@@ -2,6 +2,9 @@ Python I/O
 ======================
 
 There are 3 main types of I/O: text i/o, binary i/o and raw i/o.
+These are generic categories, and various backing stores can be used for each of them. A concrete object belonging 
+to any of these categories is called a file object. Other common terms are stream and file-like object.
+
 
 Text I/O
 ---------
@@ -10,6 +13,8 @@ encoding and decoding of data is made transparently as well as optional translat
 
 The easiest way to create a text stream is with open(), optionally specifying an encoding:
 f = open("myfile.txt", "r", encoding="utf-8")
+
+If not specified, the default encoding of open is locale-specific (locale.getencoding())
 
 In-memory text streams are also available as StringIO objects:
 f = io.StringIO("some initial text data")
@@ -25,6 +30,9 @@ f = open("myfile.jpg", "rb")
 
 In-memory binary streams are also available as BytesIO objects:
 f = io.BytesIO(b"some initial binary data: \x00\x01")
+
+Note: All streams are careful about the type of data you give to them. For example giving a str object to the write() method of a binary stream 
+will raise a TypeError. So will giving a bytes object to the write() method of a text stream.
 
 Raw I/O
 ---------
@@ -79,7 +87,14 @@ open(file, mode='r', buffering=1, encoding=None, errors=None, newline=None, clos
 	...
 	>>> os.close(dir_fd)  # don't leak a file descriptor
 		
-	
+
+The abstract base classes and their hierarchy in the python io module are as shown below:
+
+                IOBase
+
+RawIOBase    BufferedIOBase     TextIOBase
+
+
 The type of file object returned by the open() function depends on the mode. 
 When open() is used to open a file in a text mode ('w', 'r', 'wt', 'rt', etc.), it returns a subclass of io.TextIOBase 
 (specifically io.TextIOWrapper). 
@@ -89,6 +104,7 @@ When used to open a file in a binary mode ('wb', 'rb')  with buffering,the retur
 The exact class varies: in read binary mode, it returns an io.BufferedReader; in write binary and append binary modes, 
 it returns an io.BufferedWriter, and in read/write mode, it returns an io.BufferedRandom. When buffering is disabled, 
 the raw stream, a subclass of io.RawIOBase, io.FileIO, is returned
+
 
 Reading and Writing files
 --------------------------
