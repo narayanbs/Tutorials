@@ -109,35 +109,44 @@ the raw stream, a subclass of io.RawIOBase, io.FileIO, is returned
 Reading and Writing files
 --------------------------
 reading:
+--------
 
 with open('workfile', 'r') as f:
 	f.read()
 
 opened in text mode, for binary use rb
 
-f.read() --> by default it reads the whole file. but an integer argument can be provided that specifies the number
+f.read(size) --> by default it reads the whole file. but an integer argument can be provided that specifies the number
 of characters or bytes to be read from the file. f.read() returns '' empty string if it reaches the end of file. In
 binary mode it returns b'' empty bytes object at EOF. 
 
-f.readline() --> reads a single line from the file; a newline character (\n) is left at the end of the string or bytes object. 
-and is only omitted on the last line of the file if the file doesn’t end in a newline. This makes the return value 
-unambiguous; if f.readline() returns an empty string, the end of the file has been reached, while a blank line is 
+f.readline(size) --> reads a single line from the file; The line terminator will be b'\n' for binary files and a newline character (\n) for text files.
+For text files, the newline argument to open() can also be specified as the line terminator.
+if a size argument is provided then at most size bytes will be read. 
+The return value is a string or bytes object that will have a newline character at the end, except for the last line of the file
+that may not end in a newline. if f.readline() returns an empty string, the end of the file has been reached, while a blank line is 
 represented by '\n', a string containing only a single newline.
 
+Ex:
 >>> f.readline() 
 'This is the first line of the file.\n'
 
 f.readlines() --> read all the lines at a single go and then return them as each line a string element in a list
 
+Ex:
 >>> lines = f.readlines()
 for line in lines:
 	print(line, end='')
 
-we can also read lines from a file by looping over a file object
+A file object is also iterable. we can also read lines from a file by looping over a file object 
+Ex: 
 >>> for line in f:
 	print(line, end='')
 This is the first line of the file.
 Second line of the file
+
+writing:
+--------
 
 f.write(string) --> writes the contents of the string to the file, returns the number of characters written
 >>> f.write('This is a test\n')
