@@ -160,15 +160,17 @@ IPv4Network('192.4.2.0/24')
 Subnetting 
 -----------
 Subnetting a network means, to create logical divisions of the network. This divides a network into smaller subnets.
-It is achieved by designating some high-order bits from the host part as part of the network prefix and adjusting 
-the subnet mask appropriately. 
+It is achieved by designating some high-order bits from the host part as part of the network prefix. The number of bits
+being borrowed depends on the number of subnets we want to subdivide the network into. This is known as the subnet mask. 
 
-Let's consider a network 
->>> big_net = IPv4Network("192.0.0.0/16")
+Let's consider a network with a prefix length of 24, which indicates the mask for the network part of the address
 
-Now lets' create a new network by adding more bits to the network number from the host address
+>>> big_net = IPv4Network("200.100.10.0/24")
 
->>> small_net = IPv4Network("192.0.2.0/28")
+Now lets' create a new network by adding more bits from the host part to the network number.
+A common way to achieve subnetting is to take a network and increase its prefix length by 1
+
+>>> small_net = IPv4Network("200.100.10.0/25")
 
 Now small_net is the subnet of big_net. Likewise big_net is called the supernet of small_net
 
@@ -176,16 +178,6 @@ Now small_net is the subnet of big_net. Likewise big_net is called the supernet 
 True
 >>> big_net.supernet_of(small_net)
 True
-
-Above, small_net contains only 16 addresses while big_net contains 65,536 addresses.
-
-A common way to achieve subnetting is to take a network and increase its prefix length by 1
-
-for ex:
->>> net = IPv4Network("200.100.10.0/24")
-
-Subnetting by increasing the prefix length from 24 to 25 involves shifting bits from the host to the network
-thus breaking up the network into smaller parts. 
 
 IPv4Network provides a method .subnets() that returns an iterator over the subnets:
 
