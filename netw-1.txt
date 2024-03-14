@@ -163,25 +163,18 @@ Subnetting a network means, to create logical divisions of the network. This div
 It is achieved by designating some high-order bits from the host part as part of the network prefix. The number of bits
 being borrowed depends on the number of subnets we want to subdivide the network into. This is known as the subnet mask. 
 
-Let's consider a network with a prefix length of 24, which indicates the mask for the network part of the address
+Let's consider a network with a prefix length of 24, which indicates the mask for the network part of the address.
+This network has 256 addresses.
 
 >>> big_net = IPv4Network("200.100.10.0/24")
 
-Now lets' create a new network by adding more bits from the host part to the network number.
-A common way to achieve subnetting is to take a network and increase its prefix length by 1
-
->>> small_net = IPv4Network("200.100.10.0/25")
-
-Now small_net is the subnet of big_net. Likewise big_net is called the supernet of small_net
-
->>> small_net.subnet_of(big_net)
-True
->>> big_net.supernet_of(small_net)
-True
+A common way to achieve subnetting is to take a network and increase its prefix length by 1, by borrowing a bit from the host address.
+This creates two subnets, if the bit is 0 then that will be one subnet, if it is 1 then that will be the second subnet. Each subnet
+will have 128 addresses.
 
 IPv4Network provides a method .subnets() that returns an iterator over the subnets:
 
->>> for sn in net.subnets():
+>>> for sn in big_net.subnets():
 ...     print(sn)
 ...
 200.100.10.0/25
@@ -197,6 +190,17 @@ You can also tell .subnets() what the new prefix should be. A higher prefix mean
 200.100.10.128/26
 200.100.10.192/26
 
+Lets consider a subnet of big_net
+
+>>> small_net = IPv4Network("200.100.10.0/25")
+
+Now small_net is the subnet of big_net. Likewise big_net is called the supernet of small_net
+
+>>> small_net.subnet_of(big_net)
+True
+>>> big_net.supernet_of(small_net)
+True
+
 
 Let's look at a detailed example, where we increase the prefix length by 2. 
 
@@ -211,7 +215,7 @@ Network 			Network (binary)   xx		Broadcast address
 
 The remaining bits after the subnet bits are used for addressing hosts within the subnet. In the above example, 
 the subnet mask consists of 26 bits, making it 255.255.255.192, leaving 6 bits for the host identifier. 
-This allows for 62 host combinations i.e  (64−2) since all zeros and all 1's are not recommended addresses. 
+This allows for 62 host combinations i.e  (64−2) without network address and broadcast address, since all zeros and all 1's are not recommended addresses. 
 
 Subnet masks and IP Addresses Mask
 -----------------------------------
@@ -268,13 +272,12 @@ Range			Number of Addresses			Network Address			Broadcast Address
 True
 
 A second special address type is a link-local address, which is one reachable only from within a given subnet
->>> timesync_addr = IPv4Address("169.254.169.123")
->>> timesync_addr.is_link_local
+>>> IPv4Address("169.254.169.123").is_link_local
 True
 
-Other address type is loopback address. 
-A loopback address is 127.0.0.1. Packets sent to this address will not reach the network but will loop back to the host
-i.e looped throuh the network interface card only.
+Another special address is the loopback address, 127.0.0.1 
+Packets sent to this address will not reach the network but will loop back to the host, i.e looped throuh the network interface card only.
+
 >>> IPv4Address("127.0.0.1").is_loopback
 True
 
@@ -334,6 +337,7 @@ $ ip address show
 Our system has two network interfaces, ens33 and lo (loopback interface)
 
 Primary Network Interface:
+--------------------------
 In a Linux system, there can be only one primary active connection to the network. As a result, only a single primary interface
 will be present. The kernel routing table will help us identify the primary interface.
 
@@ -358,7 +362,7 @@ Subsequently, after identifying the primary active interface, the final step is 
 of the primary active interface. There are many Linux utilities to find the primary IP address: ip, ifconfig, nmcli
 
 ip
-------
+----
 $ ip address show dev ens33 
 2: ens33: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc fq_codel state UP group default qlen 1000
     link/ether 00:0c:29:d5:cd:03 brd ff:ff:ff:ff:ff:ff
