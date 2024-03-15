@@ -281,6 +281,14 @@ Packets sent to this address will not reach the network but will loop back to th
 >>> IPv4Address("127.0.0.1").is_loopback
 True
 
+Another interesting address range is the addresses for multicast. The addresses called multicast groups are a subset of 
+the ipv4 address range 224.0.0.0 through 230.255.255.255.  These addresses are treated specially by network routers and switches,
+so messages sent to the group can be distributed over the Internet to all recipients that have joined the group.
+Multicast messages are always sent using UDP
+
+>>> IPv4Address("224.3.29.71").is_multicast
+True
+
 Another interesting address is 0.0.0.0, it basically indicates no-valid address. So depending on the context, the no-valid
 address will work in a different way. for instance, In the context of a route entry, it usually means the default route.
 In the context of servers, 0.0.0.0 means "all IPv4 addresses on the local machine". If a host has two IP addresses, 
