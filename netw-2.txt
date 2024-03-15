@@ -2,13 +2,13 @@ Primer on how dns works and how resolution happens
 ----------------------------------------------------
 When we use the browser to access a domain or when we use a command line program as shown below,
 
->>> socket.gethostbyname("www.google.com") 
+>>> socket.gethostbyname("www.example.com") 
 or
->>> socket.gethostbyname_ex("www.google.com")
+>>> socket.gethostbyname_ex("www.example.com")
 
 The following steps are carried out.
 
-1. The programm invokes the DNS Client, and it or the (stub resolver) will query our recursive resolver for www.google.com
+1. The programm invokes the DNS Client, and it or the (stub resolver) will query our recursive resolver for www.example.com
 2. The recursive resolver (usually our internet provider), will send a query to the DNS root nameserver. 
 3. The root nameserver will refer our recursive resolver to the .com tld (top level domain) name server.
 4. The recursive resolver queries the .com TLD name server for www.example.com.
@@ -142,7 +142,7 @@ How do we get the fully qualified domain name? FQDN is the result of a reverse l
 
 We can use the following commands to do a reverse lookup
 
-$ dig -x 142.250.77.179'
+$ dig -x 142.250.77.179
 
 Note: The output should have an Answer section with PTR record, i.e a reverse lookup zone file should exist. Otherwise
 you will not be able to reverse lookup an ip address.
@@ -180,10 +180,8 @@ A Forward-confirmed reverse DNS (FCrDNS), also known as full-circle reverse DNS,
 networking parameter configuration in which a given IP address has both forward (name-to-address) and reverse (address-to-name) 
 Domain Name System (DNS) entries that match each other. Clearly in the above case it is not a FCrDNS.
 
-
-Note: When look at our system hostname using either "hostname" command in linux or socket.gethostname() in python, it basically does
+Note: When we look at our system hostname using either "hostname" command in linux or socket.gethostname() in python, it basically does
 a reverse lookup in our /etc/hosts file and returns the hostname. 
-
 
 Let's look at another example
 
@@ -213,8 +211,7 @@ www.skyscanner.net.cdn.skyscannerplatform.net. 60 IN A 18.161.216.8
 ;; MSG SIZE  rcvd: 167
 
 We notice that the answer section indicates that resolving www.skyscanner.net returns a cname record and that domain 
-is again resolved to get the ip addresses. We also notice that the same domain can be mapped to multiple ips, as mentioned 
-in forward lookup zone writeup previously.
+is again resolved to get the ip addresses. We also notice that the same domain can be mapped to multiple ips
 
 Now lets' do a reverse lookup at one of the IP addresses 18.161.216.37, using the host command
 

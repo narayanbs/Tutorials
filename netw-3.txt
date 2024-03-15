@@ -1,13 +1,13 @@
 Summary: Basics, Transport Layer: TCP/UDP
 =============================================
 
-* We have seen that application layer operates as processes that
-  communicate between hosts. Transport layer provides
-  process-to-process delivery of messages. The underlying network
-  layer provides host-to-host delivery of messages, without any
-  reliability guarantees. So, job of transport layer is to take this
-  host-to-host delivery service from the network layer, and provide
-  process-to-process delivery abstraction to the application layer.
+* The application layer operates as processes that communicate between
+  hosts. Transport layer provides process-to-process delivery of 
+  messages. The underlying network layer provides host-to-host 
+  delivery of messages, without any reliability guarantees. 
+  So, job of transport layer is to take this host-to-host delivery
+  service from the network layer, and provide process-to-process 
+  delivery abstraction to the application layer.
 
 * Processes send messages via sockets. So, we can also think of the
   transport layer as providing a data delivery service from socket to
@@ -121,9 +121,9 @@ A socket is readable if
   A read operation on the socket will not block and return a value greater than 0.
 * The read half of the connection is closed i.e the tcp connection has received a FIN
   A read operation on the socket will not block and will return 0
-* The socket is a listening socket and the number of completed connections is non-zero
 * A socket error is pending
   A read operation will not block and will return an error (-1)
+* The socket is a listening socket and the number of completed connections is non-zero
 
 A socket is writable if
 * The number of bytes of available space in the socket send buffer is greater its low-water mark.
