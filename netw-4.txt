@@ -14,7 +14,7 @@ Summary: Basics, Transport Layer: TCP/UDP
   socket.
 
 * Some terminology: application layer "message" -> transport layer
-  "segment" -> IP/network layer "datagram".
+  "segment" -> IP/network layer "packets" -> link layer  "frames".
 
 * Main functions of transport layer:
 
