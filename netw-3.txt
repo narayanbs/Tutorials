@@ -54,6 +54,7 @@ knows which port the browser is listening on; and the destination port on the re
 
 4. The data Link layer uses the Address Resolution Protocol (ARP) to identify the physical MAC address of the default router
 and encapsulates the Internet packet in a frame that includes both the source and destination MAC addresses.
+Note: source could be NIC card and destination is default router. 
 
 5. The frame is sent over the wire, usually CAT5 or CAT6, from the NIC on the local host to the NIC on the default router.
 
