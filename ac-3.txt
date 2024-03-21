@@ -90,6 +90,8 @@ LANG - specifies the installation default locale. This is the locale every proce
   if the LANG envionment variable is not set, it defaults to C
 
 LC_ALL - Overrides the value of the LANG environment variable and the values of any other LC_* environment variables.
+  One important setting is to set LC_ALL to "". for ex: locale.setlocale(locale.LC_ALL, "") This sets the locale for all
+  categories to the default setting.(typically specified in the LANG environment variable)
 
 LC_* - Categories specified above can be used as environment variables. 
 
