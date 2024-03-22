@@ -52,7 +52,7 @@ ex: Num = 9999999999999999999999999999999999999999999999999999999999999999999999
 
 More info can be obtained as shown below
 import sys
-sys.int_info() --> sys.int_info(bits_per_digit=30, sizeof_digit=4, 
+sys.int_info --> sys.int_info(bits_per_digit=30, sizeof_digit=4, 
         default_max_str_digits=4300, str_digits_check_threshold=640)
 
 Integers can be represented in different bases: decimal (base 10), Hexadecimal (base 16), Octal (base 8) and binary (base 2)
