@@ -204,8 +204,27 @@ ex: ls /usr/bin | tee ls.txt | grep zip
 Here tee captures the entire directory listing to the file ls.txt before grep filters the pipeline's contents:
 
 xargs --> it reads input from stdin or file and converts them into arguments to a command
-ex: find /path -type f -print | xargs rm    --> takes filenames and passes it as arguments to the rm command
+Some commands like grep and cat can take input either from stdin or command line args, but some like echo and cp can only 
+take input as command line arguments. xargs converts input from stdin into command line arguments. 
 
+Ex:
+Lets say I have 5 files on a directory and I want to do a search/replace operation from foo to bar. I’d do this:
+
+$ ls | xargs sed -i 's/foo/bar/g' 
+
+So, what’s going on here? ls gives me the list of files. Those are the files I need to do the search and replace.
+To do search and replace I use sed - stream editor, with the -i option to edit files in place - and pass it the search-and-replace expression.
+Thing is, sed is expecting me to use it like this
+
+sed -i 's/foo/bar/g' file1 file2 file3 
+
+but I don’t wanna type all the file names.. furthermore, with 5 files this is easy, but with a whole project with thousands of files this is undoable.
+This is where xargs comes to play. It grabs the list of files output by ls and turns them into arguments to sed.
+
+Ex:
+$ find /path -type f  | xargs rm    --> takes filenames and passes it as arguments to the rm command
+
+Ex:
 from stdin: This becomes echo hello this is narayan 
 $  xargs echo
 hello this is narayan

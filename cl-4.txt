@@ -20,7 +20,7 @@ find . -maxdepth 1 -name *.mkv --> search mkv files in current directory
 
 permissions
 ------------
-find . -type f -perm 0777 -print 
+find . -type f -perm 0777  
 find . -type f ! -perm 777 --> find files without permission 777
 find / -perm 2644 --> SGID file with permission 644
 find / -perm 1551 --> Sticky Bit with permission 551
@@ -30,10 +30,10 @@ find / -perm /u=r --> find read only files
 find / -perm /a=x --> find all executable files
 
 # find files with 777 permission and chmod it to 644
-find / -type f -perm 0777 -print -exec chmod 644 {} \; 
+find / -type f -perm 0777  -exec chmod 644 {} \; 
 
 # find directories with 777 permission and chmod it to 755
-find / -type d -perm 777 -print -exec chmod 755 {} \;
+find / -type d -perm 777  -exec chmod 755 {} \;
 
 Remove
 ---------
@@ -142,10 +142,10 @@ is is the last line
 find and replace using sed
 ---------------------------------------
 # find all files having the word "draft: false"
-find . -type f -print | xargs grep -i draft
+find . -type f  | xargs grep -i draft
 
 # replace the word "draft: false" with "draft: true"
-find . -type f -print | xargs sed -i 's/draft: false/draft: true/g'
+find . -type f  | xargs sed -i 's/draft: false/draft: true/g'
 
 
 diff command
