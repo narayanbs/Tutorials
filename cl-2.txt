@@ -2,16 +2,21 @@ Useful commands
 ---------------
 pwd -- Will display the present working directory
 
-file <filename>	--> Will print the details about file
+file <filename>	--> Will determine the type of the file
 less <filename>  --> Will scroll through a file
 
 cd <dirname> | cd ~ (home dir) | cd <blank> (home dir) | cd .. (parent dir) |
 cd - (changes from present to previous working directory) 
 
 du --> size of disk usage by files/directories
-ex: du -sh var/ --> 8.5G /var   
-  du -sh asterix.pdf --> 1.2M asterix.pdf  (-s summarize)
-  du -ch ~/Desktop --> 43M total (-c total )
+	ex: 
+	  du -sh var/ --> 8.5G /var   
+		or 
+	  du -sh /var 2> /dev/null --> 8.5G /var  # for cleaner output
+
+	  du -sh asterix.pdf --> 1.2M asterix.pdf  (-s summarize)
+
+	  du -ch ~/Desktop --> 43M total (-c total )
 
 ls --> list files/dirs in the current folder 
 for ex: if we are inside ~/Desktop, then ls lists all the files/directories inside ~/Desktop
@@ -277,12 +282,12 @@ Ex:
 ~~~bash
 $ echo "hello world" > foo.txt
 $ exec 6< foo.txt
-$ read input <& 6 && echo "${input}"
+$ read input <&6 && echo "${input}"
 hello world
 $ exec 7<&6-
-$ read input <& 6 && echo "${input}"
+$ read input <&6 && echo "${input}"
 bash: 6: Bad file descriptor
-$ read input <& 7 && echo "${input}"
+$ read input <&7 && echo "${input}"
 hello world
 ~~~
 n the above code snippet, we see that once file descriptor 6 has been moved to 7, one can no longer 
@@ -295,17 +300,17 @@ access input from the file foo.txt using fd 6. However, one can access input fro
 ~~~bash
 $ touch foo.txt
 $ exec 6> foo.txt
-$ echo "hello, world"  >& 6
+$ echo "hello, world"  >&6
 $ cat foo.txt
 hello, world
-$ echo "bye, world"  >& 6
+$ echo "bye, world"  >&6
 $ cat foo.txt
 hello, world
 bye, world
 $ exec 8>&6-
-$ echo "hello again, world"  >& 6
+$ echo "hello again, world"  >&6
 bash: 6: Bad file descriptor
-$ echo "hello again, world"  >& 8
+$ echo "hello again, world"  >&8
 $ cat foo.txt
 hello, world
 bye, world
@@ -331,13 +336,41 @@ We can alose close stdout (fd 1) and stderr (fd 2)
 * This causes the file denoted by the word to be opened for both reading and writing on the descriptor n or on fd 0 if n is not specified. 
 * If the file doesn't exist, it is created.
 
+----------------------------------------------------------------------
 **Here Documents and Here strings**
+----------------------------------------------------------------------
+Here documents and here strings are useful when you need to create a file literal or input stream literal
+from multiline string or a variable. 
+
+Here document (also commonly referred to as heredoc) refers to a special block of code
+that contains multi-line strings that acts as a file that will be input redirected to a command
+
 The format of Here documents is:
 ```
 [n]<<[-]word
         here-document
 delimiter
 ```
+Ex:
+Suppose we need to send a set of strings to the cat command, we could write the strings in the file and send it to cat
+so file1.txt could contain 
+This is line1
+This is line2
+This is line3
+
+Now we can send the file to cat command
+	$ cat file1.txt
+	This is line1
+	Another line
+	Finally 3rd line
+
+Instead we could use heredoc and accomplish the same as follows
+	$ cat << EOF
+	This is line1
+	Another line
+	Finally 3rd line
+	EOF
+
 Ex:
 Suppose we need to send several commands over ssh, like
 	ssh -T baeldung@example.com "touch log1.txt"
@@ -349,13 +382,6 @@ we can replace it with a heredoc:
 	ssh -T baeldung@host.com << EOF
 	touch log1.txt
 	touch log2.txt
-	EOF
-
-Ex:
-	cat << EOF
-	This is line1
-	Another line
-	Finally 3rd line
 	EOF
 
 Here string is a kind of string that is used for input redirection from a text or variable.

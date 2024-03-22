@@ -167,7 +167,7 @@ Patterns to be 'brace expanded' may contain a leading portion called a preamble 
 
 echo A-{1,2,3}-B  (preamble is A and postscript is B). --> echo A-1-B A-2-B A-3-B --> A-1-B A-2-B A-3-B
 
-echo Front-{A,B,C}-Back  --> Front-A-Back, Front-B-Back, Front-C-Back 
+echo Front-{A,B,C}-Back  --> Front-A-Back Front-B-Back Front-C-Back 
 echo Number_{1..5} --> Number_1 Number_2 Number_3 Number_4 Number_5
 echo {01..15} --> 01 02 03 04 05 06 07 08 09 10 11 12 13 14 15 (zero prepended)
 echo {001..15} --> 001 002 003 004 005 006 007 008 009 010 011 012 013 014 015 (zero prepended)
