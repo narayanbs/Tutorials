@@ -152,6 +152,11 @@ you use sendto() instead. Similarly for receiving.
 Consider a UDP server for example. It would call recvfrom(), so it would get the source address information, process the request, 
 create the response, and send it to that address via sendto(). No connect() involved anywhere, therefore not possible to use either send() or recv().
 
+----------------------------------
+Point to remember : For servers, set AI_PASSIVE flag in getaddrinfo, if host is NULL then INADDR_ANY or INADDR6_ANY_INIT is assumed, else it is ignored.
+For clients, don't set the AI_PASSIVE FLAG, if host is NULL then Loopback address is assumed for clients. 
+----------------------------------
+
 TCP connection -- connect, listen and accept()
 ----------------------------------------------
 connect() is called by the client process to connect to a server process. Internally in the TCP stack this is what happens.

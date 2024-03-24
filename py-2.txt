@@ -249,11 +249,11 @@ class Celsius:
 		self._temp = temp
 		
 	def set_temp(self, value):
-    print(f"setting temp to {value}")
+		print(f"setting temp to {value}")
 		self._temp = value
 	
 	def get_temp(self):
-    print("Returning temp")
+		print("Returning temp")
 		return self._temp
 	
 	temp = property(get_temp, set_temp)
