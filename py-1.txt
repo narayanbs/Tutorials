@@ -346,6 +346,88 @@ ex:
 ex: ord('ꁃ') = 41027
     chr(41027) - 'ꁃ'
 
+
+Control statements and Loops
+-----------------------------
+if condition:
+  statement(s)
+
+if condition:
+  statement(s)
+else:
+  statement(s)
+
+if condition:
+  statement(s)
+elif condition:
+  statement(s)
+.
+.
+else:
+  statement(s)
+
+Nested if statement
+if condition1:
+  if condition2:
+
+Shorthand if statement
+ex: 
+  i = 100
+  if i < 15: print("i is less than 15")
+
+shorthand if else
+ex:
+  i = 100
+  print(True) if i < 15 else print(False)
+
+
+Loops
+------
+
+while <expr>:
+  statement(s)
+else:
+  statement(s)
+
+for it_var in <sequence>:
+  statement(s)
+else:
+  statement(s)
+
+
+Nested Loops
+
+while <expr>:
+  while <expr>:
+    statement(s)
+
+for it_var in <sequence>:
+  for it_var in <sequence>:
+    statement(s)
+
+
+Loop Control statements (continue, break, pass)
+
+continue: It returns the control to the beginning of the loope
+ex:
+  for letter in 'geeksforgeeks':
+    if letter == 'e' or letter == 's':
+      continue
+    print("Current letter :", letter)
+    
+break: It brings control out of the loop
+ex:
+  for letter in 'geeksforgeeks':
+    if letter == 'e' or letter == 's':
+      break
+  print("Current letter:", letter)
+
+pass: used to write empty loops
+ex:
+  for letter in 'geeksforgeeks':
+    pass
+  print("Last letter", letter)
+
 Operators
 ----------
 Arithmetic: + - * / // (floor division) % ** (expo) 
