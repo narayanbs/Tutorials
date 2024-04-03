@@ -1,0 +1,216 @@
+##### Root Element 
+<html> --- <head>
+        -- <body>
+
+##### Header Document Metadata
+<head> --  <base> <link> <meta> <style> <title> <script>
+
+**base** base url to use for all relative urls in the document 
+
+<base href="" target="">
+href: The base URL to be used throughout the document for relative URLs. Absolute and relative URLs are allowed
+target: 
+  * _self (default) - show the result in the current browsing context
+  * _blank - show the result in a new, unnamed browsing context
+  * _parent - if inside a frame, show the result in the parent browsing context of the current one, else the same askk _self
+  * _top - show the result in the browsing context that is an ancestor of the current one and has no parent, else the same as _self
+
+ex:
+  <base href="https://www.example.com/" />
+  <base target="_blank" />
+  <base target="_top" href="https://example.com/" />
+
+**meta** metadata element
+
+<meta attribute....
+ * name - if set, then meta provides document-level metadata
+ * http-equiv - if set, meta is a pragma directive providing information similar to http header
+ * charset - if set, meta is a charset declaration, giving character encoding information
+ * itemprop - if set, meta provides user-defined metadata
+ * content - This attribute contains the value for the http-equiv or name attribute.
+
+ex:
+ <meta charset="utf-8" />
+
+ <!-- Redirect page after 3 seconds -->
+ <meta http-equiv="refresh" content="3;url=https://www.mozilla.org" />
+
+##### Sectioning Root 
+<body> - <header><nav><main><section><article><aside><footer>
+
+**Heading elements** - <h1><h2><h3><h4><h5><h6><hgroup>
+
+<address><search>
+
+ex:
+ <address>
+  You can contact author at
+  <a href="http://www.example.com/contact">www.example.com</a>.<br />
+  If you see any bugs, please
+  <a href="mailto:webmaster@example.com">contact webmaster</a>.<br />
+  You may also want to visit us:<br />
+  Mozilla Foundation<br />
+  331 E Evelyn Ave<br />
+  Mountain View, CA 94041<br />
+  USA
+ </address>
+
+<header>
+  <h1>Movie website</h1>
+  <search>
+    <form action="./search/">
+      <label for="movie">Find a Movie</label>
+      <input type="search" id="movie" name="q" />
+      <button type="submit">Search</button>
+    </form>
+  </search>
+</header>
+
+##### Text Content
+
+<p> <div> <dl> <dt> <dd> <ol> <ul> <li> <hr> <pre>
+<figure> <figcaption> <menu> <blockquote> 
+ 
+ex:
+1. Single term, single description
+ <dl>
+  <dt>Firefox</dt>
+  <dd>A free, open source browser</dd>
+ </dl>
+
+2. Multiple term, single description
+ <dl>
+  <dt>Firefox</dt>
+  <dt>Mozilla Firefox</dt>
+  <dt>Fx</dt>
+  <dd>A free, open source browser</dd>
+ </dl>
+
+3. Single term, multiple descriptions
+ <dl>
+  <dt>Firefox</dt>
+  <dd>A free, open source browser</dd>
+  <dd>Red Panda Mascot</dd>
+ </dl>
+
+<!-- menu element -->
+<menu>
+  <li><button onclick="copy()">Copy</button></li>
+  <li><button onclick="cut()">Cut</button></li>
+  <li><button onclick="paste()">Paste</button></li>
+</menu>
+
+<!-- Image with a caption -->
+<figure>
+  <img src="favicon-192x192.png" alt="The beautiful MDN logo." />
+  <figcaption>MDN Logo</figcaption>
+</figure>
+
+<blockquote cite="https://datatracker.ietf.org/doc/html/rfc1149">
+  <p>
+    Avian carriers can provide high delay....
+  </p>
+</blockquote>
+
+
+##### Inline text semantics
+<a> <abbr> <b> <bdi> <bdo> <br> <cite> <code> <data> <dfn> <em> <i> <kbd> <mark> <q> <rp> <rt> <ruby> <s> <samp> 
+<small> <span> <strong> <sub> <sup> <time> <u> <var> <wbr>
+
+ex:
+
+<!-- abbr - markup abbreviations -->  
+<p>Using <abbr>HTML</abbr> is fun and easy!</p>
+
+<!-- cite -->
+<p>More information can be found in <cite>[ISO-0000]</cite>.</p>
+
+<!-- data -->
+<p>New Products</p>
+<ul>
+  <li><data value="398">Mini Ketchup</data></li>
+  <li><data value="399">Jumbo Ketchup</data></li>
+  <li><data value="400">Mega Jumbo Ketchup</data></li>
+</ul>
+
+##### Image and Multimedia
+<area> <audio> <img> <map> <track> <video>
+
+##### Embedded Content
+<embed> <iframe> <object> <picture> <portal> <source>
+
+##### SVG and MathML
+<svg> <math>
+
+##### Table Content
+<caption> <col> <colgroup> <table> <tbody> <td> <tfoot> <th> <thead> <tr>
+
+##### Forms
+<button> <datalist> <fieldset> <form> <input> <label> <legend> <meter> <optgroup> <option> <output> <progress> <select> <textarea>
+
+ex:
+<!-- datalist -->
+<label for="myBrowser">Choose a browser from this list:</label>
+<input list="browsers" id="myBrowser" name="myBrowser" />
+<datalist id="browsers">
+  <option value="Chrome"></option>
+  <option value="Firefox"></option>
+  <option value="Opera"></option>
+  <option value="Safari"></option>
+  <option value="Microsoft Edge"></option>
+</datalist>
+
+<!-- Fieldset and legend -->
+<form action="#">
+  <fieldset>
+    <legend>Do you agree?</legend>
+    <input type="checkbox" id="chbx" name="agree" value="Yes!" />
+    <label for="chbx">I agree</label>
+  </fieldset>
+</form>
+
+<!-- meter -->
+<p>
+  Heat the oven to <meter min="200" max="500" value="350">350 degrees</meter>.
+</p>
+
+<!-- output -->
+<form oninput="result.value=parseInt(a.value)+parseInt(b.value)">
+  <input type="range" id="b" name="b" value="50" /> +
+  <input type="number" id="a" name="a" value="10" /> =
+  <output name="result" for="a b">60</output>
+</form>
+
+<!-- optgroup (select) -->
+<select>
+  <optgroup label="Group 1">
+    <option>Option 1.1</option>
+  </optgroup>
+  <optgroup label="Group 2">
+    <option>Option 2.1</option>
+    <option>Option 2.2</option>
+  </optgroup>
+  <optgroup label="Group 3" disabled>
+    <option>Option 3.1</option>
+    <option>Option 3.2</option>
+    <option>Option 3.3</option>
+  </optgroup>
+</select>
+
+<!-- progress -->
+<progress value="70" max="100">70 %</progress>
+
+<!-- Form -->
+<form> 
+attributes:
+ action - The URL that processes the form submission
+ method - post, get, dialog
+ target - _self, _blank, _top, _parent
+ enctype - Mime type of form submission
+
+ Possible values:
+  * application/x-www-form-urlencoded: The default value.
+  * multipart/form-data: Use this if the form contains <input> elements with type=file.
+  * text/plain: Useful for debugging purposes.
+
+
