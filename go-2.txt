@@ -47,7 +47,7 @@ ex:
 	the underlying type of MyInt and int are the same i.e int, so the values can be explicitly converted
 
 	a = MyInt(b) 
-	b = int(MyInt)
+	b = int(a)
 
 * if types share the same underlying type and one of them is an unnamed type they can be implicitly converted
 ex: 
@@ -62,8 +62,9 @@ ex:
 	b = a
 
 * Pointer specific rule - if types dont share the same underlying type, but both of them are unnamed pointers whose base have the 
-same underlying type, then they can be explicitly converted
-
+same underlying type, then they can be explicitly converted.
+In Go, an unnamed pointer type can be represented with *T , where T can be an arbitrary type. Type T is called the base type of pointer type *T .
+We can declare named pointer types, but generally, it's not recommended to use named pointer types, for unnamed pointer types have better readabilities.
 ex:
 	type MyInt int
 
