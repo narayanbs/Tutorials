@@ -1,7 +1,6 @@
 ##### Root Element 
-<html> --- <head>
-	|
-        -- <body>
+<html> ---- <head>
+            <body>
 
 ##### Header Document Metadata
 <head> --  <base> <link> <meta> <style> <title> <script>
@@ -35,9 +34,29 @@ ex:
 
  <!-- Redirect page after 3 seconds -->
  <meta http-equiv="refresh" content="3;url=https://www.mozilla.org" />
- 
+ <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+ <meta http-equiv="content-security-policy" content="default-src 'self'">
+ <meta http-equiv="default-style" content="the document's preferred stylesheet">
+
  <meta name="keywords" content="Meta Tags, Metadata" />
  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+ <meta name="description" content="Free Web tutorials">
+ <meta name="author" content="John Doe">
+
+**link** - defines the relationship between the current document and a linked external resource.
+
+<link attribute....
+ * rel - relationship b/w current doc and the linked resource
+   (stylesheet, icon, license, author, alternate.....)
+ * href - url of the resource
+ * media - defines on what device the resource will be displayed
+ * type - type of the linked resource 	
+ * hreflang - Specifies the language of the text in the linked document
+
+ex:
+ <link rel="stylesheet" type="text/css" href="style.css">
+ <link rel="icon" href="favicon.png">
+ <link rel="alternate" hreflang="en" href="https://example.com/page">
 
 
 ##### Sectioning Root 
@@ -48,6 +67,11 @@ ex:
 <address><search>
 
 ex:
+ <hgroup id="document-title">
+   <h1>HTML: Living Standard</h1>
+   <p>Last Updated 12 July 2022</p>
+ </hgroup>
+
  <address>
   You can contact author at
   <a href="http://www.example.com/contact">www.example.com</a>.<br />
@@ -70,6 +94,7 @@ ex:
     </form>
   </search>
 </header>
+
 
 ##### Text Content
 
@@ -149,7 +174,7 @@ ex:
 <svg> <math>
 
 ##### Table Content
-<caption> <col> <colgroup> <table> <tbody> <td> <tfoot> <th> <thead> <tr>
+<table> <caption> <colgroup> <col> <tbody> <td> <tfoot> <th> <thead> <tr>
 
 ex:
 <table>
@@ -194,10 +219,22 @@ ex:
 </table>
 
 ##### Forms
-<button> <datalist> <fieldset> <form> <input> <label> <legend> <meter> <optgroup> <option> <output> <progress> <select> <textarea>
+<form> <button> <datalist> <fieldset> <input> <label> <legend> <meter> <optgroup> <option> <output> <progress> <select> <textarea>
 
-ex:
+<!-- Form -->
+<form> 
+attributes:
+ action - The URL that processes the form submission
+ method - post, get, dialog
+ target - _self, _blank, _top, _parent
+ enctype - Mime type of form submission
+	 Possible values:
+	  * application/x-www-form-urlencoded: The default value.
+	  * multipart/form-data: Use this if the form contains <input> elements with type=file.
+	  * text/plain: Useful for debugging purposes.
+
 <!-- datalist -->
+ex:
 <label for="myBrowser">Choose a browser from this list:</label>
 <input list="browsers" id="myBrowser" name="myBrowser" />
 <datalist id="browsers">
@@ -247,18 +284,5 @@ ex:
 
 <!-- progress -->
 <progress value="70" max="100">70 %</progress>
-
-<!-- Form -->
-<form> 
-attributes:
- action - The URL that processes the form submission
- method - post, get, dialog
- target - _self, _blank, _top, _parent
- enctype - Mime type of form submission
-
- Possible values:
-  * application/x-www-form-urlencoded: The default value.
-  * multipart/form-data: Use this if the form contains <input> elements with type=file.
-  * text/plain: Useful for debugging purposes.
 
 
