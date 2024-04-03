@@ -125,7 +125,8 @@ ex:
 ex:
 
 <!-- abbr - markup abbreviations -->  
-<p>Using <abbr>HTML</abbr> is fun and easy!</p>
+<p>Ashok's joke made me <abbr title="Laugh Out Loud">LOL</abbr> big time.</p>
+<p>Using <abbr title="Hypertext Markup Language">HTML</abbr> is fun and easy!</p>
 
 <!-- cite -->
 <p>More information can be found in <cite>[ISO-0000]</cite>.</p>
