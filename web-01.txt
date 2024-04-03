@@ -151,6 +151,48 @@ ex:
 ##### Table Content
 <caption> <col> <colgroup> <table> <tbody> <td> <tfoot> <th> <thead> <tr>
 
+ex:
+<table>
+  <caption>
+    Council budget (in £) 2018
+  </caption>
+  <colgroup>
+    <col />
+    <col span="2" class="batman" />
+    <col span="2" class="flash" />
+  </colgroup>
+  <thead>
+    <tr>
+      <th scope="col">Items</th>
+      <th scope="col">Items</th>
+      <th scope="col">Items</th>
+      <th scope="col">Expenditure</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th scope="row">Donuts</th>
+      <td>3,000</td>
+      <td>3,000</td>
+      <td>3,000</td>
+    </tr>
+    <tr>
+      <th scope="row">Stationery</th>
+      <td>18,000</td>
+      <td>18,000</td>
+      <td>18,000</td>
+    </tr>
+  </tbody>
+  <tfoot>
+    <tr>
+      <th scope="row">Totals</th>
+      <td>21,000</td>
+      <td>21,000</td>
+      <td>21,000</td>
+    </tr>
+  </tfoot>
+</table>
+
 ##### Forms
 <button> <datalist> <fieldset> <form> <input> <label> <legend> <meter> <optgroup> <option> <output> <progress> <select> <textarea>
 
