@@ -1,0 +1,104 @@
+CSS
+---
+css rules - apply a set of properties to an element identified using a css-selector
+
+<css-selector> {
+	property: value;
+	property: value;
+}
+
+ex:
+h1 {
+	color: blue;
+}
+
+Individual selectors can be combined into a selector list, if they share a rule.
+
+ex:
+h1 {
+	color:blue;
+}
+
+.special {
+	color:blue;
+}
+
+h1, .special {
+	color:blue;
+}
+
+--------------------------
+Type Selectors -- where the css-selector is a html element
+
+span {
+  background-color: yellow;
+}
+
+strong {
+  color: rebeccapurple;
+}
+
+em {
+  color: rebeccapurple;
+}
+
+class selectors - target an element that has a specific value for its class attribute:
+
+.box {
+
+}
+
+Id selectors - target an element that has a specific value for its id attribute
+
+#unique {
+
+}
+
+Attribute selectors - gives you different ways to select elements based on the presence of a certain attribute on an element:
+
+a[href="https://example.com"]
+{
+
+}
+
+Pseudo-classes - select element based on the state. 
+	for ex: element could be the first child, it is being hovered over by mouse-pointer etc
+
+a:hover {
+
+}
+
+Pseudo-elements - select a part of the element rather than the element itself. This part acts as an element itself
+
+p::first-line {
+
+}
+
+Combinators - combine selectors to target elements in the document. 
+	(i.e direct children, descendents .. etc)
+
+article > p {
+}
+
+
+Cascade, specificity and inheritance 
+------------------------------------
+Stylesheets cascade — at a very simple level, this means that the origin, the cascade layer, and the order of CSS rules matter. 
+When two rules from the same cascade layer apply and both have equal specificity, the one that is defined last in the stylesheet 
+is the one that will be used.
+
+Specificity is the algorithm that the browser uses to decide which property value is applied to an element. 
+If multiple style blocks have different selectors that configure the same property with different values and 
+target the same element, specificity decides the property value that gets applied to the element.
+An element selector is less specific; it will select all elements of that type that appear on a page, so it has less weight.
+Pseudo-element selectors have the same specificity as regular element selectors.
+A class selector is more specific; it will select only the elements on a page that have a specific class attribute value, 
+so it has more weight. Attribute selectors and pseudo-classes have the same weight as a class.
+nheritance also needs to be understood in this context — some CSS property values set on parent elements are inherited 
+by their child elements, and some aren't.
+
+When conflicts arise, the term "cascading" refers to the hierarchical order in which different style sheet types interact. 
+Style sheets are cascaded in the following order: Browser Defaults. External Style Sheets (Linked or Imported) Internal Style Sheets (Embedded)
+
+Read Articles/web_front_end/css/The CSS Cascade.html
+
