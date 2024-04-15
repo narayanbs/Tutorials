@@ -374,8 +374,8 @@ Ex:
 Suppose we need to send a set of strings to the cat command, we could write the strings in the file and send it to cat
 so file1.txt could contain 
 This is line1
-This is line2
-This is line3
+Another line
+Finally 3rd line
 
 Now we can send the file to cat command
 	$ cat file1.txt
@@ -408,8 +408,8 @@ Ex:
 
 cat <<< "This is a string"
 
-cat <<< $WELCOME_MESSAGE
 WELCOME_MESSAGE="Welcome to dashboard"
+cat <<< $WELCOME_MESSAGE
 
 COMMAND <<< $VAR
 What it essentially does is expanding the variable _VAR_ and fed to the stdin of the _COMMAND_
