@@ -87,30 +87,26 @@ ex:
 * slices - slice may be converted to an array. if the length of the array type is larger than the length of the slice, a panic occurs.
 	
 * functions
-	- A function type denotes the set of all functions with the same parameter and result types,
-	- If two functions have the same signature (parameter and result types), they share one function type.
-	for ex: type Greeting func(name string) string, here you're just giving a name to a particular function type, not defining a new one.
-
-	So the following code works, and I hope shows the right way to work with function types in Go:
-
-	package main
-
 	import "fmt"
 
 	type Greeting func(name string) string
 
-	func say(g Greeting, n string) { fmt.Println(g(n)) }
-
-	func french(name string) string { return "Bonjour, " + name }
+	func (g Greeting) exclamation(name string) string {
+		return g(name) + "!"
+	
+	func english(name string) string { return "Hello, " + name }
 
 	func main() {
-		english := func(name string) string { return "Hello, " + name }
+		fmt.Println(emglish("Alisus"))
+		fmt.Println(Greeting(english).exclamation("Alisus"))
 
-		say(english, "ANisus")
-		say(french, "ANisus")
+			or
+
+		var g Greeting
+		g = english
+		fmt.Println(g("Alisus"))
+
 	}
-
-
 
 Examples
 --------
