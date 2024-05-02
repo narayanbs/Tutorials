@@ -9,8 +9,16 @@ Essential classes
 
 IP Address
 ---------
-IP addresses are basically integers. An ipv4 address is a 32-bit integer represented in dot-decimal form. 
+IP addresses are basically integers. 
+An ipv4 address is a 32-bit integer represented in dot-decimal form. 
+for ex: 220.14.9.37. 
+An ipv6 address is a 128-bits in length and consists of eight 16-bit fields seperated by colon.Each field must 
+contain a hexadecimal number, in contrast to the dotted-decimal notation of IPv4 address.
+for ex: 2001:0db8:3c4d:0015:0000:0000:1a2f:1a2b
+
+As mentioned above an ipv4 address represents a 32-bit integer in dot-decimal form.
 for ex: 220.14.9.37
+
 So what's the underlying integer? 
 (
     220 * (256 ** 3) +
