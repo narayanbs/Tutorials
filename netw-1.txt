@@ -165,8 +165,8 @@ IPv4Address('255.192.0.0')
 
 Here the prefixlen is 10, it means that 10 bits is the mask that indicates the network address i.e 255.192.0.0
 In binary this is 11111111.11000000.00000000.00000000
-So the Network address can be (0-255).(128|64|192).0.0  ,Everything else is invalid. 
-
+So the Network address can be (0-255).(0|64|128|192).0.0  ,Everything else is invalid. 
+Note: Top two bits can have 4 values (0,64 128 or 192)
 
 Note: 
 We can also construct an IPv4Network directly from two addresses:
