@@ -116,6 +116,9 @@ IPv4Address('192.4.2.255')
 
 We can loop through all the Network addresses, as the network classes (IPv4Network & IPv6Network) support iteration. 
 
+Let's assume a network address 192.4.2.0/28. Since the prefix length is 28, the netmask is 255.255.255.240 ie (11111111.11111111.11111111.11110000)
+The number of hosts in the network is 16, starting from 192.4.2.0 to 192.4.2.15. 
+
 >>> net = IPv4Network("192.4.2.0/28")
 >>> for addr in net:
 ...     print(addr)
