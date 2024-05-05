@@ -383,6 +383,14 @@ link-local      0.0.0.0         255.255.0.0     U     1000   0        0 ens33
 In the above snippet, we see that the ens33 interface is the one connected to the default gateway, 
 hence, it’s the primary active interface of the system.
 
+In addition to the above method, we can find the primary IP address using the ip utility. The ip utility is capable of finding 
+the route to any destination. We can use this feature to find the primary IP address because it’s the interface that uses the default route.
+
+Let’s find out the route to reach any random IP address (1.1.1.1) using the ip utility:
+$ ip route get 1.1.1.1
+1.1.1.1 via 192.168.207.2 dev ens33 src 192.168.207.128 uid 1000 
+    cache 
+
 Checking the IP Address of the Primary Active Interface (Primary IP address)
 -------------------------------------------------------------------------------
 Subsequently, after identifying the primary active interface, the final step is checking the primary IP address — that is, the IP address 
@@ -407,14 +415,6 @@ $ ip address show dev ens33 | grep -w inet | awk '{print $2}'
 192.168.207.128/24
 
 Here, the ip utility displays the netmask along with the IP address.
-
-In addition to the above method, we can find the primary IP address using the ip utility. The ip utility is capable of finding 
-the route to any destination. We can use this feature to find the primary IP address because it’s the interface that uses the default route.
-
-Let’s find out the route to reach any random IP address (1.1.1.1) using the ip utility:
-$ ip route get 1.1.1.1
-1.1.1.1 via 192.168.207.2 dev ens33 src 192.168.207.128 uid 1000 
-    cache 
 
 The nmcli Utility
 -----------------

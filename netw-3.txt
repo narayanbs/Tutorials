@@ -126,10 +126,10 @@ to perform a DNS lookup which would replace the IP address with hostnames if the
 The netstat -rn command produces very similar results.
 
 [root@host1 ~]# route -n
-Kernel IP routing table
-Destination     Gateway         Genmask         Flags Metric Ref    Use Iface
-0.0.0.0         192.168.0.254   0.0.0.0         UG    100    0        0 eno1
-192.168.0.0     0.0.0.0         255.255.255.0   U     100    0        0 eno1
+
+Destination     Genmask        Gateway        Flags Metric Ref    Use Iface
+0.0.0.0         0.0.0.0        192.168.0.254  UG    100    0        0 eno1
+192.168.0.0     255.255.255.0  0.0.0.0        U     100    0        0 eno1
 
 
 Components of Routing Table Entries
@@ -137,12 +137,30 @@ Components of Routing Table Entries
 An entry in a routing table is usually a route to a specific network. The basic components of each entry in the routing table are:
 
 Destination address: this refers to the IP address of the destination network.
-Gateway/Next Hop: this refers to the next IP address to which the packet is forwarded.
-Subnet mask/Netmask: this refers to the class or range of the destination address. It’s used to map the destination address to the right network.
+
+Subnet mask/Netmask: This column and Destination together describe the Network identifier. For ex, destination 192.168.0.0 and 
+netmask 255.255.255.0 can be written as 192.168.0.0/24.
+
+Gateway/Next Hop: This is the address of the next station to which the packet is to be sent on the way to its final destination
+
+Interface: this refers to the local outgoing interface that is used to reach the gateway. 
+
 Metric: this assigns a value to each route to ensure that optimal routes are chosen for sending packets. 
 In some instances, the metric is the number of hops or number of routers to be crossed to get to the destination network. 
 If multiple routes exist, the route with the lowest metric is usually chosen.
-Interface: this refers to the outgoing interface that connects to the destination.
+
+for ex:
+
+Network	destination	Netmask			Gateway		Interface	Metric
+0.0.0.0			0.0.0.0			192.168.0.1	192.168.0.100	10
+127.0.0.0		255.0.0.0		127.0.0.1	127.0.0.1	1
+192.168.0.0		255.255.255.0		192.168.0.100	192.168.0.100	10
+
+Each entry is usually a route to a specific network. 
+
+The first entry is the default route. It is identified by all zeros in both Destination and subnet mask. 
+It is used when a more specific route does not exist. It also indicates that the gateway 102.168.0.1 can be reached 
+through a NIC card with address 192.168.0.100. The metric indicates the associated cost. 
 
 Routing decisions
 ------------------
@@ -154,21 +172,34 @@ They are fairly simple for most hosts:
 
 These rules simply mean that if all else fails because there is no match, send the packet to the default gateway.
 
-[root@host2 ~]# route -n
-Kernel IP routing table
-Destination     Gateway         Genmask         Flags Metric Ref    Use Iface
-192.168.1.24    0.0.0.0         255.255.255.252 U     0      0        0 eth0
-192.168.0.0     0.0.0.0         255.255.255.0   U     0      0        0 eth1
-192.168.25.0    0.0.0.0         255.255.255.0   U     0      0        0 eth2
-0.0.0.0         192.168.1.25    0.0.0.0         UG    0      0        0 eth0
+Let's see a routing example: Let's say PC1 would like to send a packet to PC3. 
 
-The routing table above, belongs to a Linux host acting as a router that connects to three networks, one of which leads to the Internet. 
-The local class C networks, 192.168.0.0/24 on interface eth1, 192.168.25.0/24 on eth2, each have entries in the table, 
-as well as the default route that leads to the rest of the world on eth0.
+[PC1] -------------- [router : eth0] ------------------ [PC3]
+10.0.0.4		RouterA				101.25.67.7
 
-Note that there is still only one default gateway, and that is on interface eth0. However, in addition to the default route entry that 
-points directly to the LAN side IP address of the router, there is also an entry for the 192.168.1.24/30 network as a whole. 
-That network only contains two usable IP addresses, one, 192.168.1.25/30, for the router LAN side and one, 192.168.1.26/30 for the host itself.
+PC3 is not on PC1's network. So PC1 forwards this packet to RouterA, Upon arrival at
+RouterA, the router checks its routine table for  path to destination 101.25.67.0
+
+Suppose we have the following routing table entries
+
+Network-Destination	Netmask		Gateway		Interface	Metric
+
+101.15.67.0		255.255.255.0	10.0.0.2	eth3		1
+
+0.0.0.0			0.0.0.0		10.0.0.1	eth0		0
+
+192.25.67.0		255.255.255.0	10.0.0.3	eth5		10
+
+Since a path exists (first entry), the packet will be forwarded to the gateay 10.0.0.2 through interface eth3 on RouterA.
+
+Now let's consider the second entry. Suppose the user of PC1 wants to send a packet to PC25 on the network 200.0.2.0. 
+RouterA will check its routing table for an entry to the address on which PC25 is located. As there is no recorded entry, 
+it forwards this packet to the default gateway at 10.0.0.1 through interface eth0. 
+The default gateway is always present in any routing table. t’s used when there is no entry for a specific network on the routing table. 
+The default gateway usually connects to other remote networks. For example, in a home environment, the default gateway is connected to the Internet.
+
+In the third and final entry, just like the first entry, a packet addressed to destination 192.25.67.0 will be forwarded to 
+the gateway at 10.0.0.3 through interface eth5.
 
 Routing configuration
 ----------------------
