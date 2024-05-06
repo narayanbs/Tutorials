@@ -378,8 +378,11 @@ interface of the system.
 Now, let’s use the route utility to check the kernel routing table:
 
 $ route
+
 Kernel IP routing table
+
 Destination     Gateway         Genmask         Flags Metric Ref    Use Iface
+
 default         _gateway        0.0.0.0         UG    100    0        0 ens33
 link-local      0.0.0.0         255.255.0.0     U     1000   0        0 ens33
 192.168.207.0   0.0.0.0         255.255.255.0   U     100    0        0 ens33
@@ -391,7 +394,9 @@ In addition to the above method, we can find the primary IP address using the ip
 the route to any destination. We can use this feature to find the primary IP address because it’s the interface that uses the default route.
 
 Let’s find out the route to reach any random IP address (1.1.1.1) using the ip utility:
+
 $ ip route get 1.1.1.1
+
 1.1.1.1 via 192.168.207.2 dev ens33 src 192.168.207.128 uid 1000 
     cache 
 
