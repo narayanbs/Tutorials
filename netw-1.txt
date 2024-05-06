@@ -288,7 +288,7 @@ Range			Number of Addresses			Network Address			Broadcast Address
 True
 
 A second special address type is a link-local address, which is one reachable only from within a given subnet. They are not guaranteed
-to be uniqe beyond their network segment. Therefore routers do not forward packets with link-local source or destination addresses.
+to be unique beyond their network segment. Therefore routers do not forward packets with link-local source or destination addresses.
 IPv4 link local addresses are assigned from the address block 169.254.0.0 to 169.254.255.255. IPv6 are assigned from the block fe80::/10
 
 >>> IPv4Address("169.254.169.123").is_link_local
