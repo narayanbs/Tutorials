@@ -408,6 +408,7 @@ of the primary active interface. There are many Linux utilities to find the prim
 ip
 ----
 $ ip address show dev ens33 
+
 2: ens33: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc fq_codel state UP group default qlen 1000
     link/ether 00:0c:29:d5:cd:03 brd ff:ff:ff:ff:ff:ff
     altname enp2s1
@@ -421,6 +422,7 @@ regarding the primary active interface, ens33. Subsequently, to display only the
 like grep and awk over the fetched primary interface details:
 
 $ ip address show dev ens33 | grep -w inet | awk '{print $2}'
+
 192.168.207.128/24
 
 Here, the ip utility displays the netmask along with the IP address.
@@ -432,6 +434,7 @@ It’s usually present in all modern-day Linux distributions. This utility will 
 so the user has to peruse and find the primary IP address of the primary active network interface:
 
 $ nmcli 
+
 ens33: connected to Wired connection 1
         "Intel 82545EM"
         ethernet (e1000), 00:0C:29:D5:CD:03, hw, mtu 1500
@@ -460,4 +463,5 @@ External IP Address
 -------------------
 To check the external IP address of a system:
 $ curl ifconfig.me
+
 220.158.158.132
