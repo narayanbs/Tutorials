@@ -1,246 +1,206 @@
-Primer on how dns works and how resolution happens 
-----------------------------------------------------
-When we use the browser to access a domain or when we use a command line program as shown below,
+1. Repeater – A repeater operates at the physical layer. Its job is to regenerate the signal over the same network
+before the signal becomes too weak or corrupted to extend the length to which the signal can be transmitted over 
+the same network. An important point to be noted about repeaters is that they not only amplify the signal but 
+also regenerate it. When the signal becomes weak, they copy it bit by bit and regenerate it
+
+2. Hub –  A hub is a basically multi-port repeater. They operate at the physical layer of the OSI model. 
+It is a network hardware device for connecting multiple Ethernet devices together and making them act as 
+a single network segment. It has multiple input/output (I/O) ports, in which a signal introduced at the 
+input of any port appears at the output of every port except the original incoming.
+
+3. A network bridge is a device that operates at the Link Layer and passes traffic across networks based on MAC addresses. 
+As a result, a network bridge is also known as a device that operates at the Layer 2 level. 
+It constructs tables of MAC addresses, using the information it gathers about what hosts are connected to each network, 
+and bases its judgments about which packets to forward on those tables. A Linux host computer may make use of a hardware bridge 
+in order to simulate the functionality of a software bridge.
+
+4. Switch - A network switch connects devices on a computer network by using packet switching to receive 
+and forward data to the destination device. A network switch is a multiport network bridge that uses MAC addresses 
+to forward data at the data link layer (layer 2) of the OSI model. Some switches can also forward data at the 
+network layer (layer 3) by additionally incorporating routing functionality. Such switches are commonly known 
+as layer-3 switches or multilayer switches. Unlike hubs, which broadcast the same data out of each port and let 
+the devices pick out the data addressed to them, a network switch learns the identities of connected devices 
+and then only forwards data to the port connected to the device to which it is addressed.
+
+5. Router: Routers operate at the network layer of the OSI model and connect different networks. 
+They direct data packets between networks, making decisions based on IP addresses. Routers play a crucial 
+role in determining the most efficient path for data to travel between devices on different subnets.
+
+6. Gateway: Gateways serve as protocol converters, facilitating communication between networks with different 
+communication protocols. They play a crucial role in ensuring interoperability in heterogeneous network environments.
+Additionally, gateways often act as security checkpoints, implementing firewalls and other security measures.
+
+7. NAT - Network Address Translation. It's a way to map multiple private addresses inside a local network to a 
+public IP address before transferring the information onto the internet. An external address, usually routable, 
+is the "outside" of the NAT. The machines behind the NAT have an "inside" address that is usually non-routable. 
+When a connection is made between an inside address and an outside address, the NAT system in the middle creates 
+a forwarding table entry consisting of (outside_ip, outside_port, nat_host_ip, nat_host_port, inside_ip, inside_port). 
+Any packet matching the first four parts gets its destination re-written to the last two parts.
+If a packet is received that doesn't match an entry in the NAT table, then there is no way for the NAT box to
+know where to forward it unless a forwarding rule was manually defined. That's why, by default, a machine behind a NAT device is "protected".
+Your home router performs NAT.. The system has an internal address, and our ISP provides us an external IP to which it is mapped by the router. 
+
+Routing
+=====================
+
+Before we get into routing, it helps to understand a little bit about how packets find their way to the correct host on a network.
+The TCP/IP network model defines a five layer stack that describes the mechanisms necessary to move data packets from one host to another,
+whether that host is on the local network or halfway around the world. Each of the layers in the following description of this
+model is numbered and also contain the names of the data units that are handled by that layer.
+
+5. Application layer: 
+Message This layer consists of the connection protocols required for various network applications to communicate, 
+such as HTTP, DHCP, SSH, FTP, SMTP, IMAP, and others. When you request a web page from a remote web site, 
+a connection request is sent to the web server and the response is sent back to your host at this layer and
+then your browser displays the web page in its window.
+
+4. Transport layer: 
+TCP segment. The transport layer provides end-to-end data transport and flow management services that are 
+independent of the data and types of protocols being transported. It uses ports such as 80 for HTTP and 25 
+for SMTP to make connections between the sending host and the remote host.
+
+3. Internet layer: 
+Packet. Packet routing is performed on the Internet layer. This layer is responsible for routing packets
+across two or more different networks in order to reach their final destination. This layer uses IP Addresses
+and the routing table to determine which device to send the packets to next. If sent to a router, each router
+is responsible for sending the data packets only to the next router in the series and not for mapping out the
+entire route from the local host to the target host. The Internet layer is mostly about routers talking to routers 
+in order to determine the next router in the chain.
+
+2. Data Link layer: 
+Frame. The Link layer manages the direct connections between hardware hosts on a single, local, logical, 
+physical network. This layer uses the Media Access Control (MAC) addresses embedded in the Network Interface Cards (NICs) 
+to identify the physical devices attached to the local network. This layer cannot access hosts that are not on the local network.
+
+1. Physical layer: 
+Bits. This is the hardware layer and consists of the NICs and the physical Ethernet cable as well as the 
+hardware level protocols used to transmit individual bits that make up the data frames between any two hosts
+or other network nodes that are locally connected.
 
->>> socket.gethostbyname("www.example.com") 
-or
->>> socket.gethostbyname_ex("www.example.com")
 
-The following steps are carried out.
+A simple example
 
-1. The programm invokes the DNS Client, and it or the (stub resolver) will query our recursive resolver for www.example.com
-2. The recursive resolver (usually our internet provider), will send a query to the DNS root nameserver. 
-3. The root nameserver will refer our recursive resolver to the .com tld (top level domain) name server.
-4. The recursive resolver queries the .com TLD name server for www.example.com.
-5. The server refers your recursive server to the authoritative servers for example.com.
-6. Your recursive resolver queries the authoritative servers for www.example.com, and receives 1.2.3.4 as the answer.
-7. Your recursive resolver caches the answer for the duration of the time-to-live (TTL) specified on the record, and returns it to you.
+So what does that look like when a host is actually sending data on the network using the TCP/IP network model? 
+Here is my own made-up description of how data are moved from one network to another. 
+In this example, my computer is sending a request to a remote server for a web page.
 
-Let's try it with an example:
+1. On the application layer, the browser initiates an HTTP connection request message to the remote host, www.example.com, 
+to send back the data comprising the contents of a web page. This is the message, and it includes only the IP Address of the remote web server.
 
-Let's resolve "research.swtch.com"
+2. The transport layer encapsulates the message containing the web page request in a TCP datagram with the IP address 
+of the remote web server as the destination. Along with the original request packet, this packet now includes the 
+source port from which the request will originate, usually a very high number random port, so that the return data 
+knows which port the browser is listening on; and the destination port on the remote host, port 80 in this case.
 
-step1: Query a root nameserver. There are 13 root nameservers in the world. (try: dig +trace www.google.com), we'll select a random one
+3. The Internet layer encapsulates the TCP datagram in a packet that also contains both the source and destination IP addresses.
 
-$ dig @h.root-servers.net research.swtch.com
+4. The data Link layer uses the Address Resolution Protocol (ARP) to identify the physical MAC address of the default router
+and encapsulates the Internet packet in a frame that includes both the source and destination MAC addresses.
+Note: source could be NIC card and destination is default router. 
 
-h.root-servers.net is one of the 13 DNS root nameservers, and dig @h.root-servers.net means “send the query to h.root-servers.net”.
+5. The frame is sent over the wire, usually CAT5 or CAT6, from the NIC on the local host to the NIC on the default router.
 
-Response...... We are interested only in the authority section. These specify the tld nameservers for (com.) 
+6. The default router opens the datagram and determines the destination IP address. The router uses its own routing table 
+to identify the IP address of the next router that will take the frame onto the next step of its journey. 
+The router then re-encapsulates the frame in a new datagram that contains its own MAC as the source and the MAC address 
+of the next router and then sends it on through the appropriate interface. 
+The router performs its routing task at layer 3, the Internet layer.
 
-;; AUTHORITY SECTION:
-com.			172800	IN	NS	a.gtld-servers.net.
-com.			172800	IN	NS	b.gtld-servers.net.
-com.			172800	IN	NS	c.gtld-servers.net.
-com.			172800	IN	NS	d.gtld-servers.net.
-com.			172800	IN	NS	e.gtld-servers.net.
-com.			172800	IN	NS	f.gtld-servers.net.
+Note that switches are invisible to all protocols at layers two and above, so they do not affect the transmission of data in any logical manner.
+The function of switches is merely to provide a simple means to connect multiple hosts into a single physical network via lengths of Ethernet cable.
 
-step2: Query any tld nameserver, we've chosen the first one.
+You can use the arp [-n] command to view all of the MAC addresses that your host has stored in its arp table. 
+These are always hosts on the local network.
 
-$ dig @a.gtld-servers.net. research.swtch.com
+The routing table
+-------------------
+All network devices, whether they are hosts, routers, or other types of network nodes such as network attached printers,
+need to make decisions about where to route TCP/IP data packets. The routing table provides the configuration information 
+required to make those decisions.A routing table similar to the very simple one in Figure 1 is used to define the single 
+route available to a typical local host and to determine whether to send packets to the default gateway router. 
 
-Response.... Again only interested in the authority section. These specify the authoritative nameservers. 
+The route -n command lists the routing table; the -n option displays the results as IP addresses only and does not attempt
+to perform a DNS lookup which would replace the IP address with hostnames if they are available. 
+The netstat -rn command produces very similar results.
 
-;; AUTHORITY SECTION:
-swtch.com.		172800	IN	NS	a.dns.gandi.net.
-swtch.com.		172800	IN	NS	b.dns.gandi.net.
-swtch.com.		172800	IN	NS	c.dns.gandi.net.
+[root@host1 ~]# route -n
 
-step3: Query any authoritative nameserver. We choose the first one.
+Destination     Genmask        Gateway        Flags Metric Ref    Use Iface
+0.0.0.0         0.0.0.0        192.168.0.254  UG    100    0        0 eno1
+192.168.0.0     255.255.255.0  0.0.0.0        U     100    0        0 eno1
 
-$ dig @a.dns.gandi.net. research.swtch.com
 
-Response... We need to look at the answer section. 
+Components of Routing Table Entries
+-----------------------------------
+An entry in a routing table is usually a route to a specific network. The basic components of each entry in the routing table are:
 
-;; ANSWER SECTION:
-research.swtch.com.	28800	IN	CNAME	ghs.google.com.
+Destination address: this refers to the IP address of the destination network.
 
-So the resolution led to a cname record. According to the rule, if we get a cname record, then the dns client 
-will restart the resolution with the specified cname domain.
+Subnet mask/Netmask: This column and Destination together describe the Network identifier. For ex, destination 192.168.0.0 and 
+netmask 255.255.255.0 can be written as 192.168.0.0/24.
 
-So let's try that now
+Gateway/Next Hop: This is the address of the next station to which the packet is to be sent on the way to its final destination
 
-$ dig @h.root-servers.net ghs.google.com
+Interface: this refers to the local outgoing interface that is used to reach the gateway. 
 
-Response...  (tld nameservers for com.)
+Metric: this assigns a value to each route to ensure that optimal routes are chosen for sending packets. 
+In some instances, the metric is the number of hops or number of routers to be crossed to get to the destination network. 
+If multiple routes exist, the route with the lowest metric is usually chosen.
 
-;; AUTHORITY SECTION:
-com.			172800	IN	NS	a.gtld-servers.net.
-com.			172800	IN	NS	b.gtld-servers.net.
-com.			172800	IN	NS	c.gtld-servers.net.
-com.			172800	IN	NS	d.gtld-servers.net.
-com.			172800	IN	NS	e.gtld-servers.net.
+for ex:
 
+Network	destination	Netmask			Gateway		Interface	Metric
+0.0.0.0			0.0.0.0			192.168.0.1	192.168.0.100	10
+127.0.0.0		255.0.0.0		127.0.0.1	127.0.0.1	1
+192.168.0.0		255.255.255.0		192.168.0.100	192.168.0.100	10
 
-$ dig @a.gtld-servers.net ghs.google.com
+Each entry is usually a route to a specific network. 
 
-Response... (authoritative nameservers)
+The first entry is the default route. It is identified by all zeros in both Destination and subnet mask. 
+It is used when a more specific route does not exist. It also indicates that the gateway 102.168.0.1 can be reached 
+through a NIC card with address 192.168.0.100. The metric indicates the associated cost. 
 
-;; AUTHORITY SECTION:
-google.com.		172800	IN	NS	ns2.google.com.
-google.com.		172800	IN	NS	ns1.google.com.
-google.com.		172800	IN	NS	ns3.google.com.
-google.com.		172800	IN	NS	ns4.google.com.
+Routing decisions
+------------------
+They are fairly simple for most hosts:
 
-$ dig @ns2.google.com ghs.google.com
+    If the destination host is on the local network, send the data directly to the destination host.
+    If the destination host is on a remote network that is reachable via a local gateway listed in the routing table, send it to the explicitly defined gateway.
+    If the destination host is on a remote network, and there is no other entry that defines a route to that host, send the data to the default gateway.
 
-Response... Let's look at the answer section.
+These rules simply mean that if all else fails because there is no match, send the packet to the default gateway.
 
-;; ANSWER SECTION:
-ghs.google.com.		300	IN	A	142.250.193.179
+Let's see a routing example: Let's say PC1 would like to send a packet to PC3. 
 
-There it is, we have finally got the IP of (research.swtch.com)
+[PC1] -------------- [router : eth0] ------------------ [PC3]
+10.0.0.4		RouterA				101.25.67.7
 
+PC3 is not on PC1's network. So PC1 forwards this packet to RouterA, Upon arrival at
+RouterA, the router checks its routing table for  path to destination 101.25.67.0
 
-Reference:https://jvns.ca/blog/2022/01/11/how-to-find-a-domain-s-authoritative-nameserver/
+Suppose we have the following routing table entries
 
-*******************************************************
-Point to remember:  How does Authoritative DNS server deal with CNAME type?
+Network-Destination	Netmask		Gateway		Interface	Metric
 
-if there is a DNS zone as follows:
+101.15.67.0		255.255.255.0	10.0.0.2	eth3		1
 
-NAME                    TYPE   VALUE
---------------------------------------------------
-bar.example.com.        CNAME  foo.example.com.
-foo.example.com.        A      192.0.2.23
+0.0.0.0			0.0.0.0		10.0.0.1	eth0		0
 
-when an A record lookup for bar.example.com is carried out, the resolver will see a CNAME record and restart the checking 
-at foo.example.com and will then return 192.0.2.23.
-*******************************************************
+192.25.67.0		255.255.255.0	10.0.0.3	eth5		10
 
-Let's look at the python api.
+Since a path exists (first entry), the packet will be forwarded to the gateay 10.0.0.2 through interface eth3 on RouterA.
 
->>> import socket
->>> socket.gethostbyname_ex("research.swtch.com")
-('ghs.google.com', ['research.swtch.com'], ['142.250.77.179'])
+Now let's consider the second entry. Suppose the user of PC1 wants to send a packet to PC25 on the network 200.0.2.0. 
+RouterA will check its routing table for an entry to the address on which PC25 is located. As there is no recorded entry, 
+it forwards this packet to the default gateway at 10.0.0.1 through interface eth0. 
+The default gateway is always present in any routing table. t’s used when there is no entry for a specific network on the routing table. 
+The default gateway usually connects to other remote networks. For example, in a home environment, the default gateway is connected to the Internet.
 
-It says that research.swtch.com is an alias for ghs.google.com. 
-ghs.google.com is  mapped to the ip 142.250.77.179
+In the third and final entry, just like the first entry, a packet addressed to destination 192.25.67.0 will be forwarded to 
+the gateway at 10.0.0.3 through interface eth5.
 
-
-We can also try the following command for a succint response. 
-
-$ dig +noall +answer +multiline research.swtch.com
-
-research.swtch.com.	7389 IN	CNAME ghs.google.com.
-ghs.google.com.		300 IN A 142.250.77.179
-
-	or
-
-$ host research.swtch.com
-
-research.swtch.com is an alias for ghs.google.com.
-ghs.google.com has address 142.250.77.179
-ghs.google.com has IPv6 address 2404:6800:4007:80f::2013k
-
-
-Fully Qualified Domain Name and Reverse Lookup
-***********************************************
-
-How do we get the fully qualified domain name? FQDN is the result of a reverse lookup of the IP address
-
-We can use the following commands to do a reverse lookup
-
-$ dig -x 142.250.77.179
-
-Note: The output should have an Answer section with PTR record, i.e a reverse lookup zone file should exist. Otherwise
-you will not be able to reverse lookup an ip address.
-
-
-You can use the host command as well.
-
-$ host 142.250.77.179
-
-179.77.250.142.in-addr.arpa domain name pointer maa05s17-in-f19.1e100.net.
-
-	or 
-
->>> socket.gethostbyaddr("142.258.77.179")
-('maa05s17-in-f19.1e100.net', [], ['142.250.77.179'])
-
-
-'maa05s17-in-f19.1e100.net' is the fully qualified domain name. 
-
-But why is this different from ghs.google.com. We need to understand the concept of forward lookup zone and reverse lookup zone. 
-Forward lookup zone maps names to ip addresses, while reverse lookup zone maps ipaddress to network hosts. 
-
-One important fact to understand about forward and reverse lookup records is that they are separate zone files. Combined with that fact, 
-the relationship of forward to reverse is a many to one, while the relationship between reverse to forward is a one to one.
-Meaning, you can map many different names to a single IP address, and they will resolve correctly. On the other hand, you can only effectively 
-map any given IP address to a singular name. In DNS records, when there are keys with multiple values, 
-DNS uses a functionality called round-robin to randomly return the value.
-
-For example, if you have two reverse records that map 192.168.0.1 to test1.xzy.local and test2.xzy.local, 
-half of the time you do a reverse lookup on 192.168.0.1, it will return test1, and the other half, it will return test2.
-
-All this to say that sometimes the reverse records do not match up perfectly with the forward records, and this is one scenario that describes why.
-
-A Forward-confirmed reverse DNS (FCrDNS), also known as full-circle reverse DNS, double-reverse DNS, or iprev, is a 
-networking parameter configuration in which a given IP address has both forward (name-to-address) and reverse (address-to-name) 
-Domain Name System (DNS) entries that match each other. Clearly in the above case it is not a FCrDNS.
-
-Note: When we look at our system hostname using either "hostname" command in linux or socket.gethostname() in python, it basically does
-a reverse lookup in our /etc/hosts file and returns the hostname. 
-
-Let's look at another example
-
-~ ⚡ dig www.skyscanner.net
-
-; <<>> DiG 9.18.18-0ubuntu0.22.04.2-Ubuntu <<>> www.skyscanner.net
-;; global options: +cmd
-;; Got answer:
-;; ->>HEADER<<- opcode: QUERY, status: NOERROR, id: 14069
-;; flags: qr rd ra; QUERY: 1, ANSWER: 5, AUTHORITY: 0, ADDITIONAL: 1
-
-;; OPT PSEUDOSECTION:
-; EDNS: version: 0, flags:; udp: 65494
-;; QUESTION SECTION:
-;www.skyscanner.net.		IN	A
-
-;; ANSWER SECTION:
-www.skyscanner.net.	3264	IN	CNAME	www.skyscanner.net.cdn.skyscannerplatform.net.
-www.skyscanner.net.cdn.skyscannerplatform.net. 60 IN A 18.161.216.37
-www.skyscanner.net.cdn.skyscannerplatform.net. 60 IN A 18.161.216.62
-www.skyscanner.net.cdn.skyscannerplatform.net. 60 IN A 18.161.216.32
-www.skyscanner.net.cdn.skyscannerplatform.net. 60 IN A 18.161.216.8
-
-;; Query time: 40 msec
-;; SERVER: 127.0.0.53#53(127.0.0.53) (UDP)
-;; WHEN: Tue Feb 27 21:13:40 IST 2024
-;; MSG SIZE  rcvd: 167
-
-We notice that the answer section indicates that resolving www.skyscanner.net returns a cname record and that domain 
-is again resolved to get the ip addresses. We also notice that the same domain can be mapped to multiple ips
-
-Now lets' do a reverse lookup at one of the IP addresses 18.161.216.37, using the host command
-
-~ ⚡ host 18.161.216.37
-;; communications error to 127.0.0.53#53: timed out
-37.216.161.18.in-addr.arpa domain name pointer server-18-161-216-37.blr50.r.cloudfront.net.
-
-It returns a fully qualified domain name (fqdn) and We notice that its different from the one specified in the forward lookup zone mapping.
-it is not FCrDNS. 
-
-Now let's use the python api to do the same
-
->>> import socket
-
->>> socket.gethostbyname_ex("www.skyscanner.net")
-('www.skyscanner.net.cdn.skyscannerplatform.net', ['www.skyscanner.net'], ['18.161.216.32', '18.161.216.8', '18.161.216.62', '18.161.216.37'])
-
->>> socket.gethostbyaddr("18.161.216.37")
-('server-18-161-216-37.blr50.r.cloudfront.net', [], ['18.161.216.37'])
-
->>> socket.getfqdn("www.skyscanner.net")
-'server-18-161-216-32.blr50.r.cloudfront.net'
-
-This is not FCrDNS as well. 
---------------------------------------------------------------------------------------------------------
-
-Forward vs. Reverse DNS Lookup Zones: Do You Need Both?
-
-Typically, when you need DNS services, your first and only thought is converting names to IP addresses via a forward lookup. 
-The reverse lookup is usually an afterthought or something that is not well maintained. It is not required for forward lookups to work, 
-but as mentioned above, some services may rely on it like mail services that query reverse lookup records to determine if the source is a spammer. 
-In other cases, it can be helpful on things like traceroutes to see the name associated with the IP address.
+Routing configuration
+----------------------
+So how does the routing table get configured? For hosts connected to the network using DHCP, the DHCP server provides that configuration 
+information for the default route along with DNS, the hosts IP address, and possibly other information such as the IP address for 
+an NTP server. For static configurations, it is usually simple, but it can be a bit more complicated sometimes.
