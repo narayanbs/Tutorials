@@ -290,6 +290,10 @@ True
 A second special address type is a link-local address, which is one reachable only from within a given subnet. They are not guaranteed
 to be unique beyond their network segment. Therefore routers do not forward packets with link-local source or destination addresses.
 IPv4 link local addresses are assigned from the address block 169.254.0.0 to 169.254.255.255. IPv6 are assigned from the block fe80::/10
+In IPv4, link-local addresses are normally only used when no external, stateful mechanism of address configuration exists, such as the DHCP,
+or when another primary configuration method has failed. In IPv6, link-local addresses are always assigned, along with addresses of other scopes, 
+and are required for the internal functioning of various protocol components.
+Link-local addresses may be assigned manually by an administrator or by automatic operating system procedures.
 
 >>> IPv4Address("169.254.169.123").is_link_local
 True
