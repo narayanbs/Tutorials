@@ -86,7 +86,7 @@ PTR record:
 The function LookupAddr performs a reverse lookup for the given address, returning a list of names mapping to that address.
 func LookupAddr(addr string) (names []string, err error)
 
-addrs, err := net.LookupAddr("8.8.8.8") 
+names, err := net.LookupAddr("8.8.8.8") 
 for _, name := range names {
 		fmt.Printf("%s\n", name)
 }
