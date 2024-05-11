@@ -77,8 +77,20 @@ p::first-line {
 Combinators - combine selectors to target elements in the document. 
 	(i.e direct children, descendents .. etc)
 
+child combinator
 article > p {
 }
+
+Next sibling combinator
+p + img {
+}
+
+descendent combinator
+body article p 
+
+subsequent sibling combinator
+p ~ img
+
 
 
 Cascade, specificity and inheritance 
@@ -94,7 +106,7 @@ An element selector is less specific; it will select all elements of that type t
 Pseudo-element selectors have the same specificity as regular element selectors.
 A class selector is more specific; it will select only the elements on a page that have a specific class attribute value, 
 so it has more weight. Attribute selectors and pseudo-classes have the same weight as a class.
-nheritance also needs to be understood in this context — some CSS property values set on parent elements are inherited 
+Inheritance also needs to be understood in this context — some CSS property values set on parent elements are inherited 
 by their child elements, and some aren't.
 
 When conflicts arise, the term "cascading" refers to the hierarchical order in which different style sheet types interact. 

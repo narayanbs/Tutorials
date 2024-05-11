@@ -12,7 +12,7 @@ href: The base URL to be used throughout the document for relative URLs. Absolut
 target: 
   * _self (default) - show the result in the current browsing context
   * _blank - show the result in a new, unnamed browsing context
-  * _parent - if inside a frame, show the result in the parent browsing context of the current one, else the same askk _self
+  * _parent - if inside a frame, show the result in the parent browsing context of the current one, else the same as _self
   * _top - show the result in the browsing context that is an ancestor of the current one and has no parent, else the same as _self
 
 ex:
