@@ -21,7 +21,8 @@ DOM -- Document Object Model represents all page content as objects. document is
 	document.body.style.background="red"
 
 BOM -- Browser object model represents objects provided by the browser. ex: navigator, location. screen.
-	location.href --> current url
+	document.location.href --> current url
+	document.location.host --> current host
 
 
 DOM -- Document Object Model
@@ -53,6 +54,7 @@ The html element is called the document element (documentElement). Each document
 The topmost tree nodes are available as document properties. 
 	<html> = document.documentElement
 	<head> = document.head
+	<title> = document.title
 	<body> = document.body
 	<script>... = document.scripts
 	<form>.. = document.forms
@@ -102,6 +104,7 @@ For example, if the node type is the element node, the nodeName is always the sa
 	if (node.nodeType == Node.ELEMENT_NODE) {
 	    let name = node.nodeName; // tag name like <p>	    
 	}
+For a text node, the nodeName is #text, nodeType is Node.TEXT_NODE and nodeValue is the text.
 
 Node Relationships
 ------------------
