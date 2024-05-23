@@ -186,7 +186,7 @@ Python String Methods - by action
 
  startswith() --> Checks if String Starts with the Specified String
  endswith() --> Checks if String Ends with the Specified Suffix
- isalnum() --> Checks Alphanumeric Character
+ isalnum() --> Checks Alphanumeric Character	
  isalpha() --> Checks if All Characters are Alphabets
  isdecimal() --> Checks Decimal Characters
  isdigit() --> Checks Digit Characters
@@ -198,12 +198,21 @@ Python String Methods - by action
  istitle() --> Checks for Titlecased String
  isupper() --> returns if all characters are uppercase characters
 
+ for ex: if s = "this is a test", 
+ s[0].isalnum(), s.isalpha(), s.istitle()
+
 5. replace/remove
 
  replace() --> Replaces Substring Inside
  strip() --> Removes Both Leading and Trailing Characters
  lstrip() --> Removes Leading Characters 
  rstrip() --> Removes Trailing Characters
+
+ for ex: s = "this is a test"
+ s.replace("t", "x") --> "xhis is a xesx"
+ s.strip("t") --> "his is a tes"
+ s.rstrip("t") --> "this is a tes"
+ s.lstrip("t") --> "his is a test"
 
 6. join / split
 
@@ -213,13 +222,25 @@ Python String Methods - by action
  splitlines() --> Splits String at Line Boundaries
  partition() --> Returns a Tuple of string partitioned  (Method only partitions on first occurrence of separator)
  rpartition() --> Returns a Tuple of string partitioned but starting from the right
+
+ for ex: 
+ l = ["this", "is", "a", "test"]
+ s = ",".join(l) --> this,is,a,test
+ s.split(",") --> ["this", "is", "a", "test"]
+
+ s = "this is \n bad example\n isnt it"
+ s.splitlines() --> ['this is ', ' bad example', ' isnt it']
+
+ s = "this,is,a,test"
+ s.partition(",") --> ('this', ',', 'is,a,test')
+ s.rpartition(",") --> ('this,is,a', ',', 'test')
  
 7. formatting/printing
 
- ljust() --> returns left-justified string of given width, with optional fill-in character. ex: ljust(20, "*")
- rjust() --> returns right-justified string of given width, with optional fill-in character, ex: rjust(20, "*")
- center() --> Pads string with specified character, with optional fill-in character, ex: center(20, "*")
- zfill() --> Returns a Copy of The String Padded With Zeros, ex: zfill(30), left padded with zeros
+ ljust() --> returns left-justified string of given width, with optional fill-in character. ex: s.ljust(20, "*")
+ rjust() --> returns right-justified string of given width, with optional fill-in character, ex: s.rjust(20, "*")
+ center() --> Pads string with specified character, with optional fill-in character, ex: s.center(20, "*")
+ zfill() --> Returns a Copy of The String Padded With Zeros, ex: s.zfill(30), left padded with zeros
  format() --> formats string into nicer output
  format_map() --> Formats the String Using Dictionary
  
