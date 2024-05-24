@@ -333,6 +333,10 @@ ex:
     str(20) = "20"
     str([1,2,3,4,5]) = '[1,2,3,4,5]' ---> is the same as [1,2,3,4,5].__str__() --> also [1,2,3,4,5].__repr__()
 
+Note: __repr__() method is intended to hold information about the object so that it can be created again. In contrast __str__() is
+used for human-friendly logging purposes. The string representation in __repr__ should be such that the object could be reconstructed
+using the eval function. for ex: eval(repr("obj")) == obj
+
 ord()
 * Returns the unicode code point of a one character string
 ex:

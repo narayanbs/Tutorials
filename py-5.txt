@@ -17,7 +17,7 @@ os.scandir('dir_name') --> return all files and folders inside dir_name as an it
 ex:     for it in os.scandir(os.getenv("HOME")):
             print(it.name, it.path, it.is_file(), it.is_dir())
 
-os.environ --> mapping object that represents the user’s environmental variables
+os.environ --> dict object that represents the user’s environmental variables
 ex: 
   os.environ["HOME"] --> '/home/phoenix'
 	os.environ.get("HOME") --> '/home/phoenix'
