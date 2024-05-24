@@ -190,6 +190,7 @@ for f in p.glob('**/*.py'):
 for f in p.rglob('*.py'):
 	print(f)
 
+# rglob -> recursive glob
 
 
 pathlib and os/os.path common methods
