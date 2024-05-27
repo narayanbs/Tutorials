@@ -40,10 +40,31 @@ use fzf for better fuzzy search
 
 Most linux distros used a superuser account root user "su" by default. But this introduced a problem, users tended to login as root user
 unnecessarily. so security was compromised. By default, Ubuntu disables logins to the root account (by failing to set a password for the account),
-and instead uses sudo to grant superuser privileges. 
+his does not mean that the root account has been deleted, or that it may not be accessed. Instead, it has been given a password hash that matches 
+no possible value, and so may not log in directly by itself. Instead, the sudo utility (“superuser do”) is used to carry out
+system administrative duties. sudo allows an authorised user to temporarily elevate their privileges using their own password instead of 
+having to know the password belonging to the root account. This provides accountability for all user actions, and gives the administrator control 
+over which actions a user can perform with said privileges.
+
 The initial user account is granted full access to superuser privileges via sudo and may grant similar powers to subsequent user accounts.
 The sudo command is like su in many ways but has some important additional capabilities.  The administrator can configure sudo to allow an 
 ordinary user to execute commands as a different user (usually the superuser) in a controlled way.
+
+Note: -----------
+If for some reason you wish to enable the root account, you will need to give it a password:
+sudo passwd
+
+sudo will prompt you for your password, and then ask you to supply a new password for root as shown below:
+
+[sudo] password for username: (enter your own password)
+Enter new UNIX password: (enter a new password for root)
+Retype new UNIX password: (repeat new password for root)
+passwd: password updated successfully
+
+To disable the root account password, use the following passwd syntax:
+
+sudo passwd -l root
+-------------------------
 
 In ubuntu, the su command is used to become another user during a login session. Invoked without a username, su defaults to becoming the
 superuser. The optional argument - may be used to provide an environment similar to what the user would expect had the user logged in directly.
