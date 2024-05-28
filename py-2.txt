@@ -376,10 +376,10 @@ Here the age descriptor set/get the _age property on the object it is attached t
 
 		def __init__(self, name, age):
 		    self.name = name                # Regular instance attribute
-		    self.age = age                  # Calls __set__()
+		    self._age = age                  # Calls __set__()
 
 		def birthday(self):
-		    self.age += 1                   # Calls both __get__() and __set__()
+		    self._age += 1                   # Calls both __get__() and __set__()
 
 
 	>>> mary = Person('Mary M', 30)         # The initial age update is logged
