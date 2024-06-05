@@ -167,6 +167,11 @@ ex:
 ##### Image and Multimedia
 <area> <audio> <img> <map> <track> <video>
 
+<audio src="Short.mp3" controls></audio>
+<video  controls width="250">
+<source src="/media/flower.webm"/>
+</video>
+
 ##### Embedded Content
 <embed> <iframe> <object> <picture> <portal> <source>
 
