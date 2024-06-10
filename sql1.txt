@@ -1,0 +1,123 @@
+SQL - Structured Query Language
+------------------------------
+DDL - Data definition Language - CREATE, ALTER, DROP, TRUNCATE
+DML - Data Modification Language - SELECT, INSERT, UPDATE, DELETE
+DCL - Data Control Language - GRANT, REVOKE
+
+RDBMS - database management system based on relational model as introduced by E.F. Codd
+
+The data is stored in a database object known as table. The table is a collection of related
+data entries and it consists of numerous rows and columns.
+
+ID	Name	Age	Salary	City		Country
+1	Ramesh	32	2000.00	Hyderabad	India
+2	Mukesh	40	5000.00	New York	USA
+3	Sumit	45	4500.00	Muscat		Oman
+4	Kaushik	25	2500.00	Kolkata		India
+
+A field with NULL value contains no value and appears blank.
+
+SQL Contraints
+
+These are rules enforced on data columns of a table. These are used to limit the type
+of data that go into the table
+
+1	NOT NULL Constraint	Ensures that a column cannot have a NULL value.
+
+2	DEFAULT Constraint	Provides a default value for a column when none is specified.
+
+3	UNIQUE Key		Ensures that all the values in a column are different.
+
+4	PRIMARY Key		Uniquely identifies each row/record in a database table.
+
+5	FOREIGN Key		Uniquely identifies a row/record in any another database table.
+
+6	CHECK Constraint	Ensures that all values in a column satisfy certain conditions.
+
+7	INDEX Constraint	Used to create and retrieve data from the database very quickly.f data that go in a table. 
+
+Data Integrity
+
+The following categories of data integrity exist with each RDBMS −
+
+Entity Integrity − This ensures that there are no duplicate rows in a table.
+Domain Integrity − Enforces valid entries for a given column by restricting the type, the format, or the range of values.
+Referential integrity − Rows cannot be deleted, which are used by other records.
+User-Defined Integrity − Enforces some specific business rules that do not fall into entity, domain or referential integrity.
+
+
+Database Normalization
+
+Database normalization is the process of efficiently organizing data in a database. There are two reasons of this normalization process −
+
+Eliminating redundant data, for example, storing the same data in more than one table. Ensuring data dependencies make sense.
+Normalization guidelines are divided into normal forms; think of a form as the format or the way a database structure is laid out. 
+The aim of normal forms is to organize the database structure, so that it complies with the rules of first normal form, 
+then second normal form and finally the third normal form.
+
+It is your choice to take it further and go to the Fourth Normal Form, Fifth Normal Form and so on, 
+but in general, the Third Normal Form is more than enough for a normal Database Application.
+
+First Normal Form (1NF): This is the most basic level of normalization. In 1NF, each table cell should contain only a single value, 
+and each column should have a unique name. The first normal form helps to eliminate duplicate data and simplify queries.
+Second Normal Form (2NF): 2NF eliminates redundant data by requiring that each non-key attribute be dependent on the primary key. 
+This means that each column should be directly related to the primary key, and not to other columns.
+Third Normal Form (3NF): 3NF builds on 2NF by requiring that all non-key attributes are independent of each other. 
+This means that each column should be directly related to the primary key, and not to any other columns in the same table.
+Boyce-Codd Normal Form (BCNF): BCNF is a stricter form of 3NF that ensures that each determinant in a table is a candidate key. 
+In other words, BCNF ensures that each non-key attribute is dependent only on the candidate key.
+Fourth Normal Form (4NF): 4NF is a further refinement of BCNF that ensures that a table does not contain any multi-valued dependencies.
+Fifth Normal Form (5NF): 5NF is the highest level of normalization and involves decomposing a table into smaller tables 
+to remove data redundancy and improve data integrity.
+
+
+SQL Types
+
+There are 3 main SQL datatypes available in any RDBMS.
+1. String
+2. Numeric
+3. Date and time
+
+MySQL Datatypes
+---------------
+MySQL - String Data Types
+Data type	Description
+CHAR(size)	A fixed length string which can have letters, numbers, and special characters. The size parameter specifies the column length in characters which can vary from from 0 to 255. Default size is 1
+VARCHAR(size)	A variable length string which can contain letters, numbers, and special characters. The size parameter specifies the maximum string length in characters which can vary from 0 to 65535.
+BINARY(size)	This is equal to CHAR(), but stores binary byte strings. The size parameter specifies the column length in bytes. Default size is 1
+VARBINARY(size)	This is equal to VARCHAR(), but stores binary byte strings. The size parameter specifies the maximum column length in bytes.
+TINYTEXT	This holds a string with a maximum length of 255 characters
+TEXT(size)	This holds a string with a maximum length of 65,535 bytes
+LONGTEXT	This holds a string with a maximum length of 4,294,967,295 characters
+TINYBLOB	This represents a small BLOBs (Binary Large Objects). Max length is 255 bytes
+BLOB(size)	This represents a BLOBs (Binary Large Objects). Holds up to 65,535 bytes of data
+MEDIUMTEXT	This holds a string with a maximum length of 16,777,215 characters
+MEDIUMBLOB	This represents a medium BLOBs (Binary Large Objects). Holds up to 16,777,215 bytes of data
+LONGBLOB	This represents a large BLOBs (Binary Large Objects). Holds up to 4,294,967,295 bytes of data
+ENUM(val1, val2, val3, ...)	A string object that can contain only one value, chosen from a list of possible values. You can list up to 65535 values in an ENUM list. If a value is inserted that is not in the list, a blank value will be inserted. The values are sorted in the order you enter them
+SET(val1, val2, val3, ...)	A string object that can have 0 or more values, chosen from a list of possible values. You can list up to 64 values in a SET list
+
+MySQL - Numeric Data Types
+Data type	Description
+INT	A normal-sized integer that can be signed or unsigned. If signed, the allowable range is from -2147483648 to 2147483647. If unsigned, the allowable range is from 0 to 4294967295. You can specify a width of up to 11 digits.
+TINYINT	A very small integer that can be signed or unsigned. If signed, the allowable range is from -128 to 127. If unsigned, the allowable range is from 0 to 255. You can specify a width of up to 4 digits.
+SMALLINT	A small integer that can be signed or unsigned. If signed, the allowable range is from -32768 to 32767. If unsigned, the allowable range is from 0 to 65535. You can specify a width of up to 5 digits.
+MEDIUMINT	A medium-sized integer that can be signed or unsigned. If signed, the allowable range is from -8388608 to 8388607. If unsigned, the allowable range is from 0 to 16777215. You can specify a width of up to 9 digits.
+BIGINT	A large integer that can be signed or unsigned. If signed, the allowable range is from -9223372036854775808 to 9223372036854775807. If unsigned, the allowable range is from 0 to 18446744073709551615. You can specify a width of up to 20 digits.
+FLOAT(M,D)	A floating-point number that cannot be unsigned. You can define the display length (M) and the number of decimals (D). This is not required and will default to 10,2, where 2 is the number of decimals and 10 is the total number of digits (including decimals). Decimal precision can go to 24 places for a FLOAT.
+DOUBLE(M,D)	A double precision floating-point number that cannot be unsigned. You can define the display length (M) and the number of decimals (D). This is not required and will default to 16,4, where 4 is the number of decimals. Decimal precision can go to 53 places for a DOUBLE. REAL is a synonym for DOUBLE.
+DECIMAL(M,D)	An unpacked floating-point number that cannot be unsigned. In the unpacked decimals, each decimal corresponds to one byte. Defining the display length (M) and the number of decimals (D) is required. NUMERIC is a synonym for DECIMAL.
+
+MySQL - Date and Time Data Types
+Data type	Description
+DATE	A date in YYYY-MM-DD format, between 1000-01-01 and 9999-12-31. For example, December 30th, 1973 would be stored as 1973-12-30.
+DATETIME	A date and time combination in YYYY-MM-DD HH:MM:SS format, between 1000-01-01 00:00:00 and 9999-12-31 23:59:59. For example, 3:30 in the afternoon on December 30th, 1973 would be stored as 1973-12-30 15:30:00.
+TIMESTAMP	A timestamp between midnight, January 1st, 1970 and sometime in 2037. This looks like the previous DATETIME format, only without the hyphens between numbers; 3:30 in the afternoon on December 30th, 1973 would be stored as 19731230153000 ( YYYYMMDDHHMMSS ).
+TIME	Stores the time in a HH:MM:SS format.
+YEAR(M)	Stores a year in a 2-digit or a 4-digit format. If the length is specified as 2 (for example YEAR(2)), YEAR can be between 1970 to 2069 (70 to 69). If the length is specified as 4, then YEAR can be 1901 to 2155. The default length is 4.
+
+
+
+
+
+

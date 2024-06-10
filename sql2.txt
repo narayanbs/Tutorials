@@ -1,0 +1,382 @@
+SQL Statements
+------------------------
+CREATE DATABASE database_name;
+
+SHOW DATABASES;
+SHOW DATABASES LIKE 'test%';
+	or
+SHOW SCHEMAS;
+SHOW SCHEMAS LIKE 'test%';
+
+USE database_name;
+
+DROP DATABASE database_name;
+DROP DATABASE IF EXISTS database_name;
+
+DROP DATABASE database_name1, database_name2, ....;
+
+ALTER DATABASE database_name MODIFY NAME = new_database_name;
+Note: The above doesn't work in MySQL, there we use
+RENAME DATABASE database_name to new_database_name;
+
+Note: The following works in MySQL
+BACKUP DATABASE database_name;
+
+
+CREATE TABLE table_name(
+   column1 datatype,
+   column2 datatype,
+   column3 datatype,
+   .....
+   columnN datatype,
+   PRIMARY KEY( one or more columns )
+);
+
+CREATE TABLE CUSTOMERS(
+   ID          INT NOT NULL,
+   NAME        VARCHAR (20) NOT NULL,
+   AGE         INT NOT NULL,
+   ADDRESS     CHAR (25),
+   SALARY      DECIMAL (18, 2),
+   PRIMARY KEY (ID)
+);
+
+DESC CUSTOMERS;
+
+CREATE TABLE IF NOT EXISTS table_name(
+   column1 datatype,
+   column2 datatype,
+   column3 datatype,
+   .....
+   columnN datatype,
+   PRIMARY KEY( one or more columns )
+);
+
+CREATE TABLE IF NOT EXISTS CUSTOMERS(
+   ID          INT NOT NULL,
+   NAME        VARCHAR (20) NOT NULL,
+   AGE         INT NOT NULL,
+   ADDRESS     CHAR (25),
+   SALARY      DECIMAL (18, 2),
+   PRIMARY KEY (ID)
+);
+
+CREATE TABLE NEW_TABLE_NAME AS
+SELECT [column1, column2...columnN]
+FROM EXISTING_TABLE_NAME
+WHERE Condition;
+
+CREATE TABLE SALARY AS
+SELECT ID, SALARY
+FROM CUSTOMERS;
+
+SHOW TABLES;
+
+RENAME TABLE table_name TO new_table_name;
+
+RENAME TABLE CUSTOMERS to BUYERS;
+
+ALTER TABLE table_name RENAME [TO|AS] new_table_name
+
+ALTER TABLE BUYERS RENAME TO CUSTOMERS;
+
+ALTER TABLE table_name ADD column_name datatype;
+
+ALTER TABLE CUSTOMERS ADD SEX char(1);
+
+ALTER TABLE table_name DROP COLUMN column_name;
+
+ALTER TABLE CUSTOMERS DROP COLUMN SEX;
+
+ALTER TABLE table_name ADD INDEX index_name [index_type] 
+
+ALTER TABLE CUSTOMERS ADD INDEX name_index (NAME);
+
+ALTER TABLE table_name DROP INDEX index_name;
+
+ALTER TABLE CUSTOMERS DROP INDEX name_index;
+
+ALTER TABLE table_name 
+ADD CONSTRAINT constraint_name
+PRIMARY KEY (column1, column2...);
+
+ALTER TABLE EMPLOYEES 
+ADD CONSTRAINT MyPrimaryKey 
+PRIMARY KEY(ID);
+
+ALTER TABLE table_name DROP PRIMARY KEY;
+
+ALTER TABLE EMPLOYEES DROP PRIMARY KEY;
+
+ALTER TABLE table_name 
+ADD CONSTRAINT constraint_name 
+UNIQUE(column1, column2...);
+
+ALTER TABLE EMPLOYEES ADD CONSTRAINT CONST UNIQUE(NAME);
+
+ALTER TABLE table_name DROP CONSTRAINT constraint_name;
+
+ALTER TABLE EMPLOYEES DROP CONSTRAINT CONST;
+
+ALTER TABLE table_name 
+RENAME COLUMN old_column_name to new_column_name;
+
+ALTER TABLE CUSTOMERS RENAME COLUMN name to full_name;
+
+ALTER TABLE table_name ALTER COLUMN column_name datatype;
+
+ALTER TABLE table_name MODIFY COLUMN column_name datatype;
+
+TRUNCATE TABLE table_name;
+
+TRUNCATE TABLE CUSTOMERS;
+
+DROP TABLE table_name;
+
+DROP TABLE CUSTOMERS;
+
+DROP TABLE [IF EXISTS] table_name;
+
+DROP TABLE IF EXISTS CUSTOMERS;
+
+DELETE FROM table_name;
+
+DELETE FROM CUSTOMERS;
+
+DELETE FROM table_name
+WHERE condition;
+
+DELETE FROM CUSTOMERS WHERE NAME='Hardik';
+
+DELETE FROM table_name
+WHERE condition1 AND condition2 OR ... conditionN;
+
+DELETE FROM CUSTOMERS 
+WHERE NAME='Komal' OR ADDRESS='Mumbai';
+
+CONSTRAINTS
+
+CREATE TABLE table_name (
+   column1 datatype constraint,
+   column2 datatype constraint,
+   ....
+   columnN datatype constraint
+);
+
+NOT NULL
+
+CREATE TABLE CUSTOMERS (
+   ID INT NOT NULL,
+   NAME VARCHAR (20) NOT NULL,
+   AGE INT NOT NULL,
+   ADDRESS CHAR (25),
+   SALARY DECIMAL (18, 2)
+);
+
+UNIQUE KEY 
+
+CREATE TABLE CUSTOMERS (
+   ID INT NOT NULL UNIQUE,
+   NAME VARCHAR (20) NOT NULL,
+   AGE INT NOT NULL,
+   ADDRESS CHAR (25),
+   SALARY DECIMAL (18, 2)
+);
+
+DEFAULT VALUE
+
+CREATE TABLE CUSTOMERS (
+   ID INT NOT NULL UNIQUE,
+   NAME VARCHAR (20) DEFAULT 'Not Available',
+   AGE INT NOT NULL,
+   ADDRESS CHAR (25),
+   SALARY DECIMAL (18, 2)
+);
+
+PRIMARY KEY
+
+CREATE TABLE CUSTOMERS(
+   ID          INT NOT NULL,
+   NAME        VARCHAR (20) NOT NULL,
+   AGE         INT NOT NULL,
+   ADDRESS     CHAR (25),
+   SALARY      DECIMAL (18, 2),
+   PRIMARY KEY (ID)
+);
+
+FOREIGN KEY
+
+CREATE TABLE ORDERS (
+   ID INT NOT NULL,
+   DATE DATETIME,
+   CUSTOMER_ID INT FOREIGN KEY REFERENCES CUSTOMERS(ID),
+   AMOUNT DECIMAL,
+   PRIMARY KEY (ID)
+);
+
+CHECK VALUE
+
+CREATE TABLE CUSTOMERS(
+   ID          INT NOT NULL,
+   NAME        VARCHAR (20) NOT NULL,
+   AGE         INT NOT NULL CHECK(AGE>=18),
+   ADDRESS     CHAR (25),
+   SALARY      DECIMAL (18, 2),
+   PRIMARY KEY (ID)
+);
+
+INDEX
+
+CREATE INDEX idx_age ON CUSTOMERS ( AGE );
+
+DROP CONSTRAINTS 
+
+ALTER TABLE CUSTOMERS DROP CONSTRAINT PRIMARY KEY;
+
+
+----------------------------------------------------------------------------------------------------------
+
+INSERT Statement
+
+INSERT INTO TABLE_NAME (column1, column2...columnN) 
+VALUES (value1, value2...valueN);
+
+INSERT INTO TABLE_NAME 
+VALUES (value1,value2...valueN);
+
+INSERT INTO CUSTOMERS (ID,NAME,AGE,ADDRESS,SALARY)
+VALUES (1, 'Ramesh', 32, 'Ahmedabad', 2000.00 );
+
+INSERT INTO CUSTOMERS 
+VALUES (7, 'Muffy', 24, 'Indore', 10000.00 );
+
+INSERT... SELECT Statement
+
+INSERT INTO first_table_name [(column_name(s))]
+SELECT column1, column2, ...columnN
+FROM second_table_name
+[WHERE condition];
+
+INSERT INTO BUYERS (ID, NAME, AGE, ADDRESS, SALARY) 
+SELECT * FROM CUSTOMERS;
+
+INSERT... TABLE Statement
+
+INSERT INTO first_table_name TABLE second_table_name;
+
+INSERT INTO SHOPPERS TABLE CUSTOMERS;
+
+
+Select Statement
+
+SELECT column1, column2, columnN FROM table_name;
+
+SELECT * FROM table_name;
+
+SELECT ID, NAME, SALARY FROM CUSTOMERS;
+
+SELECT * FROM CUSTOMERS;
+
+SELECT mathematical_expression;
+
+SELECT 56*65;
+
+SELECT column_name AS alias_name 
+FROM table_name;
+
+SELECT CONCAT(NAME,' ',AGE) AS DETAILS, ADDRESS 
+FROM CUSTOMERS ORDER BY NAME;
+
+Select Into Statement
+ 
+SELECT * INTO new_table_name FROM existing_table_name
+ 
+SELECT column1, column2, ..., columnN INTO new_table_name
+FROM existing_table_name;
+
+SELECT name, age, address INTO CUSTOMER_DETAILS 
+FROM CUSTOMERS;
+
+SELECT * INTO CUSTOMER_BACKUP FROM CUSTOMERS;
+
+Multiple tables Select Into
+
+SELECT column1, column2, ..., columnN
+INTO new_table_name FROM table1 JOIN table2 
+ON table1.column = table2.column
+ 
+SELECT CUSTOMERS.Name, ORDERS.customer_id
+INTO CUSTOMER_ORDERS FROM CUSTOMERS
+LEFT JOIN ORDERS ON CUSTOMERS.ID = ORDERS.customer_id;
+
+SELECT * INTO new_table_name FROM existing_table_name
+WHERE condition;
+
+SELECT * INTO NameStartsWith_K FROM CUSTOMERS
+WHERE NAME LIKE 'k%';
+
+Insert into Select Statement
+
+INSERT INTO table_new 
+SELECT (column1, column2, ...columnN) 
+FROM table_old;
+
+INSERT INTO BUYERS SELECT * FROM CUSTOMERS;
+
+INSERT INTO NAMESTARTSWITH_K
+SELECT * FROM CUSTOMERS
+WHERE NAME LIKE 'k%';
+
+Update Statement
+
+UPDATE table_name
+SET column1 = value1, column2 = value2,..., columnN = valueN
+WHERE [condition];
+
+UPDATE CUSTOMERS SET ADDRESS = 'Pune' WHERE I
+
+UPDATE table_name
+SET column_name1 = new_value, column_name2 = new_value...
+WHERE condition(s)
+
+UPDATE CUSTOMERS 
+SET ADDRESS = 'Pune', SALARY = 1000.00 
+WHERE NAME = 'Ramesh';
+
+Delete Statement
+
+DELETE FROM table_name WHERE [condition];
+
+DELETE FROM CUSTOMERS WHERE ID = 6;
+DELETE FROM CUSTOMERS WHERE AGE > 25;
+DELETE FROM CUSTOMERS;
+
+Delete From Multiple tables
+
+DELETE CUSTOMERS, ORDERS FROM CUSTOMERS
+INNER JOIN ORDERS ON ORDERS.CUSTOMER_ID = CUSTOMERS.ID
+WHERE CUSTOMERS.SALARY > 2000;
+
+Sorting (Order by...)
+
+SELECT column-list 
+FROM table_name 
+[WHERE condition] 
+[ORDER BY column1, column2, .. columnN] [ASC | DESC];
+
+SELECT * FROM CUSTOMERS ORDER BY NAME;
+
+SELECT * FROM CUSTOMERS ORDER BY NAME DESC;
+
+SELECT * FROM CUSTOMERS
+ORDER BY ( CASE ADDRESS
+   WHEN 'DELHI' 	 THEN 1
+   WHEN 'BHOPAL' 	 THEN 2
+   WHEN 'KOTA' 	 THEN 3
+   WHEN 'AHMEDABAD' THEN 4
+   WHEN 'Hyderabad' 	THEN 5
+   ELSE 100 END) ASC, ADDRESS DESC;
+
+ 
+
+
