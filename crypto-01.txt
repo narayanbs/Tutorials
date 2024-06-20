@@ -1,0 +1,112 @@
+OpenSSH, GPG (GnuPG), and OpenSSL are all cryptographic tools that serve different purposes and have distinct functionalities:
+
+1. **OpenSSH (Open Secure Shell)**:
+   - **Purpose**: OpenSSH is primarily used for secure remote login and file transfer between machines over an unsecured network. 
+   It provides encrypted communication sessions using the SSH (Secure Shell) protocol.
+   - **Features**: It includes tools like `ssh` (for remote login), `scp` (for secure copy), and `sftp` (for secure file transfer). 
+   OpenSSH also supports tunneling, port forwarding, and public key authentication.
+
+2. **GPG (GnuPG, GNU Privacy Guard)**:
+   - **Purpose**: GPG is used for encryption and signing of data and communications. It implements the OpenPGP standard and provides 
+   cryptographic privacy and authentication.
+   - **Features**: GPG can encrypt and decrypt files, emails, and data streams. It uses a combination of symmetric-key cryptography (for efficiency)
+   and public-key cryptography (for secure key exchange and digital signatures). 
+   GPG is often used for secure email communication, file encryption, and software package verification.
+
+3. **OpenSSL**:
+   - **Purpose**: OpenSSL is a general-purpose cryptographic library that provides an open-source implementation of SSL (Secure Sockets Layer) and TLS (Transport Layer Security) protocols.
+   - **Features**: OpenSSL offers a wide range of cryptographic functions and utilities, including SSL/TLS handshake protocols, 
+   cryptographic algorithms (such as AES, RSA, DSA), digital certificates (X.509), and secure random number generation. 
+   It is used extensively in web servers, applications requiring secure communication, and for creating digital certificates.
+
+
+- **Use Cases**:
+  - Use OpenSSH when you need to securely access remote systems or transfer files securely over a network.
+  - Use GPG when you need to encrypt files, emails, or messages, or to sign them for authentication purposes.
+  - Use OpenSSL when you need to implement SSL/TLS security in applications, manage digital certificates, or perform various cryptographic operations programmatically.
+
+- **Interoperability**:
+  - OpenSSH and OpenSSL are often used together in securing network communications and managing cryptographic keys.
+  - GPG is used independently but can be integrated with email clients, file managers, and other applications for secure communication and data encryption.
+
+In summary, these tools each serve specific cryptographic needs: OpenSSH for secure remote access, GPG for encryption and authentication, and OpenSSL as a comprehensive cryptographic library for implementing secure communication protocols and operations.
+
+
+----------------------------------
+
+Creating private and public keys using openssl and ssh-keygen
+
+openssl genrsa -out MyPrivateKey 4096
+openssl rsa -in MyPrivateKey -pubout -out MyPublicKey
+
+This creates a private RSA key and then derives the public key from it,
+
+ssh-keygen -b 4096 -t rsa -f MyFancyKey
+
+This creates a private RSA key in the file 'MyFancyKey' and the corresponding public key in 'MyFancyKey.pub'.
+
+
+The structure for the private keys seems somewhat similar, although the one created with openssl begins with:
+-----BEGIN RSA PRIVATE KEY-----
+
+And the one from ssh-keygen begins with:
+-----BEGIN OPENSSH PRIVATE KEY-----
+
+
+the corresponding public keys, the one from openssl contains:
+
+-----BEGIN PUBLIC KEY-----
+  ...base64 encoded...
+-----BEGIN PUBLIC KEY-----
+
+While the one from ssh-keygen just contains one line:
+ssh-rsa XXXXXX...base64 encoded...XXXXX Rocketnuts@Rocketnuts-MBP.my.networkname
+
+
+is there a fundamental difference between these two kinds of keys?
+
+No, they're essentially the same data.
+
+BEGIN RSA PRIVATE KEY indicates "PKCS#1" or "PEM" key format, which is Base64 encoding of an ASN.1 DER serialized structure. 
+It's a basic ASN.1 sequence containing the RSA parameters (n, e, d, p, q, etc).
+
+Note: ASN.1 DER refers to Abstract Syntax Notation defined by RFC 5280 (for X.509) whose serialization format is DER (Distinguished
+encoding rules). ASN is similar to protobuf (language agnostic way of encoding objects)
+
+This format comes from the PEM email security effort that later became S/MIME (hence the usage of ASN.1 DER) and was commonly used 
+for SSL/TLS as well as miscellaneous generic RSA.
+
+For a long time, it was also OpenSSH's primary key format (because OpenSSH already uses OpenSSL's cryptographic code, 
+so the "load key" and "write key" functions were also conveniently available). 
+This means you can use ssh-keygen -m PEM to generate or convert such keys.
+
+BEGIN PRIVATE KEY indicates "PKCS#8" key format (unencrypted); it'the contents are very similar to the PEM format,
+with the same RSA parameters nested inside another structure that indicates that it is indeed an RSA key.
+
+PKCS#8 is specifically meant as the more modern replacement of the PEM format. Compared to PEM, the PKCS#8 format more 
+cleanly separates the "payload" (key algorithm, encryption) from the outer Base64 wrapper – all metadata is now inside the structure, 
+so it's easier to update for new key types. The new format also supports better ciphers and KDFs for encrypted keys.
+
+OpenSSH will recognize this format too (due to its OpenSSL usage for key loading), and I think recent versions are also able to create it.
+
+BEGIN OPENSSH PRIVATE KEY is a format invented by OpenSSH for OpenSSH, and unlike the PEM/PKCS formats, 
+it uses SSHv2 packet serialization for its data structures (no more DER or ASN.1).
+
+One reason OpenSSH now uses this format so that it could avoid depending on OpenSSL entirely, and/or so that it could add new 
+key algorithms without waiting for OpenSSL to implement loading/saving of those keys – which also means waiting for PKIX to 
+standardize the ASN.1 OID and structure for each new algorithm (which otherwise has absolutely nothing to do with SSH).
+
+For example, it took a while for OpenSSL to gain full Ed25519 support, during which time OpenSSH could neither use OpenSSL's libcrypto 
+for the actual math, nor for loading/saving Ed25519 key files – that's what prompted the creation of this format.
+
+Another advantage of the OpenSSH format is that passphrase-encrypted keys use bcrypt for the encryption key derivation; 
+at the time the PEM format was limited to a very weak (i.e. easy to bruteforce) KDF, and even PKCS#8 supports only the slightly inferior PKBDF2.
+
+As for the PUBLIC key format, 
+
+BEGIN PUBLIC KEY is, I believe, also PKCS#8 – so inside Base64 there's a DER-serialized ASN.1 structure which identifies it as an RSA key, 
+followed by key parameters (n, e).
+
+The one-line format is partially OpenSSH-specific, although the central Base64-encoded data is in exactly the same format as used within 
+the SSHv2 protocol itself ("on the wire"). As you might guess, the encoded data uses SSHv2 packet serialization – but it still holds the same RSA n and e values.
+
