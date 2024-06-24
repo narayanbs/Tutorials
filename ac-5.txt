@@ -1,0 +1,60 @@
+Fixed-point is a method of representing fractional (non-integer) numbers by storing a fixed number of digits of their fractional part.
+A Fixed-point representation of a fractional number is essentially an integer that is to be implicitly multiplied by a fixed scaling factor.
+For example, the value 1.23 can be stored in a variable as the integer value 1230 with implicit scaling factor of 1/1000
+the fraction is often expressed in the same number base as the integer part, but using negative powers of the base b. 
+The most common variants are decimal (base 10) and binary (base 2). The latter is commonly known also as binary scaling. 
+Thus, if n fraction digits are stored, the value will always be an integer multiple of b−n.
+
+Ex:
+Fixed-point representation with scaling 1/100
+Value represented	Internal representation
+	0.00			0
+	0.5			50
+	0.99			99
+	2			200
+	−14.1			−1410
+	314.160			31416
+
+Now, let's delve deeper into fixed-point range, precision, and scale, as they are fundamental concepts in numerical representation:
+
+1. **Range**:
+   - The range of a fixed-point number refers to the span of values that can be represented using a particular fixed-point format. 
+   It is determined by the total number of bits allocated for the representation.
+   - For example, if you have a fixed-point representation using 8 bits (including both integer and fractional parts), 
+   the range of representable values depends on how those bits are allocated between the integer and fractional parts.
+
+2. **Precision**:
+   - Precision in fixed-point arithmetic refers to the number of significant digits or bits used to represent a number, 
+   particularly focusing on how accurately fractional values can be represented.
+   - In a fixed-point representation with a higher precision, more bits are dedicated to the fractional part, 
+   allowing for finer increments between representable values.
+   - For instance, a fixed-point format with 8 bits and a scale of 3 might provide a precision that allows 
+   representing values with three decimal places of accuracy (e.g., 0.001).
+
+3. **Scale**:
+   - Scale refers to how the total number of bits (or digits) in a fixed-point representation are divided between 
+   the integer and fractional parts.
+   - A scale of 3, for example, indicates that 3 bits are allocated to the fractional part, allowing for more 
+   precise representation of decimal values.
+   - The scale affects both the precision and the range of values that can be represented. A larger scale means
+   finer granularity for representing fractional values but reduces the range of representable integers within the same total number of bits.
+
+### Example:
+Let's illustrate these concepts with an example using an 8-bit fixed-point format:
+
+- **Format**: 8 bits total (including integer and fractional parts)
+- **Scale**: 3 bits for fractional part
+
+Given these specifications:
+- **Integer part**: 5 bits (since 8 - 3 = 5 bits for integer part)
+
+**Range**:
+- With 5 bits for the integer part, you can represent integer values from -2^4  to 2^4 - 1 , which is from -16 to 15.
+
+**Precision**:
+- With 3 bits for the fractional part, you can represent fractional values with a precision of  1/2^3 = 1/8 , 
+meaning you can represent values in increments of 0.125.
+
+Adjusting the scale or precision involves balancing the trade-offs between the range of representable values and the 
+precision of fractional representation. In applications where precise fractional calculations are crucial, a larger
+scale (more bits for fractional part) might be necessary, whereas applications requiring a broader range of integer values may sacrifice some precision in the fractional part to allocate more bits for the integer part.

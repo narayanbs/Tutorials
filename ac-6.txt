@@ -1,0 +1,85 @@
+UTF-8 is a variable-width character encoding scheme used to encode text that supports a wide range of characters 
+beyond the traditional ASCII set. 
+
+In UTF-8:
+- Characters are represented using one to four bytes.
+- The first byte of each character is a marker that indicates how many bytes follow to complete the character's encoding.
+
+Here's how multibyte sequences are identified in UTF-8:
+
+1. **First Byte Identification**:
+   - The first byte of a UTF-8 sequence determines how many bytes the character occupies and its general structure.
+   - It serves as a marker that indicates whether the character is a single-byte character (ASCII compatible) or part of a multibyte sequence.
+   - The structure of the first byte helps in determining the number of bytes used for encoding:
+     - If the first byte starts with `0xxxxxxx`, it represents a single-byte ASCII character (0-127).
+     - If the first byte starts with `110xxxxx`, it indicates a two-byte sequence.
+     - If the first byte starts with `1110xxxx`, it indicates a three-byte sequence.
+     - If the first byte starts with `11110xxx`, it indicates a four-byte sequence.
+     - Bytes starting with `10xxxxxx` are continuation bytes used in multibyte sequences (following bytes).
+
+2. **Subsequent Bytes (Continuation Bytes)**:
+   - Following bytes in a multibyte sequence all start with the bit pattern `10xxxxxx`.
+   - These bytes indicate that they are part of a multibyte sequence and provide the additional bits needed to complete the character's encoding.
+
+3. **Identifying Complete Characters**:
+   - By examining the first byte, you can determine how many bytes (and which bytes) belong to a particular character.
+   - The subsequent bytes (continuation bytes) validate that they follow the UTF-8 rules, ensuring they are not misinterpreted as standalone characters.
+
+### Example:
+Let's take an example of UTF-8 encoding for the character 'λ' (lambda), which is U+03BB in Unicode.
+
+- In binary, U+03BB is represented as `00000011 10111011`.
+
+- UTF-8 encoding:
+  - U+03BB requires two bytes in UTF-8: `11000011 10111011`.
+  - The first byte `11000011` indicates it's a two-byte sequence (`110` prefix).
+  - The second byte `10111011` starts with `10` as a continuation byte.
+
+By examining the first byte (`11000011`), a program or parser can correctly identify that this sequence represents the character 'λ' 
+in UTF-8 encoding and decode it accordingly.
+
+In summary, multibyte UTF-8 sequences are identified based on the structure of their initial byte, which indicates both 
+the number of bytes in the sequence and the structure that subsequent bytes must follow. 
+This structured approach ensures accurate encoding and decoding of characters across different platforms and systems that support UTF-8.
+
+UTF-16 is another character encoding scheme that stands for "Unicode Transformation Format - 16-bit". 
+It encodes each Unicode code point as either one or two 16-bit code units. Here's how UTF-16 is recognized and interpreted:
+
+1. **Byte Order Mark (BOM)**:
+   - UTF-16 uses a Byte Order Mark (BOM) at the beginning of the encoded data to indicate the byte order (endianness) of the text. 
+   - The BOM is a specific sequence of bytes (`FE FF` for big-endian, `FF FE` for little-endian) that serves as an indicator 
+   for applications to determine how the subsequent 16-bit code units are arranged in memory.
+   - For example:
+     - `FE FF` indicates big-endian UTF-16.
+     - `FF FE` indicates little-endian UTF-16.
+   - The BOM helps in correctly interpreting the sequence of 16-bit code units that follow it.
+
+2. **Interpreting 16-bit Code Units**:
+   - Once the BOM (if present) indicates the byte order, UTF-16 text is then interpreted by parsing 16-bit code units.
+   - Each Unicode code point is encoded using one or two 16-bit code units (also known as code points in the UTF-16 scheme).
+   - Single 16-bit code units represent characters from the Basic Multilingual Plane (BMP), which includes most commonly 
+   used characters and symbols.
+   - If a character lies outside the BMP (e.g., Supplementary Planes), it is represented by a surrogate pair consisting
+of two 16-bit code units (one from the high-surrogates range and one from the low-surrogates range).
+
+3. **Handling Surrogate Pairs**:
+   - Surrogate pairs are pairs of 16-bit code units that together represent a single Unicode code point beyond the BMP.
+   - High-surrogate code units (`D800` to `DBFF`) and low-surrogate code units (`DC00` to `DFFF`) are used together to encode supplementary characters.
+   - Applications need to recognize surrogate pairs and correctly interpret them to reconstruct the actual Unicode code point.
+
+### Example:
+Let's take an example of UTF-16 encoded text without a BOM (assuming little-endian by default):
+
+- The character 'λ' (U+03BB) in UTF-16 would be represented as `03BB` (in hexadecimal).
+
+- If the text starts with `03 BB`, an application interpreting UTF-16 would:
+
+  - Recognize the sequence `03 BB` as representing the character 'λ'.
+  - Since there is no BOM, it assumes little-endian encoding by default.
+  
+- For characters requiring surrogate pairs (e.g., U+1F600, which is 😀), the UTF-16 encoding would use two 16-bit code units: `D83D DE00`.
+
+In summary, UTF-16 encoding is recognized primarily through the presence of a Byte Order Mark (BOM) at the beginning of the data, 
+which indicates the byte order of the following 16-bit code units. Applications then interpret these units, handling single code units 
+for characters within the Basic Multilingual Plane (BMP) and surrogate pairs for characters outside the BMP to correctly represent 
+and display Unicode text.
