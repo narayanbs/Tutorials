@@ -68,16 +68,27 @@ of two 16-bit code units (one from the high-surrogates range and one from the lo
    - Applications need to recognize surrogate pairs and correctly interpret them to reconstruct the actual Unicode code point.
 
 ### Example:
-Let's take an example of UTF-16 encoded text without a BOM (assuming little-endian by default):
+Let's take an example 
 
+When encoded in UTF-16 with the BOM FE FF, the character 'λ' (U+03BB) will be represented as the sequence of bytes: FE FF 03 3B.
+Here's how it breaks down:
+* FE FF: Byte Order Mark indicating UTF-16 big-endian encoding.
+* 03 3B: The 16-bit code unit representing the character 'λ'.
+
+When encoded in UTF-16 with littleendian encoding using the BOM FF FE, the character 'λ' (U+03BB) will be represented as 
+the sequence of bytes: FF FE 3B 03.
+Here's how it breaks down:
+* FF FE: Byte Order Mark indicating UTF-16 little-endian encoding.
+* 3B 03: The 16-bit code unit representing the character 'λ'.
+
+UTF-16 encoded text without a BOM (assuming little-endian by default):
 - The character 'λ' (U+03BB) in UTF-16 would be represented as `03BB` (in hexadecimal).
-
 - If the text starts with `03 BB`, an application interpreting UTF-16 would:
-
   - Recognize the sequence `03 BB` as representing the character 'λ'.
   - Since there is no BOM, it assumes little-endian encoding by default.
   
-- For characters requiring surrogate pairs (e.g., U+1F600, which is 😀), the UTF-16 encoding would use two 16-bit code units: `D83D DE00`.
+  
+For characters requiring surrogate pairs (e.g., U+1F600, which is 😀), the UTF-16 encoding would use two 16-bit code units: `D83D DE00`.
 
 In summary, UTF-16 encoding is recognized primarily through the presence of a Byte Order Mark (BOM) at the beginning of the data, 
 which indicates the byte order of the following 16-bit code units. Applications then interpret these units, handling single code units 
