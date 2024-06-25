@@ -22,7 +22,7 @@ shutil.copystat(src, dest) --> copy permission, last accessed time and last modi
 
 file and directories
 ---------------------
-shutil.copy(src, dest) --> src is a file and destination can be a file or directory
+shutil.copy(src, dest) --> src is a file and destination can be a file or directory, only preserves permission mode, other metadata is not preserved.
 shutil.copy2() --> similar to copy(), but copies the Metadata along with File (like the access and modification times... etc)
 
 copy directories
