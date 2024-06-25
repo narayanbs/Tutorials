@@ -22,21 +22,29 @@ shutil.copystat(src, dest) --> copy permission, last accessed time and last modi
 
 file and directories
 ---------------------
-shutil.copy(src, dest) --> destination can be a file or directory
+shutil.copy(src, dest) --> src is a file and destination can be a file or directory
 shutil.copy2() --> similar to copy(), but copies the Metadata along with File (like the access and modification times... etc)
 
 copy directories
 -----------------
-shutil.copytree(src, dst, ignore=ignore_patterns('*.pyc', 'tmp*'))
+shutil.copytree(src, dst, dirs_exist_ok=True/False, ignore=ignore_patterns('*.pyc', 'tmp*'))
 Recursively copy an entire directory tree rooted at src to a directory named dst and return the destination directory. 
 All intermediate directories needed to contain dst will also be created by default.
-if we want the source folder itself to be copied. In this case we need to specify the name of the source folder in the
-destination path as shown below.
 
-	source = "../shutil"
-	destination = "/tmp/example/shutil"
+Suppoe we have two directories src and dest
 
-shutil.copytree('../shutil', '/tmp/example',copy_function=verbose_copy,ignore=shutil.ignore_patterns('*.py'),)
+# If dest doesn't exist and we need to do cp -r src/ dest (The tree rooted at src will be the same as tree rooted at dest)
+shutil.copytree("src", "dest") # similar to cp -r src/ dest  Note: dest shouldn't exist
+
+# if dest exists and we need to copy src into dest i.e cp -r src/ dest  (Tree rooted at src will be inside dest)
+shutil.copytree("src", "dest/src") 
+
+# if dest exists and we need to copy just the contents of src recursively into dest i.e cp -r src/* dest
+shutil.copytree("src", "dest", dirs_exist_ok=True) 
+
+# If we need finer control while copying 
+shutil.copytree('../shutil', '/tmp/example',copy_function=verbose_copy,ignore=shutil.ignore_patterns('*.py'),) # To filter files while copying
+
 shutil.rmtree('/tmp/example')  # to remove directory and contents
 shutil.move('example.txt', 'example.out')  file or directory
 shutil.which()   # Finding files
@@ -508,7 +516,7 @@ After copying file:
 Destination path: csv/gfg/main.py
 
 
-shutil.copytree(src, dst, ignore=ignore_patterns('*.pyc', 'tmp*'))
+shutil.copytree(src, dst, dirs_exist_ok=True/False, ignore=ignore_patterns('*.pyc', 'tmp*'))
 
 Recursively copy an entire directory tree rooted at src to a directory named dst and return the destination directory. 
 All intermediate directories needed to contain dst will also be created by default.
