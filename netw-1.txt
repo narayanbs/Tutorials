@@ -173,6 +173,53 @@ We can also construct an IPv4Network directly from two addresses:
 >>> IPv4Network("192.4.2.0/255.255.255.0")
 IPv4Network('192.4.2.0/24')
 
+Note: The following is an example to understand how the network address and broadcast address are calculated. (Just for reference)
+
+Consider 172.16.0.0/12, which represents a Class B network with a subnet mask of 255.240.0.0, the network address and broadcast address
+can be determined as follows:
+
+1. **Network Address:**
+   - The network address is the first address in the subnet range.
+   - The subnet mask for 172.16.0.0/12 is 255.240.0.0.
+   - To find the network address, you perform a bitwise AND operation between the IP address and the subnet mask.
+
+   ```
+   IP Address:    172.16.0.0      = 10101100.00010000.00000000.00000000
+   Subnet Mask:   255.240.0.0     = 11111111.11110000.00000000.00000000
+   ---------------------------------------------------------------
+   Network Address:               = 10101100.00010000.00000000.00000000
+                                    172.16.0.0
+   ```
+
+   Therefore, the network address is **172.16.0.0**.
+
+2. **Broadcast Address:**
+   - The broadcast address is the last address in the subnet range.
+   - It is found by setting all host bits in the host portion of the address to 1.
+
+   ```
+   IP Address:    172.16.0.0      = 10101100.00010000.00000000.00000000
+   Subnet Mask:   255.240.0.0     = 11111111.11110000.00000000.00000000
+   ---------------------------------------------------------------
+   Inverted Mask:                 = 00000000.00001111.11111111.11111111
+   ---------------------------------------------------------------
+
+   IP Address:    172.16.0.0      = 10101100.00010000.00000000.00000000
+   Inverted Mask:                 = 00000000.00001111.11111111.11111111
+
+BITWISE OR
+
+   Broadcast Address:             = 10101100.00011111.11111111.11111111
+                                    172.31.255.255
+   ```
+
+   Therefore, the broadcast address is **172.31.255.255**.
+
+In summary:
+- Network address: **172.16.0.0**
+- Broadcast address: **172.31.255.255**
+
+
 Subnetting 
 -----------
 Subnetting a network means, to create logical divisions of the network. This divides a network into smaller subnets.
