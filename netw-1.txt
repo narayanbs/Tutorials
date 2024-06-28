@@ -336,6 +336,13 @@ True
 
 A second special address type is a link-local address, which is one reachable only from within a given subnet. They are not guaranteed
 to be unique beyond their network segment. Therefore routers do not forward packets with link-local source or destination addresses.
+(
+How are they different from private addresses? private addresses are allocated administratively:  by a local network administrator
+either statically or automatically allocated by a suitably configured DHCP server. But link-local addresses are allocated automatically
+when a computer has not been configured with a static-ip address and cannot find a DHCP server.
+Many routers are supplied pre-configured with DHCP service for a commonly used private address range such as 192.168.0.0/16. 
+If a LAN does not have such a router present, the PCs will use link-local addresses
+)
 IPv4 link local addresses are assigned from the address block 169.254.0.0 to 169.254.255.255. IPv6 are assigned from the block fe80::/10
 In IPv4, link-local addresses are normally only used when no external, stateful mechanism of address configuration exists, such as the DHCP,
 or when another primary configuration method has failed. In IPv6, link-local addresses are always assigned, along with addresses of other scopes, 
@@ -346,7 +353,7 @@ Link-local addresses may be assigned manually by an administrator or by automati
 True
 
 Another special address is the loopback address, 127.0.0.1 
-Packets sent to this address will not reach the network but will loop back to the host, i.e looped throuh the network interface card only.
+Packets sent to this address will not reach the network but will loop back to the host, i.e looped through the network interface card only.
 
 >>> IPv4Address("127.0.0.1").is_loopback
 True
