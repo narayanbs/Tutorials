@@ -174,7 +174,7 @@ The socket on the client side is established. ACK packet is sent back to the ser
 The server removes the incomplete request socket from the accept queue, and puts it into the completed socket queue. 
 Then wakeup() is called to wake up the accept call. The socket on the server side is now establised.
 
-Not send and recv happens between the established sockets. 
+Note: send and recv happens between the established sockets. 
 
 For More details refer to :
 Articles/TCP%20Connection%20Establishment%20Process1.html
