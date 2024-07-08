@@ -1,170 +1,112 @@
-OpenSSL and Secure sockets server and client implemantation 
-------------------------------------------------------------
-Generating secure keys and certificates for SSL (Secure Sockets Layer) involves several steps and tools. 
-Here’s a basic outline of how you can do this:
+OpenSSH, GPG (GnuPG), and OpenSSL are all cryptographic tools that serve different purposes and have distinct functionalities:
 
-1. Generate a Private Key
-You need to generate a private key that will be used for encryption. Common tools for generating private keys 
-include openssl command-line tool or a graphical tool like Keychain Access on macOS.
+1. **OpenSSH (Open Secure Shell)**:
+   - **Purpose**: OpenSSH is primarily used for secure remote login and file transfer between machines over an unsecured network. 
+   It provides encrypted communication sessions using the SSH (Secure Shell) protocol.
+   - **Features**: It includes tools like `ssh` (for remote login), `scp` (for secure copy), and `sftp` (for secure file transfer). 
+   OpenSSH also supports tunneling, port forwarding, and public key authentication.
 
-Using OpenSSL (Command Line):
+2. **GPG (GnuPG, GNU Privacy Guard)**:
+   - **Purpose**: GPG is used for encryption and signing of data and communications. It implements the OpenPGP standard and provides 
+   cryptographic privacy and authentication.
+   - **Features**: GPG can encrypt and decrypt files, emails, and data streams. It uses a combination of symmetric-key cryptography (for efficiency)
+   and public-key cryptography (for secure key exchange and digital signatures). 
+   GPG is often used for secure email communication, file encryption, and software package verification.
 
-openssl genpkey -algorithm RSA -out private-key.pem -aes256
+3. **OpenSSL**:
+   - **Purpose**: OpenSSL is a general-purpose cryptographic library that provides an open-source implementation of SSL (Secure Sockets Layer) and TLS (Transport Layer Security) protocols.
+   - **Features**: OpenSSL offers a wide range of cryptographic functions and utilities, including SSL/TLS handshake protocols, 
+   cryptographic algorithms (such as AES, RSA, DSA), digital certificates (X.509), and secure random number generation. 
+   It is used extensively in web servers, applications requiring secure communication, and for creating digital certificates.
 
-This command generates an RSA private key (-algorithm RSA) and encrypts it with AES-256 (-aes256). 
-You will be prompted to set a passphrase to protect the private key.
 
-2. Generate a Certificate Signing Request (CSR)
-A CSR is a request sent to a Certificate Authority (CA) to apply for a digital identity certificate. 
-It includes the public key that will be included in your certificate.
+- **Use Cases**:
+  - Use OpenSSH when you need to securely access remote systems or transfer files securely over a network.
+  - Use GPG when you need to encrypt files, emails, or messages, or to sign them for authentication purposes.
+  - Use OpenSSL when you need to implement SSL/TLS security in applications, manage digital certificates, or perform various cryptographic operations programmatically.
 
-openssl req -new -key private-key.pem -out csr.pem
+- **Interoperability**:
+  - OpenSSH and OpenSSL are often used together in securing network communications and managing cryptographic keys.
+  - GPG is used independently but can be integrated with email clients, file managers, and other applications for secure communication and data encryption.
 
-This command generates a new CSR (-new) using the private key specified (-key private-key.pem) and outputs the CSR to csr.pem.
+In summary, these tools each serve specific cryptographic needs: OpenSSH for secure remote access, GPG for encryption and authentication, and OpenSSL as a comprehensive cryptographic library for implementing secure communication protocols and operations.
 
-3. Submit CSR to a Certificate Authority (CA)
-You can submit the CSR to a trusted CA to obtain an SSL certificate. Popular CAs include Let’s Encrypt, DigiCert, Comodo, etc. 
-Follow the CA's instructions for submitting the CSR and completing the validation process.
 
-4. Self-Signed Certificate (Optional for Testing)
-For testing or internal use, you can generate a self-signed certificate using the private key generated earlier.
+----------------------------------
 
-openssl req -x509 -key private-key.pem -out certificate.pem -days 365
+Creating private and public keys using openssl and ssh-keygen
 
-This command generates a self-signed certificate (-x509) using the private key specified (-key private-key.pem) and 
-outputs the certificate to certificate.pem. The certificate is valid for 365 days (-days 365).
+openssl genrsa -out MyPrivateKey 4096
+openssl rsa -in MyPrivateKey -pubout -out MyPublicKey
 
-Notes:
-* Security Considerations: Always protect your private key with a strong passphrase and secure storage.
-* Certificate Authority: For production use, obtain a certificate from a trusted CA to ensure compatibility with all browsers and devices.
-* Renewal: SSL certificates have an expiration date; monitor and renew them before they expire to avoid service interruptions.
+This creates a private RSA key and then derives the public key from it,
 
-* .key is the private key. This is accessible the key owner and no one else.
+ssh-keygen -b 4096 -t rsa -f MyFancyKey
 
-* .csr is the certificate request. This is a request for a certificate authority to sign the key. (The key itself is not included.)
+This creates a private RSA key in the file 'MyFancyKey' and the corresponding public key in 'MyFancyKey.pub'.
 
-* .crt is the certificate produced by the certificate authority that verifies the authenticity of the key. (The key itself is not included.) 
-This is given to other parties, e.g. HTTPS client.
 
-* .pem is a text-based container using base-64 encoding. It could be any of the above files.
+The structure for the private keys seems somewhat similar, although the one created with openssl begins with:
+-----BEGIN RSA PRIVATE KEY-----
 
-	-----BEGIN EXAMPLE-----
-	...
-	-----END EXAMPLE-----
+And the one from ssh-keygen begins with:
+-----BEGIN OPENSSH PRIVATE KEY-----
 
-* .p12 is a PKCS12 file, which is a container format usually used to combine the private key and certificate.
 
-There isn't only one extension. For example you may see certificates with either the .crt or a .pem extension..key is the private key. 
-This is accessible the key owner and no one else.
+the corresponding public keys, the one from openssl contains:
 
---------------------------------
+-----BEGIN PUBLIC KEY-----
+  ...base64 encoded...
+-----BEGIN PUBLIC KEY-----
 
-Creating a secure socket communication between a server and client in Python typically involves using the `ssl` module, 
-which provides SSL (Secure Sockets Layer) and TLS (Transport Layer Security) functionality. Below, I'll outline Python code 
-examples for both the server and client sides using SSL.
+While the one from ssh-keygen just contains one line:
+ssh-rsa XXXXXX...base64 encoded...XXXXX Rocketnuts@Rocketnuts-MBP.my.networkname
 
-### Server Side (SSL Server)
 
-```python
-import socket
-import ssl
+is there a fundamental difference between these two kinds of keys?
 
-# Generate SSL context
-context = ssl.create_default_context(ssl.Purpose.CLIENT_AUTH)
-context.load_cert_chain(certfile="server.crt", keyfile="server.key")
+No, they're essentially the same data.
 
-# Create a TCP/IP socket
-server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+BEGIN RSA PRIVATE KEY indicates "PKCS#1" or "PEM" key format, which is Base64 encoding of an ASN.1 DER serialized structure. 
+It's a basic ASN.1 sequence containing the RSA parameters (n, e, d, p, q, etc).
 
-# Bind the socket to the port
-server_address = ('localhost', 10000)
-server_socket.bind(server_address)
+Note: ASN.1 DER refers to Abstract Syntax Notation defined by RFC 5280 (for X.509) whose serialization format is DER (Distinguished
+encoding rules). ASN is similar to protobuf (language agnostic way of encoding objects)
 
-# Listen for incoming connections
-server_socket.listen(1)
+This format comes from the PEM email security effort that later became S/MIME (hence the usage of ASN.1 DER) and was commonly used 
+for SSL/TLS as well as miscellaneous generic RSA.
 
-# Wrap the socket with SSL
-ssl_socket = context.wrap_socket(server_socket, server_side=True)
+For a long time, it was also OpenSSH's primary key format (because OpenSSH already uses OpenSSL's cryptographic code, 
+so the "load key" and "write key" functions were also conveniently available). 
+This means you can use ssh-keygen -m PEM to generate or convert such keys.
 
-print(f"Server listening on {server_address}")
+BEGIN PRIVATE KEY indicates "PKCS#8" key format (unencrypted); it'the contents are very similar to the PEM format,
+with the same RSA parameters nested inside another structure that indicates that it is indeed an RSA key.
 
-while True:
-    # Wait for a connection
-    connection, client_address = ssl_socket.accept()
+PKCS#8 is specifically meant as the more modern replacement of the PEM format. Compared to PEM, the PKCS#8 format more 
+cleanly separates the "payload" (key algorithm, encryption) from the outer Base64 wrapper – all metadata is now inside the structure, 
+so it's easier to update for new key types. The new format also supports better ciphers and KDFs for encrypted keys.
 
-    try:
-        print(f"Connection from {client_address}")
+OpenSSH will recognize this format too (due to its OpenSSL usage for key loading), and I think recent versions are also able to create it.
 
-        # Receive data from the client
-        data = connection.recv(1024)
-        if data:
-            print(f"Received: {data.decode()}")
+BEGIN OPENSSH PRIVATE KEY is a format invented by OpenSSH for OpenSSH, and unlike the PEM/PKCS formats, 
+it uses SSHv2 packet serialization for its data structures (no more DER or ASN.1).
 
-            # Send response back to the client
-            connection.sendall(b"Hello from the server!")
+One reason OpenSSH now uses this format so that it could avoid depending on OpenSSL entirely, and/or so that it could add new 
+key algorithms without waiting for OpenSSL to implement loading/saving of those keys – which also means waiting for PKIX to 
+standardize the ASN.1 OID and structure for each new algorithm (which otherwise has absolutely nothing to do with SSH).
 
-    finally:
-        # Clean up the connection
-        connection.close()
-```
+For example, it took a while for OpenSSL to gain full Ed25519 support, during which time OpenSSH could neither use OpenSSL's libcrypto 
+for the actual math, nor for loading/saving Ed25519 key files – that's what prompted the creation of this format.
 
-### Client Side (SSL Client)
+Another advantage of the OpenSSH format is that passphrase-encrypted keys use bcrypt for the encryption key derivation; 
+at the time the PEM format was limited to a very weak (i.e. easy to bruteforce) KDF, and even PKCS#8 supports only the slightly inferior PKBDF2.
 
-```python
-import socket
-import ssl
+As for the PUBLIC key format, 
 
-# Generate SSL context
-context = ssl.create_default_context(ssl.Purpose.SERVER_AUTH)
-context.check_hostname = False
-context.load_verify_locations("server.crt")
+BEGIN PUBLIC KEY is, I believe, also PKCS#8 – so inside Base64 there's a DER-serialized ASN.1 structure which identifies it as an RSA key, 
+followed by key parameters (n, e).
 
-# Create a TCP/IP socket
-client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+The one-line format is partially OpenSSH-specific, although the central Base64-encoded data is in exactly the same format as used within 
+the SSHv2 protocol itself ("on the wire"). As you might guess, the encoded data uses SSHv2 packet serialization – but it still holds the same RSA n and e values.
 
-# Connect the socket to the server
-server_address = ('localhost', 10000)
-client_socket.connect(server_address)
-
-# Wrap the socket with SSL
-ssl_socket = context.wrap_socket(client_socket, server_side=False)
-
-try:
-    # Send data to the server
-    message = "Hello from the client!"
-    ssl_socket.sendall(message.encode())
-
-    # Receive response from the server
-    data = ssl_socket.recv(1024)
-    print(f"Received: {data.decode()}")
-
-finally:
-    # Clean up the connection
-    ssl_socket.close()
-```
-
-### Explanation:
-
-- **Server Side:**
-  - The server creates a TCP/IP socket and binds it to a specific address and port (`localhost` and `10000` in this example).
-  - An SSL context is created using `ssl.create_default_context()`, loading the server's certificate and private key (`server.crt` and `server.key`).
-  - The server socket is wrapped with SSL using `context.wrap_socket()` with `server_side=True`.
-  - The server listens for incoming connections (`ssl_socket.accept()`), handles client connections, receives data, and sends a response back.
-
-- **Client Side:**
-  - The client creates a TCP/IP socket and connects to the server (`localhost` and `10000` in this example).
-  - An SSL context is created using `ssl.create_default_context()`, loading the CA certificate (`server.crt`).
-  - The client socket is wrapped with SSL using `context.wrap_socket()` with `server_side=False`.
-  - The client sends data to the server (`ssl_socket.sendall()`), receives a response (`ssl_socket.recv()`), and prints the received message.
-
-### Notes:
-
-- **Certificates:** You'll need `server.crt` (server's certificate) and `server.key` (server's private key) for the server side, 
-and `server.crt` (server's certificate, which can also act as a CA certificate for client verification) for the client side. 
-In a production environment, the server should have a valid certificate signed by a trusted CA.
-- **Error Handling:** Error handling (try-except-finally) ensures proper cleanup of resources (`connection.close()` and `ssl_socket.close()`).
-- **Security Considerations:** Always use proper security practices, including securely handling certificates and private keys, 
-and configuring SSL/TLS settings based on best practices.
-
-This example provides a basic setup for establishing secure communication between a server and client using SSL in Python. 
-Adjustments may be needed based on specific requirements or deployment environments.

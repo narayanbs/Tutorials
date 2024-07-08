@@ -1,112 +1,363 @@
-OpenSSH, GPG (GnuPG), and OpenSSL are all cryptographic tools that serve different purposes and have distinct functionalities:
+Cryptography 
+------------------------
 
-1. **OpenSSH (Open Secure Shell)**:
-   - **Purpose**: OpenSSH is primarily used for secure remote login and file transfer between machines over an unsecured network. 
-   It provides encrypted communication sessions using the SSH (Secure Shell) protocol.
-   - **Features**: It includes tools like `ssh` (for remote login), `scp` (for secure copy), and `sftp` (for secure file transfer). 
-   OpenSSH also supports tunneling, port forwarding, and public key authentication.
+Cipher is a method of encrypting or encoding a message. 
+Plain text --> Apply Cipher --> Cipher text.
 
-2. **GPG (GnuPG, GNU Privacy Guard)**:
-   - **Purpose**: GPG is used for encryption and signing of data and communications. It implements the OpenPGP standard and provides 
-   cryptographic privacy and authentication.
-   - **Features**: GPG can encrypt and decrypt files, emails, and data streams. It uses a combination of symmetric-key cryptography (for efficiency)
-   and public-key cryptography (for secure key exchange and digital signatures). 
-   GPG is often used for secure email communication, file encryption, and software package verification.
+Ciphers can work on bits individually or a block of bits. As such we have stream ciphers and block ciphers.
+Normally encryption techniques involve some sort of substitution or transposition. Substitution involve replacing
+plain text with cipher text. Transposition involve rearranging the order of bits present in the plain text
 
-3. **OpenSSL**:
-   - **Purpose**: OpenSSL is a general-purpose cryptographic library that provides an open-source implementation of SSL (Secure Sockets Layer) and TLS (Transport Layer Security) protocols.
-   - **Features**: OpenSSL offers a wide range of cryptographic functions and utilities, including SSL/TLS handshake protocols, 
-   cryptographic algorithms (such as AES, RSA, DSA), digital certificates (X.509), and secure random number generation. 
-   It is used extensively in web servers, applications requiring secure communication, and for creating digital certificates.
+Ciphers usually involve a key along with a cryptographic algorithm to encrypt and decrypt data. Key length and 
+randomness play an important role in ensuring the security of the cryptographic system.
 
+The encryption workflow will be as below:
+Sender --> Plain text --> Encryption --> Cipher text --> Decryption --> Plain text --> Receiver
 
-- **Use Cases**:
-  - Use OpenSSH when you need to securely access remote systems or transfer files securely over a network.
-  - Use GPG when you need to encrypt files, emails, or messages, or to sign them for authentication purposes.
-  - Use OpenSSL when you need to implement SSL/TLS security in applications, manage digital certificates, or perform various cryptographic operations programmatically.
-
-- **Interoperability**:
-  - OpenSSH and OpenSSL are often used together in securing network communications and managing cryptographic keys.
-  - GPG is used independently but can be integrated with email clients, file managers, and other applications for secure communication and data encryption.
-
-In summary, these tools each serve specific cryptographic needs: OpenSSH for secure remote access, GPG for encryption and authentication, and OpenSSL as a comprehensive cryptographic library for implementing secure communication protocols and operations.
+We can classify crytographic algorithms based on the usage of keys. 
+Symmetric Cryptography: Use the same key at the sender and receiver for encryption and decryption
+Assymetric Cryptography: Use a pair of keys (Public and Private) to encrypt and decrypt messages
+for ex: Private key --> encrypt --> Public key --> decrypt
+	or
+	Public key --> encrypt --> Private key --> decrypt
 
 
+Examples of symmetric cryptographic algorithms are : AES, DES, Blowfish 
+Examples of assymetric cryptographic algorithms are: RSA, DSA, ECC (Elliptic curve cryptography), Diffie Helman
+
+AES - Advanced Encryption Standard 
 ----------------------------------
+A symmetric key encryption standard adopted by the U.S. government.,it is widely adopted for securing sensitive data. 
+It operates on fixed-size blocks of data (128 bits in AES), using a variable key size of 128, 192, or 256 bits.
 
-Creating private and public keys using openssl and ssh-keygen
+Here's how AES works in a nutshell:
 
-openssl genrsa -out MyPrivateKey 4096
-openssl rsa -in MyPrivateKey -pubout -out MyPublicKey
+### AES Encryption Process:
 
-This creates a private RSA key and then derives the public key from it,
+1. **Key Expansion:**
+   - The AES algorithm starts with an initial key expansion process to generate a set of round keys from the original encryption key. 
+   Each round key is derived from the previous one using a combination of rotation, substitution, and XOR operations.
 
-ssh-keygen -b 4096 -t rsa -f MyFancyKey
+2. **Initial Round (AddRoundKey):**
+   - The plaintext block (128 bits) is XORed with the first round key.
 
-This creates a private RSA key in the file 'MyFancyKey' and the corresponding public key in 'MyFancyKey.pub'.
+3. **Rounds (9, 11, or 13 rounds depending on key size):**
+   - Each round consists of four main operations applied sequentially:
+     - **SubBytes:** Substitutes each byte of the block using an S-box (substitution box).
+     - **ShiftRows:** Performs a circular shift on each row of the block.
+     - **MixColumns:** Transforms each column of the block using a matrix multiplication.
+     - **AddRoundKey:** XORs the block with the current round key.
+
+4. **Final Round:**
+   - The final round skips the MixColumns step and ends with the AddRoundKey operation.
+
+5. **Output:**
+   - After the final round, the resulting ciphertext block is produced.
+
+### AES Decryption Process:
+
+1. **Key Expansion:**
+   - Similar to encryption, the decryption process starts with key expansion to generate the round keys.
+
+2. **Initial Round (AddRoundKey):**
+   - The ciphertext block is XORed with the last round key.
+
+3. **Rounds (Inverse operations):**
+   - Each round in decryption consists of:
+     - **InverseShiftRows:** Performs an inverse circular shift on each row.
+     - **InverseSubBytes:** Applies the inverse S-box substitution.
+     - **AddRoundKey:** XORs the block with the current round key.
+     - **InverseMixColumns:** Transforms each column using a matrix multiplication with the inverse coefficients.
+
+4. **Final Round:**
+   - The final round skips the MixColumns step and ends with the AddRoundKey operation.
+
+5. **Output:**
+   - After the final round, the resulting plaintext block is produced.
+
+### Key Characteristics:
+
+- **Efficiency:** AES is designed to be computationally efficient and suitable for implementation in both hardware and software.
+  
+- **Security:** AES is resistant to various cryptanalytic attacks when used with proper key sizes (128-bit, 192-bit, or 256-bit).
+
+- **Standardization:** AES is an international standard (NIST FIPS PUB 197), ensuring interoperability and widespread adoption in 
+security protocols and applications.
+
+### Applications:
+
+- **Secure Communication:** Used in protocols like TLS/SSL to encrypt data transmitted over networks.
+  
+- **Data Storage:** Used to encrypt files and sensitive data stored on devices or in the cloud.
+  
+- **Government and Military Use:** Chosen by governments worldwide for protecting classified information.
+
+In summary, AES is a robust and widely adopted encryption standard that ensures confidentiality and integrity of data through 
+symmetric key cryptography. Its efficient design and strong security properties make it a cornerstone of modern information security.
+
+RSA - Rivest-Shamir-Adleman
+------------------------------
+It is a widely used asymmetric cryptographic algorithm for secure data transmission and digital signatures. Here’s an explanation of how RSA works:
+
+### Key Generation:
+
+1. **Key Generation Parameters:**
+   - **Step 1:** Choose two distinct large prime numbers,  p and q .
+   - **Step 2:** Compute their product,  n = p * q . Here n forms part of the public key and is used as the modulus for both encryption and decryption.
+   - **Step 3:** Compute Euler's totient function phi(n) = (p-1)(q-1) . This value phi(n) is used to derive the private and public exponents.
+
+2. **Choosing Public and Private Exponents:**
+   - **Step 4:** Choose a public exponent e that is coprime with phi(n), typically a small prime number 
+   like 65537 (often chosen for efficiency reasons due to its binary representation).
+
+   - **Step 5:** Compute the private exponent d such that d is the multiplicative inverse of e modulo phi(n), i.e.,  d * e == 1 mod phi(n).
+
+   - **Public Key:** (e, n) is the public key.  e is used for encryption.
+   - **Private Key:** (d, n) is the private key. d is used for decryption.
+
+### Encryption:
+
+To encrypt a message M:
+
+- **Step 1:** Represent the message M as an integer where 0 <= M < n.
+- **Step 2:** Compute the ciphertext C as C = M^e mod n.
+
+### Decryption:
+
+To decrypt the ciphertext C:
+
+- **Step 1:** Compute the plaintext M as M = C^d mod n.
+
+### Security and Practical Considerations:
+
+- **Key Size:** The security of RSA relies on the difficulty of factoring the modulus n into its prime factors p and q.
+For security, n should be sufficiently large (typically 2048 bits or more in modern applications).
+  
+- **Padding:** RSA encryption is often used with padding schemes (like PKCS#1 v1.5 or OAEP) to enhance security and prevent 
+certain attacks (e.g., chosen ciphertext attacks).
+
+- **Performance:** RSA encryption and decryption can be computationally intensive compared to symmetric key algorithms, 
+especially for large messages. Thus, RSA is often used to encrypt symmetric keys or to digitally sign small pieces of data
+rather than encrypting large amounts of plaintext directly.
+
+### Applications:
+
+- **Secure Communication:** RSA is used in protocols like SSL/TLS to establish a secure session between clients and servers.
+  
+- **Digital Signatures:** RSA can be used for digital signatures, where the sender signs a message with their private key and 
+the recipient verifies the signature using the sender’s public key.
+
+In summary, RSA is a powerful and widely adopted cryptographic algorithm that enables secure communication and data integrity 
+through asymmetric key cryptography, where encryption and decryption keys are different.
 
 
-The structure for the private keys seems somewhat similar, although the one created with openssl begins with:
------BEGIN RSA PRIVATE KEY-----
+Diffie Helman
+---------------
+The Diffie-Hellman key exchange protocol is a method used to securely exchange cryptographic keys over a public channel. 
+It allows two parties to agree on a shared secret key without having to directly transmit the key itself over the insecure
+communication channel. Here’s how it works in a simplified explanation:
 
-And the one from ssh-keygen begins with:
------BEGIN OPENSSH PRIVATE KEY-----
+### Basic Steps of Diffie-Hellman Key Exchange:
+
+1. **Setup:**
+   - Both parties, let's call them Alice and Bob, agree on and publicly share two parameters:
+     - A large prime number p.
+     - A base g, where g is a primitive root modulo p. This means g generates all possible remainders when g is divided by p.
+
+2. **Key Generation:**
+   - Each party (Alice and Bob) generates their own private key:
+     - Alice chooses a secret integer a (her private key).
+     - Bob chooses a secret integer b (his private key).
+
+3. **Public Exchange:**
+   - Both parties compute and exchange public values based on their private keys and the agreed parameters:
+     - Alice computes A = g^a mod p and sends A to Bob.
+     - Bob computes B = g^b mod p and sends B to Alice.
+
+4. **Shared Secret Calculation:**
+   - Both Alice and Bob can now compute the shared secret key using the received public value and their own private key:
+     - Alice computes the shared secret as S = B^a mod p.
+     - Bob computes the shared secret as S = A^b mod p.
+
+   The key idea here is that due to the properties of modular arithmetic:
+   A^b mod p = (g^a mod p)^b mod p = g^{ab} mod p
+   B^a mod p = (g^b mod p)^a mod p = g^{ba} mod p
+   Both computations yield the same result g^{ab} mod p, which is the shared secret key.
+
+### Security Considerations:
+
+- **Eavesdropping Resistance:** Even if an eavesdropper (Eve) intercepts A and B , without knowing a or b, 
+they cannot easily compute S due to the discrete logarithm problem.
+
+- **Man-in-the-Middle Attack:** Diffie-Hellman alone is vulnerable to a man-in-the-middle attack, where Eve 
+intercepts the public keys A and B , and establishes separate keys with Alice and Bob. This is mitigated by
+using additional techniques such as digital signatures or entity authentication protocols.
+
+### Practical Applications:
+
+- **SSL/TLS:** Diffie-Hellman is commonly used in protocols like SSL/TLS to establish a secure session between a client and server.
+  
+- **Key Exchange in Cryptography:** It forms the basis for establishing shared secret keys used in symmetric encryption schemes.
+
+In essence, the Diffie-Hellman key exchange allows two parties to agree upon a shared secret key over an insecure channel, without 
+transmitting the key itself, thereby achieving secure communication.
+
+-----------------------------------------------------------------
+
+Message Authentication Code - MAC
+-----------------------------------
+A Message Authentication Code (MAC) is a cryptographic technique used to verify the integrity and authenticity of a message or 
+data transmitted over an insecure channel. It serves a similar purpose to a digital signature but is based on symmetric key 
+cryptography rather than asymmetric cryptography (used in digital signatures).
+
+### Functionality and Purpose:
+
+1. **Integrity Verification:** A MAC allows the receiver of a message to verify that the message has not been altered during transit. 
+If the message has been tampered with (even a single bit change), the MAC verification will fail.
+
+2. **Authentication:** A MAC also provides authentication, ensuring that the message was indeed sent by the claimed sender
+(assuming the sender possesses the secret key used to compute the MAC).
+
+### How MAC Works:
+
+- **Keyed Hash Function:** A MAC is typically generated using a keyed hash function, where the hash function (such as SHA-256) 
+takes both the message and a secret key as inputs.
+
+- **Generation:** To generate a MAC:
+  - The sender computes the MAC by applying a hash function (e.g., HMAC-SHA256) to the message and a secret key.
+  - MAC = HMAC(K, M), where K is the secret key and M is the message.
+
+- **Verification:** Upon receiving the message and its MAC:
+  - The receiver recomputes the MAC using the received message and the same secret key.
+  - If the computed MAC matches the received MAC, the receiver concludes that the message has not been altered (integrity verified) 
+  and that it was sent by the party possessing the secret key (authentication verified).
+
+### Key Properties:
+
+- **Key Dependency:** The security of MAC relies on the secrecy of the key K. Only parties possessing the key can generate valid MACs.
+
+- **Efficiency:** MAC computation and verification are efficient operations, making them suitable for real-time applications.
+
+### Applications:
+
+- **Network Security:** Used in protocols like TLS (Transport Layer Security) and IPsec (Internet Protocol Security) to ensure 
+message integrity and authenticity.
+
+- **File Integrity Checking:** Used to verify the integrity of files downloaded over the internet or transferred between systems.
+
+- **Message Integrity in IoT:** Ensures that messages sent between IoT devices or between an IoT device and a server are not tampered 
+with during transit.
+
+In summary, a Message Authentication Code (MAC) is a cryptographic tool that provides both message integrity and authentication
+through the use of a shared secret key and a hash function. It ensures that transmitted data remains unchanged and authentic, 
+critical for secure communication and data integrity in various applications.
+
+Digital Signature
+---------------------
+A digital signature is a cryptographic mechanism used to verify the authenticity, integrity, and non-repudiation of digital messages 
+or documents. It provides a way to ensure that a message or document originates from a particular sender and has not been altered in transit.
+
+### How Digital Signatures Work:
+
+1. **Signing Process:**
+   - **Private Key:** The sender uses their private key to generate a digital signature for the message or document.
+   - **Hash Function:** A hash function is applied to the message to generate a fixed-size hash value (digest).
+   - **Signing:** The private key is then used to encrypt the hash value, resulting in the digital signature.
+
+2. **Verification Process:**
+   - **Public Key:** The recipient uses the sender's public key to decrypt the digital signature, revealing the hash value.
+   - **Hash Calculation:** The recipient independently calculates the hash value of the received message using the same hash function.
+   - **Comparison:** If the decrypted hash value matches the independently calculated hash value, the recipient can verify:
+     - **Authenticity:** The message was indeed sent by the holder of the private key.
+     - **Integrity:** The message has not been altered since it was signed.
+     - **Non-Repudiation:** The sender cannot deny having signed the message (assuming proper key management and security).
+
+### Properties and Advantages:
+
+- **Non-Repudiation:** Digital signatures provide strong evidence that a particular message was signed by the sender, making 
+it difficult for the sender to deny sending it.
+  
+- **Integrity:** Any alteration of the signed message or document would invalidate the digital signature upon verification.
+
+- **Authentication:** Verification of the digital signature confirms the identity of the sender, assuming the public key used 
+for verification belongs to the purported sender.
+
+### Applications:
+
+- **Email Security:** Used to sign and verify emails, ensuring that messages are not forged or tampered with during transmission.
+
+- **Document Signing:** Used in digital contracts, legal documents, and financial transactions to ensure authenticity and integrity.
+
+- **Software Distribution:** Used to sign software updates and packages, ensuring they come from the legitimate software vendor 
+and have not been altered by malicious parties.
+
+### Standards and Algorithms:
+
+- **RSA (Rivest-Shamir-Adleman):** Often used for digital signatures due to its security and widespread support.
+  
+- **DSA (Digital Signature Algorithm):** Commonly used in government and financial sectors for digital signatures.
+
+- **ECDSA (Elliptic Curve Digital Signature Algorithm):** A variant of DSA based on elliptic curve cryptography, offering similar
+security with shorter key sizes.
+
+In summary, a digital signature is a cryptographic technique that provides assurance of the authenticity and integrity of digital
+messages or documents, offering essential security features for secure communications, transactions, and document management in digital environments.
 
 
-the corresponding public keys, the one from openssl contains:
+Hash Functions
+------------------
+Hash functions are fundamental cryptographic tools that take an input (or message) of arbitrary size and produce a 
+fixed-size output (hash value or hash digest). Here’s an explanation of their properties, uses, and characteristics:
 
------BEGIN PUBLIC KEY-----
-  ...base64 encoded...
------BEGIN PUBLIC KEY-----
+### Properties of Hash Functions:
 
-While the one from ssh-keygen just contains one line:
-ssh-rsa XXXXXX...base64 encoded...XXXXX Rocketnuts@Rocketnuts-MBP.my.networkname
+1. **Deterministic:** For a given input, a hash function always produces the same output. This property ensures consistency and repeatability.
 
+2. **Fixed Output Size:** Regardless of the input size, the hash function always produces an output of a fixed length.
+For example, SHA-256 always produces a 256-bit (32-byte) hash value.
 
-is there a fundamental difference between these two kinds of keys?
+3. **Preimage Resistance:** Given a hash value h, it should be computationally infeasible to find any input x such that H(x) = h, 
+where H is the hash function. This property ensures that hash functions are one-way or irreversible.
 
-No, they're essentially the same data.
+4. **Second Preimage Resistance:** Given an input x, it should be computationally infeasible to find another input x' != x such that
+H(x) = H(x'). This property ensures that given a message and its hash, it is difficult to find a different message with the same hash.
 
-BEGIN RSA PRIVATE KEY indicates "PKCS#1" or "PEM" key format, which is Base64 encoding of an ASN.1 DER serialized structure. 
-It's a basic ASN.1 sequence containing the RSA parameters (n, e, d, p, q, etc).
+5. **Collision Resistance:** It should be computationally infeasible to find any two distinct inputs x and x' such that H(x) = H(x'). 
+This property ensures that it is unlikely to find two different messages with the same hash value.
 
-Note: ASN.1 DER refers to Abstract Syntax Notation defined by RFC 5280 (for X.509) whose serialization format is DER (Distinguished
-encoding rules). ASN is similar to protobuf (language agnostic way of encoding objects)
+### Commonly Used Hash Functions:
 
-This format comes from the PEM email security effort that later became S/MIME (hence the usage of ASN.1 DER) and was commonly used 
-for SSL/TLS as well as miscellaneous generic RSA.
+1. **SHA (Secure Hash Algorithm):**
+   - **SHA-1:** Produces a 160-bit hash value. Considered weak due to vulnerabilities; deprecated for most cryptographic uses.
+   - **SHA-256, SHA-384, SHA-512:** Part of the SHA-2 family, producing hash values of 256 bits, 384 bits, and 512 bits respectively. 
+   Widely used for integrity verification, digital signatures, and authentication.
 
-For a long time, it was also OpenSSH's primary key format (because OpenSSH already uses OpenSSL's cryptographic code, 
-so the "load key" and "write key" functions were also conveniently available). 
-This means you can use ssh-keygen -m PEM to generate or convert such keys.
+2. **MD (Message Digest):**
+   - **MD5:** Produces a 128-bit hash value. Widely used in the past but now considered weak due to vulnerabilities (collision attacks).
 
-BEGIN PRIVATE KEY indicates "PKCS#8" key format (unencrypted); it'the contents are very similar to the PEM format,
-with the same RSA parameters nested inside another structure that indicates that it is indeed an RSA key.
+3. **Blake2:**
+   - A high-speed cryptographic hash function that produces hash values of various sizes (e.g., Blake2b for 512 bits, Blake2s for 256 bits). 
+   Known for its speed and security.
 
-PKCS#8 is specifically meant as the more modern replacement of the PEM format. Compared to PEM, the PKCS#8 format more 
-cleanly separates the "payload" (key algorithm, encryption) from the outer Base64 wrapper – all metadata is now inside the structure, 
-so it's easier to update for new key types. The new format also supports better ciphers and KDFs for encrypted keys.
+4. **Whirlpool:**
+   - A cryptographic hash function designed by Vincent Rijmen and Paulo S. L. M. Barreto. It produces hash values of 512 bits and is used
+   in some cryptographic applications.
 
-OpenSSH will recognize this format too (due to its OpenSSL usage for key loading), and I think recent versions are also able to create it.
+### Applications of Hash Functions:
 
-BEGIN OPENSSH PRIVATE KEY is a format invented by OpenSSH for OpenSSH, and unlike the PEM/PKCS formats, 
-it uses SSHv2 packet serialization for its data structures (no more DER or ASN.1).
+- **Data Integrity:** Hash functions are used to verify the integrity of data. By comparing hash values before and after transmission
+or storage, one can detect any changes or corruption in the data.
 
-One reason OpenSSH now uses this format so that it could avoid depending on OpenSSL entirely, and/or so that it could add new 
-key algorithms without waiting for OpenSSL to implement loading/saving of those keys – which also means waiting for PKIX to 
-standardize the ASN.1 OID and structure for each new algorithm (which otherwise has absolutely nothing to do with SSH).
+- **Digital Signatures:** Hash functions are used in digital signature schemes to produce a fixed-size digest of a message. 
+The digest is then encrypted with the signer’s private key to create a digital signature.
 
-For example, it took a while for OpenSSL to gain full Ed25519 support, during which time OpenSSH could neither use OpenSSL's libcrypto 
-for the actual math, nor for loading/saving Ed25519 key files – that's what prompted the creation of this format.
+- **Password Storage:** Hash functions are used to store passwords securely. Instead of storing passwords directly, 
+systems store the hash value of the password. During authentication, the input password’s hash is compared to the stored hash.
 
-Another advantage of the OpenSSH format is that passphrase-encrypted keys use bcrypt for the encryption key derivation; 
-at the time the PEM format was limited to a very weak (i.e. easy to bruteforce) KDF, and even PKCS#8 supports only the slightly inferior PKBDF2.
+- **Blockchain Technology:** Hash functions play a crucial role in blockchain technology to create a secure and tamper-resistant
+record of transactions and data.
 
-As for the PUBLIC key format, 
-
-BEGIN PUBLIC KEY is, I believe, also PKCS#8 – so inside Base64 there's a DER-serialized ASN.1 structure which identifies it as an RSA key, 
-followed by key parameters (n, e).
-
-The one-line format is partially OpenSSH-specific, although the central Base64-encoded data is in exactly the same format as used within 
-the SSHv2 protocol itself ("on the wire"). As you might guess, the encoded data uses SSHv2 packet serialization – but it still holds the same RSA n and e values.
+In summary, hash functions are essential cryptographic tools used for a variety of purposes, including data integrity verification, 
+digital signatures, password storage, and blockchain technology. Their security properties ensure that they are resistant to various attacks, 
+making them foundational in modern cryptography and information security.
 
