@@ -260,9 +260,8 @@ or documents. It provides a way to ensure that a message or document originates 
 ### How Digital Signatures Work:
 
 1. **Signing Process:**
-   - **Private Key:** The sender uses their private key to generate a digital signature for the message or document.
    - **Hash Function:** A hash function is applied to the message to generate a fixed-size hash value (digest).
-   - **Signing:** The private key is then used to encrypt the hash value, resulting in the digital signature.
+   - **Signing:** The sender uses his private key to encrypt the hash value, resulting in the digital signature.
 
 2. **Verification Process:**
    - **Public Key:** The recipient uses the sender's public key to decrypt the digital signature, revealing the hash value.
