@@ -12,12 +12,6 @@ IP Address
 IP addresses are basically integers. 
 An ipv4 address is a 32-bit integer represented in dot-decimal form. 
 for ex: 220.14.9.37. 
-An ipv6 address is 128-bits in length and consists of eight 16-bit fields seperated by colon.
-Each field must contain a hexadecimal number, in contrast to the dotted-decimal notation of IPv4 address.
-for ex: 2001:0db8:3c4d:0015:0000:0000:1a2f:1a2b
-
-As mentioned above an ipv4 address represents a 32-bit integer in dot-decimal form.
-for ex: 220.14.9.37
 
 So what's the underlying integer? 
 (
@@ -29,16 +23,32 @@ So what's the underlying integer?
 
 It is 3,691,907,365. 
 
+An ipv6 address is 128-bits in length and consists of eight 16-bit fields seperated by colon.
+Each field must contain a hexadecimal number, in contrast to the dotted-decimal notation of IPv4 address.
+for ex: 2001:0db8:3c4d:0015:0000:0000:1a2f:1a2b
+
+So what's the underlying integer?
+
+Combine the hexadecimal segments. The IPv6 address 2001:0db8:3c4d:0015:0000:0000:1a2f:1a2b consists of 8 segments 
+separated by colons. Combine all these segments into a single 32-character hexadecimal string (128 bits).
+
+20010db83c4d0015000000001a2f1a2b
+
+Now convert the hexadecimal to decimal. 
+Using python we can do
+int("20010db83c4d0015000000001a2f1a2b", 16) --> 42540766429944781121676641069932943915
+
+
 Inside ipaddress module, IPv4Address/IPv6Address are used to represent IP addresses. 
 ex:
->>> addr = IPv4Address("202.160.8.12")
->>> addr = IPv6Address("2001:db8::1")
+>>> addr = IPv4Address(""220.14.9.37")
+>>> addr = IPv6Address("2001:0db8:3c4d:0015:0000:0000:1a2f:1a2b")
 
 We can also use the factory function ip_address to retrieve an address. This will return the instance of the appropiate class.
->>> addr = ip_address("202.160.8.12")
+>>> addr = ip_address(""220.14.9.37")
 >>> isinstance(addr, IPv4Address)
 >>> True
->>> addr = ip_address("2001:db8::1")
+>>> addr = ip_address("2001:0db8:3c4d:0015:0000:0000:1a2f:1a2b")
 >>> isinstance(addr, IPv6Address)
 >>> True
 
@@ -51,6 +61,15 @@ Now let's get the integer value of the ip address
 b'\xdc\x0e\t%
 
 The packed version is the bytes representation of the address that you encounter if you are working with TCP packet data, 
+
+Similarly for ipv6
+
+>>> addr = IPV6Address("2001:0db8:3c4d:0015:0000:0000:1a2f:1a2b")
+>>> int(addr)
+>>> 42540766429944781121676641069932943915
+>>> addr.packed
+b' \x01\r\xb8<M\x00\x15\x00\x00\x00\x00\x1a/\x1a+'
+
 
 Instances of IPv4Address and IPv6Address are hashable. 
 >>> hash(IPv4Address("220.14.9.37"))
