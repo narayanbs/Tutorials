@@ -45,7 +45,7 @@ ex:
 >>> addr = IPv6Address("2001:0db8:3c4d:0015:0000:0000:1a2f:1a2b")
 
 We can also use the factory function ip_address to retrieve an address. This will return the instance of the appropiate class.
->>> addr = ip_address(""220.14.9.37")
+>>> addr = ip_address("220.14.9.37")
 >>> isinstance(addr, IPv4Address)
 >>> True
 >>> addr = ip_address("2001:0db8:3c4d:0015:0000:0000:1a2f:1a2b")
@@ -377,9 +377,14 @@ Packets sent to this address will not reach the network but will loop back to th
 >>> IPv4Address("127.0.0.1").is_loopback
 True
 
-Another interesting address range is the addresses for multicast. The addresses called multicast groups are a subset of 
-the ipv4 address range 224.0.0.0 through 230.255.255.255.  These addresses are treated specially by network routers and switches,
-so messages sent to the group can be distributed over the Internet to all recipients that have joined the group.
+Another interesting address range is the addresses for multicast. A multicast address is used to send packets to multiple hosts simultaneously.
+Unlike unicast addresses (which are used to send packets to a single host) and broadcast addresses (which are used to send packets to all hosts
+on a network segment), 
+multicast addresses are used to send packets to a specific group of hosts that have joined a multicast group.
+The addresses called multicast groups are a subset of the ipv4 address range 224.0.0.0 through 230.255.255.255.  
+These addresses are treated specially by network routers and switches,so messages sent to the group can be distributed over the Internet 
+to all recipients that have joined the group.
+
 Multicast messages are always sent using UDP
 
 >>> IPv4Address("224.3.29.71").is_multicast
