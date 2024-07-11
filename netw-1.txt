@@ -464,9 +464,10 @@ Let’s find out the route to reach any random IP address (1.1.1.1) using the ip
 
 $ ip route get 1.1.1.1
 
-1.1.1.1 via 192.168.207.2 dev wlxb4b02428d1a1 src 192.168.207.128 uid 1000 cache 
+1.1.1.1 via 192.168.1.1 dev wlxb4b02428d1a1 src 192.168.1.8 uid 1000
+    cache
 
-Another tool to check the kernal routing table is "route" utility: for ex
+Another tool to check the kernal routing table is "route" utility.
 
 Subsequently, after identifying the primary active interface, the final step is checking the primary IP address — that is, the IP address 
 of the primary active interface. 
@@ -515,26 +516,37 @@ It’s usually present in all modern-day Linux distributions. This utility will 
 so the user has to peruse and find the primary IP address of the primary active network interface:
 
 $ nmcli 
+wlxb4b02428d1a1: connected to Narayan_5G
+        "TP-Link AC600 Realtek RTL8811AU"
+        wifi (rtl8821au), B4:B0:24:28:D1:A1, hw, mtu 1500
+        ip4 default, ip6 default
+        inet4 192.168.1.8/24
+        route4 192.168.1.0/24 metric 600
+        route4 default via 192.168.1.1 metric 600
+        inet6 fe80::95de:f3e:1d52:b9dc/64
+        route6 fe80::/64 metric 1024
+        route6 default via fe80::204:95ff:fee6:d290 metric 20600
 
-ens33: connected to Wired connection 1
-        "Intel 82545EM"
-        ethernet (e1000), 00:0C:29:D5:CD:03, hw, mtu 1500
-        ip4 default
-        inet4 192.168.207.128/24
-        route4 0.0.0.0/0
-        route4 192.168.207.0/24
-        route4 169.254.0.0/16
-        inet6 fe80::37c:eba3:2365:23b7/64
-        route6 fe80::/64
-
-lo: unmanaged
+lo: connected (externally) to lo
         "lo"
         loopback (unknown), 00:00:00:00:00:00, sw, mtu 65536
+        inet4 127.0.0.1/8
+        inet6 ::1/128
+
+p2p-dev-wlxb4b02428d1a1: disconnected
+        "p2p-dev-wlxb4b02428d1a1"
+        wifi-p2p, hw
+
+enp1s0: unavailable
+        "Realtek RTL810xE"
+        ethernet (r8169), 74:86:7A:67:5B:41, hw, mtu 1500
 
 DNS configuration:
-        servers: 192.168.207.2
-        domains: localdomain
-        interface: ens33
+        servers: 8.8.8.8 8.8.4.4
+        interface: wlxb4b02428d1a1
+
+        servers: 2001:4860:4860::8888 2001:4860:4860::8844
+        interface: wlxb4b02428d1a1
 
 Use "nmcli device show" to get complete information about known devices and
 "nmcli connection show" to get an overview of active connection profiles.
