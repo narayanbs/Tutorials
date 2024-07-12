@@ -6,25 +6,47 @@ also regenerate it. When the signal becomes weak, they copy it bit by bit and re
 2. Hub –  A hub is a basically multi-port repeater. They operate at the physical layer of the OSI model. 
 It is a network hardware device for connecting multiple Ethernet devices together and making them act as 
 a single network segment. It has multiple input/output (I/O) ports, in which a signal introduced at the 
-input of any port appears at the output of every port except the original incoming.
+input of any port appears at the output of every port except the original incoming. This means collisions can 
+occur when two devices transmit data simultaneously. In networking terminology they are part of the same collision 
+domain. This can lead to loss of data and network inefficiencies. Since signal is broadcast to all ports, 
+(in networking terminology they share the same broadcast domain) the available bandwidth is shared among 
+all the devices. This sharing can lead to network congestion and reduced network performance. Hubs are rarely used 
+today in modern networks because they do not offer any intelligence to manage traffic or optimize performance.
 
-3. A network bridge is a device that operates at the Link Layer and passes traffic across networks based on MAC addresses. 
-As a result, a network bridge is also known as a device that operates at the Layer 2 level. 
-It constructs tables of MAC addresses, using the information it gathers about what hosts are connected to each network, 
-and bases its judgments about which packets to forward on those tables. A Linux host computer may make use of a hardware bridge 
-in order to simulate the functionality of a software bridge.
+3. Bridge - A bridge is a networking device that operates at the data link layer (layer 2) of the OSI model. 
+A bridge reduces collision domain by effectively segmenting the network so that traffic is isolated within 
+each connected segment. It does this by learning which devices (specifically, their MAC addresses) are connected 
+to each of its ports by examining the source MAC addresses of incoming frames.Once the bridge has learned which 
+MAC addresses are reachable through each of its ports, it creates virtual segments (or collision domains) for each device. 
+This means that traffic between two devices connected to the same bridge but on different ports doesn't have to be shared 
+with all devices on the network; it stays within the same segment.When a frame arrives at a bridge, it examines the 
+destination MAC address. If the destination is on the same segment (port) where the frame arrived, the bridge does not 
+forward the frame to other segments; it stays within that segment. If the destination is on a different segment, 
+the bridge forwards the frame only to that specific segment, not to all segments like a hub would.
+Thus by creating separate segments for each port (and hence for each connected device), a bridge effectively reduces the 
+size of collision domains. Collisions are limited to devices connected to the same segment, rather than being possible across
+all devices on a single network segment.But bridges do not seperate broadcast domains. they typically forward broadcast traffic 
+to all segments they connect. These days bridges are considered outdated technology that was used primarily for connecting 
+LAN segments and their functionality has largely been integrated into modern network switches.
 
-4. Switch - A network switch connects devices on a computer network by using packet switching to receive 
-and forward data to the destination device. A network switch is a multiport network bridge that uses MAC addresses 
-to forward data at the data link layer (layer 2) of the OSI model. Some switches can also forward data at the 
-network layer (layer 3) by additionally incorporating routing functionality. Such switches are commonly known 
-as layer-3 switches or multilayer switches. Unlike hubs, which broadcast the same data out of each port and let 
-the devices pick out the data addressed to them, a network switch learns the identities of connected devices 
-and then only forwards data to the port connected to the device to which it is addressed.
+4. Switch - A switch is a networking device that operates at the data link layer (Layer 2) of the OSI model. 
+(Although some operate at layer-3) Its primary function is to connect multiple devices in a local area network (LAN) or 
+between LANs (inter-lan if the switch supports layer-3 and has necessary routing configuration) and intelligently forward 
+data packets between them. Switches are similar to bridges in that they perform MAC address learning by building a table 
+that associates MAC addresses with specific ports. But it has more advanced technology, faster processing speeds, 
+faster data transmission rates and offer higher density of ports. Switches support full-duplex communication, allowing data 
+to be sent and received simultaneously on a network connection. This further enhances the network's performance and throughput. 
+Switches have the ability to segment a network into more physical segments, resulting in higher overall network bandwidth. 
+Switches can isolate broadcast domains using VLANs (Virtual Local Area Networks),which are logical segmentation of a network 
+into separate broadcast domains. VLANs allow switches to control and segment broadcast traffic more effectively than traditional 
+bridges.Switches allows multiple groups of ports to operate simultaneously. This means that a switch combines 
+the functionalities of multiple bridges rather than just acting as a single bridge. Today switches have replaced traditional 
+bridges and become the primary networking technology for interconnecting networks.
 
-5. Router: Routers operate at the network layer of the OSI model and connect different networks. 
-They direct data packets between networks, making decisions based on IP addresses. Routers play a crucial 
-role in determining the most efficient path for data to travel between devices on different subnets.
+5. Router - Switches and bridges connect multiple devices to create a network. A Router connects multiple switches and their 
+respective networks, to form a larger network. Routers operate at the network layer of the OSI model and connect different networks. 
+They direct data packets between networks, making decisions based on IP addresses. Routers play a crucial role in determining the most 
+efficient path for data to travel between devices on different subnets.
 
 6. Gateway: Gateways serve as protocol converters, facilitating communication between networks with different 
 communication protocols. They play a crucial role in ensuring interoperability in heterogeneous network environments.
@@ -37,8 +59,11 @@ When a connection is made between an inside address and an outside address, the 
 a forwarding table entry consisting of (outside_ip, outside_port, nat_host_ip, nat_host_port, inside_ip, inside_port). 
 Any packet matching the first four parts gets its destination re-written to the last two parts.
 If a packet is received that doesn't match an entry in the NAT table, then there is no way for the NAT box to
-know where to forward it unless a forwarding rule was manually defined. That's why, by default, a machine behind a NAT device is "protected".
-Your home router performs NAT.. The system has an internal address, and our ISP provides us an external IP to which it is mapped by the router. 
+know where to forward it unless a forwarding rule was manually defined. That's why, by default, a machine behind a NAT device 
+is "protected". Your home router performs NAT.. The system has an internal address, and our ISP provides us an external IP to 
+which it is mapped by the router. 
+
+----------------------------------------------
 
 Routing
 =====================
