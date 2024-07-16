@@ -1,0 +1,584 @@
+nasm or gcc compiles a source file into object file. The linker program ld takes these object files and creates an executable. ld is a static linker.
+The linker runs a script that details the steps involved, like creating segments(text, data), copying data and text from object files, 
+resolving symbols etc. 
+We can write our own custom script or we can allow the linker to use a default script. The default scripts for ld in the case of gcc are stored in /lib/x86_64-linux-gnu/ldscripts 
+
+We can allow gcc to handle the entire linking process transparently by
+gcc -c hello.c 
+gcc hello.o -o hello
+	or
+gcc hello.c -o hello 
+
+Or we can explictly specify the compilation and linking steps by invoking the linker as shown below.
+
+gcc -c hello.c
+
+ld -dynamic-linker /lib/ld-linux.so.2 /usr/lib/crt1.o  /usr/lib/crti.o /usr/lib/gcc-lib/i686/3.3.1/crtbegin.o  -L/usr/lib/gcc-lib/i686/3.3.1 
+hello.o -lgcc -lgcc_eh -lc -lgcc -lgcc_eh /usr/lib/gcc-lib/i686/3.3.1/crtend.o /usr/lib/crtn.o
+
+Similarly nasm also compiles a asm file into object file. We can then use the linker ld or gcc to create an executable from this. 
+Check online for more details, if you want to create a custom linker script. 
+
+Note: ld is a static linker. 
+
+GCC 
+-----
+
+// main.c 
+#include <stdio.h>
+
+int main(void) {
+  printf("Hello, World!\n");
+  return 0;
+}
+
+$ gcc -Wall main.c -o main 
+
+Note: -Wall says to turn on all commonly-used compiler warnings.
+
+$ ./main
+Hello, World!
+
+
+Compiling multiple source files
+--------------------------------
+// hello.h
+void hello(const char* name);
+
+// hello_fn.c
+#include <stdio.h>
+#include "hello.h"
+
+void hello(const char* name) {
+  printf("Hello, %s\n");
+}
+
+// main.c
+#include "hello.h"
+
+int main(void) {
+  hello("World!");
+  return 0;
+}
+
+
+$ gcc -Wall main.c hello_fn.c -o newhello
+
+$ ./newhello
+Hello, World!
+
+Note: 
+* We don't use hello.h in the compile command. 
+* #include "hello.h", looks for hello.h in the current directory
+* #include <hello.h> will look for hello.h in the system header directories
+
+Compiling files independently
+------------------------------
+If a program is stored in a single file then any change to an individual function requires the whole program to be recompiled to produce a new executable. The recompilation of large source files can be very time-consuming.
+
+When programs are stored in independent source files, only the files which have changed need to be recompiled after the source code has been modified. In this approach, the source files are compiled separately and then linked together--a two stage process. In the first stage, a file is compiled without creating an executable. The result is referred to as an object file, and has the extension '.o' when using GCC.
+
+In the second stage, the object files are merged together by a separate program called the linker. The linker combines all the object files to create a single executable.
+
+An object file contains machine code where any references to the memory addresses of functions (or variables) in other files are left undefined. This allows source files to be compiled without direct reference to each other. The linker fills in these missing addresses when it produces the executable.
+
+The command-line option -c is used to compile a source file to an object file. For example, the following command will compile the source file 'main.c' to an object file:
+
+$ gcc -Wall -c main.c
+This produces an object file 'main.o' containing the machine code for the main function. It contains a reference to the external function hello, but the corresponding memory address is left undefined in the object file at this stage (it will be filled in later by linking).
+
+The corresponding command for compiling the hello function in the source file 'hello_fn.c' is:
+
+$ gcc -Wall -c hello_fn.c
+This produces the object file 'hello_fn.o'.
+
+Note that there is no need to use the option -o to specify the name of the output file in this case. When compiling with -c the compiler automatically creates an object file whose name is the same as the source file, but with '.o' instead of the original extension.
+
+There is no need to put the header file 'hello.h' on the command line, since it is automatically included by the #include statements in 'main.c' and 'hello_fn.c'.
+
+The final step in creating an executable file is to use gcc to link the object files together and fill in the missing addresses of external functions. To link object files together, they are simply listed on the command line:
+
+$ gcc main.o hello_fn.o -o hello
+
+This is one of the few occasions where there is no need to use the -Wall warning option, since the individual source files have already been successfully compiled to object code. Once the source files have been compiled, linking is an unambiguous process which either succeeds or fails (it fails only if there are references which cannot be resolved).
+
+To perform the linking step gcc uses the linker ld, which is a separate program. On GNU systems the GNU linker, GNU ld, is used. Other systems may use the GNU linker with GCC, or may have their own linkers. The linker itself will be discussed later (see section 11 How the compiler works). By running the linker, gcc creates an executable file from the object files.
+
+The resulting executable file can now be run:
+
+$ ./hello
+Hello, World!
+It produces the same output as the version of the program using a single source file in the previous section.
+
+To show how source files can be compiled independently we will edit the main program 'main.c' and modify it to print a greeting to everyone instead of world:
+
+// main.c 
+#include "hello.h"
+
+int main(void)
+{
+  hello ("everyone");  /* changed from "world" */
+  return 0;
+}
+The updated file 'main.c' can now be recompiled with the following command:
+
+$ gcc -Wall -c main.c
+This produces a new object file 'main.o'. There is no need to create a new object file for 'hello_fn.c', since that file and the related files that it depends on, such as header files, have not changed.
+
+The new object file can be relinked with the hello function to create a new executable file:
+
+$ gcc main.o hello_fn.o -o hello
+The resulting executable 'hello' now uses the new main function to produce the following output:
+
+$ ./hello
+Hello, everyone!
+
+Note that only the file 'main.c' has been recompiled, and then relinked with the existing object file for the hello function. If the file 'hello_fn.c' had been modified instead, we could have recompiled 'hello_fn.c' to create a new object file 'hello_fn.o' and relinked this with the existing file 'main.o'.(3)
+
+In a large project with many source files, recompiling only those that have been modified can make a significant saving. The process of recompiling only the modified files in a project can be automated with the standard Unix program make.
+
+
+Makefile
+---------
+
+CC=gcc 
+CFLAGS=-Wall
+main: main.o hello_fn.o
+
+clean:
+	rm -f main main.o hello_fn.o
+
+The file can be read like this: using the C compiler gcc, with compilation option -Wall, build the target executable main from the object files 'main.o' and 'hello_fn.o' (these, in turn, will be built via implicit rules from 'main.c' and 'hello_fn.c'). The target clean has no dependencies and simply removes all the compiled files.(4) The option -f (force) on the rm command suppresses any error messages if the files do not exist.
+
+GNU Make contains many default rules, referred to as implicit rules, to simplify the construction of makefiles. For example, these specify that '.o' files can be obtained from '.c' files by compilation, and that an executable can be made by linking together '.o' files. Implicit rules are defined in terms of make variables, such as CC (the C compiler) and CFLAGS (the compilation options for C programs), which can be set using VARIABLE=VALUE lines in the makefile. For C++ the equivalent variables are CXX and CXXFLAGS, while the make variable CPPFLAGS sets the preprocessor options. The implicit and user-defined rules are automatically chained together as necessary by GNU Make.
+
+To use the makefile, type make. When called with no arguments, the first target in the makefile is built, producing the executable 'main':
+
+$ make
+gcc -Wall -c -o main.o main.c
+gcc -Wall -c -o hello_fn.o hello_fn.c
+gcc main.o hello_fn.o -o main
+
+$ ./main
+Hello, World!
+
+To rebuild the executable after modifying a source file, simply type make again. By checking the timestamps of the target and dependency files, make identifies the files which have changed and regenerates the corresponding intermediate files needed to update the targets:
+
+$ vim main.c  (edit the file)
+$ make
+gcc -Wall   -c -o main.o main.c
+gcc    main.o hello_fn.o   -o main
+
+$ ./main
+Hello, everyone!
+Finally, to remove the generated files, type make clean:
+
+$ make clean
+rm -f main main.o hello_fn.o
+
+
+Linking with external libraries
+----------------------------------
+Library contains a collection of object files which can be linked into programs. The libraries can be either static or dynamically shared. 
+In the case of a static library, the object files are archived using a tool called gnu ar. Static library file names end with .a extension. 
+Dynamically shared libraries have an extension of .so (shared object)
+
+The most common use of libraries is to provide system functions, such as the square root function sqrt found in the C math library.
+The standard system libraries are usually found in the directories '/usr/lib' and '/lib'. For example, the C math library is typically stored in the file '/usr/lib/libm.a' on Unix-like systems. The corresponding prototype declarations for the functions in this library are given in the header file '/usr/include/math.h'. The C standard library itself is stored in '/usr/lib/libc.a' and contains functions specified in the ANSI/ISO C standard, such as 'printf'---this library is linked by default for every C program.
+
+Let's see where the standard linker i.e ld gnu linker looks for libraries. The default search path of ld can be found by the following way.  
+
+$ ld --verbose | grep SEARCH_DIR | tr -s ' ;' \\02
+
+SEARCH_DIR("=/usr/local/lib/x86_64-linux-gnu")
+SEARCH_DIR("=/lib/x86_64-linux-gnu")
+SEARCH_DIR("=/usr/lib/x86_64-linux-gnu")
+SEARCH_DIR("=/usr/lib/x86_64-linux-gnu64")
+SEARCH_DIR("=/usr/local/lib64")
+SEARCH_DIR("=/lib64")
+SEARCH_DIR("=/usr/lib64")
+SEARCH_DIR("=/usr/local/lib")
+SEARCH_DIR("=/lib")
+SEARCH_DIR("=/usr/lib")
+SEARCH_DIR("=/usr/x86_64-linux-gnu/lib64")
+SEARCH_DIR("=/usr/x86_64-linux-gnu/lib")
+
+Let's see where gcc looks for the header files .
+
+For c: 
+$ echo | gcc -x c -E -Wp,-v - >/dev/null
+For c++: 
+$ echo | gcc -x c++ -E -Wp,-v - >/dev/null
+
+Output: 
+ignoring nonexistent directory "/usr/lib/gcc/x86_64-pc-linux-gnu/12.1.0/../../../../x86_64-pc-linux-gnu/include"
+#include "..." search starts here:
+#include <...> search starts here:
+ /usr/lib/gcc/x86_64-pc-linux-gnu/12.1.0/include
+ /usr/local/include
+ /usr/lib/gcc/x86_64-pc-linux-gnu/12.1.0/include-fixed
+ /usr/include
+
+
+
+Here is an example program which makes a call to the external function sqrt in the math library 'libm.a':
+
+#include <math.h>
+#include <stdio.h>
+
+int main(void)
+{
+  double x = sqrt(2.0);
+  printf ("The square root of 2.0 is %f\n", x);
+  return 0;
+}
+
+Trying to create an executable from this source file alone causes the compiler to give an error at the link stage:
+
+$ gcc -Wall calc.c -o calc
+/tmp/ccbR6Ojm.o: In function `main':
+/tmp/ccbR6Ojm.o(.text+0x19): undefined reference 
+  to `sqrt'
+
+The problem is that the reference to the sqrt function cannot be resolved without the external math library 'libm.a'. The function sqrt is not defined in the program or the default library 'libc.a', and the compiler does not link to the file 'libm.a' unless it is explicitly selected. Incidentally, the file mentioned in the error message '/tmp/ccbR60jm.o' is a temporary object file created by the compiler from 'calc.c', in order to carry out the linking process.
+
+To enable the compiler to link the sqrt function to the main program 'calc.c' we need to supply the library 'libm.a'. One obvious but cumbersome way to do this is to specify it explicitly on the command line:
+
+$ gcc -Wall calc.c /usr/lib/libm.a -o calc
+
+The library 'libm.a' contains object files for all the mathematical functions, such as sin, cos, exp, log and sqrt. The linker searches through these to find the object file containing the sqrt function.
+
+Once the object file for the sqrt function has been found, the main program can be linked and a complete executable produced:
+
+$ ./calc 
+The square root of 2.0 is 1.414214
+
+The executable file includes the machine code for the main function and the machine code for the sqrt function, copied from the corresponding object file in the library 'libm.a'.
+
+To avoid the need to specify long paths on the command line, the compiler provides a short-cut option '-l' for linking against libraries. For example, the following command,
+
+$ gcc -Wall calc.c -lm -o calc
+is equivalent to the original command above using the full library name '/usr/lib/libm.a'.
+
+In general, the compiler option -lNAME will attempt to link object files with a library file 'libNAME.a' in the standard library directories
+
+Setting search paths
+---------------------
+Previously, we saw how to link to a program with functions in the C math library 'libm.a', using the short-cut option -lm and the header file 'math.h'.
+A common problem when compiling a program using library header files is the error:
+
+FILE.h: No such file or directory
+
+This occurs if a header file is not present in the standard include file directories used by gcc. We also saw the directories that gcc looks for,
+by default when it has to search a header file. 
+
+The list of directories for header files is often referred to as the include path, and the list of directories for libraries as the library search path or link path.
+When additional libraries are installed in other directories it is necessary to extend the search paths, in order for the libraries to be found. The compiler options -I and -L add new directories to the beginning of the include path and library search path respectively.
+
+Search Path Examples:
+
+#include <stdio.h>
+#include <gdbm.h>
+
+int main (void)
+{
+  GDBM_FILE dbf;
+  datum key = { "testkey", 7 };     /* key, length */
+  datum value = { "testvalue", 9 }; /* value, length */
+
+  printf ("Storing key-value pair... ");
+  dbf = gdbm_open ("test", 0, GDBM_NEWDB, 0644, 0);
+  gdbm_store (dbf, key, value, GDBM_INSERT);
+  gdbm_close (dbf);
+  printf ("done.\n");
+  return 0;
+}
+
+The program uses the header file 'gdbm.h' and the library 'libgdbm.a'. If the library has been installed in the default location of '/usr/local/lib', with the header file in '/usr/local/include', then the program can be compiled with the following simple command:
+
+$ gcc -Wall dbmain.c -lgdbm
+Both these directories are part of the default gcc include and link paths.
+
+However, if GDBM has been installed in a different location, trying to compile the program will give the following error:
+
+$ gcc -Wall dbmain.c -lgdbm    
+dbmain.c:1: gdbm.h: No such file or directory
+For example, if version 1.8.3 of the GDBM package is installed under the directory '/opt/gdbm-1.8.3' the location of the header file would be,
+/opt/gdbm-1.8.3/include/gdbm.h which is not part of the default gcc include path. 
+Adding the appropriate directory to the include path with the command-line option -I allows the program to be compiled, but not linked:
+
+$ gcc -Wall -I/opt/gdbm-1.8.3/include dbmain.c -lgdbm 
+/usr/bin/ld: cannot find -lgdbm
+collect2: ld returned 1 exit status
+
+The directory containing the library is still missing from the link path. It can be added to the link path using the following option:
+-L/opt/gdbm-1.8.3/lib/
+
+The following command line allows the program to be compiled and linked:
+
+$ gcc -Wall -I/opt/gdbm-1.8.3/include -L/opt/gdbm-1.8.3/lib dbmain.c -lgdbm
+
+This produces the final executable linked to the GDBM library.
+
+Note that you should never place the absolute paths of header files in #include statements in your source code, as this will prevent the program from compiling on other systems. The -I option or the INCLUDE_PATH variable described below should always be used to set the include path for header files.
+
+The search paths for header files and libraries can also be controlled through environment variables in the shell. These may be set automatically for each session using the appropriate login file, such as '.bash_profile' in the case of GNU Bash.
+
+Additional directories can be added to the include path using the environment variable C_INCLUDE_PATH (for C header files) or CPLUS_INCLUDE_PATH (for C++ header files). For example, the following commands will add '/opt/gdbm-1.8.3/include' to the include path when compiling C programs:
+
+$ C_INCLUDE_PATH=/opt/gdbm-1.8.3/include 
+$ export C_INCLUDE_PATH
+
+and similarly for C++ programs:
+
+$ CPLUS_INCLUDE_PATH=/opt/gdbm-1.8.3/include 
+$ export CPLUS_INCLUDE_PATH
+This directory will be searched after any directories specified on the command line with the option -I, and before the standard default directories (such as '/usr/local/include' and '/usr/include'). The shell command export is needed to make the environment variable available to programs outside the shell itself, such as the compiler--it is only needed once for each variable in each shell session, and can also be set in the appropriate login file.(8)
+
+Similarly, additional directories can be added to the link path using the environment variable LIBRARY_PATH. For example, the following commands will add '/opt/gdbm-1.8.3/lib' to the link path:
+
+$ LIBRARY_PATH=/opt/gdbm-1.8.3/lib
+$ export LIBRARY_PATH
+This directory will be searched after any directories specified on the command line with the option -L, and before the standard default directories (such as '/usr/local/lib' and '/usr/lib').
+
+With the environment variable settings given above the program 'dbmain.c' can be compiled without the -I and -L options,
+
+$ gcc -Wall dbmain.c -lgdbm
+because the default paths now use the directories specified in the environment variables C_INCLUDE_PATH and LIBRARY_PATH. The same compilation command with g++ would use the environment variables CPLUS_INCLUDE_PATH and LIBRARY_PATH.
+
+Following the standard Unix convention for search paths, several directories can be specified together in an environment variable as a colon separated list:
+
+DIR1:DIR2:DIR3:...
+The directories are then searched in order from left to right. A single dot '.' can be used to specify the current directory.(9)
+
+For example, the following settings create default include and link paths for packages installed in the current directory '.' and the 'include' and 'lib' directories under '/opt/gdbm-1.8.3' and '/net' respectively:
+
+$ C_INCLUDE_PATH=.:/opt/gdbm-1.8.3/include:/net/include
+$ LIBRARY_PATH=.:/opt/gdbm-1.8.3/lib:/net/lib
+For C++ programs, use the environment variable CPLUS_INCLUDE_PATH instead of C_INCLUDE_PATH.
+
+To specify multiple search path directories on the command line, the options -I and -L can be repeated. For example, the following command,
+
+$ gcc -I. -I/opt/gdbm-1.8.3/include -I/net/include
+   -L. -L/opt/gdbm-1.8.3/lib -L/net/lib .....
+is equivalent to the environment variable settings given above.
+
+When environment variables and command-line options are used together the compiler searches the directories in the following order:
+
+1. command-line options -I and -L, from left to right
+2. directories specified by environment variables, such as C_INCLUDE_PATH (for C programs), CPLUS_INCLUDE_PATH (for C++ programs) and LIBRARY_PATH
+3. default system directories
+In day-to-day usage, directories are usually added to the search paths with the options -I and -L.
+
+Shared libraries and static libraries
+---------------------------------------
+Although the example program above has been successfully compiled and linked, a final step is needed before being able to load and run the executable file.
+
+If an attempt is made to start the executable directly, the following error will occur on most systems:
+
+$ ./a.out
+./a.out: error while loading shared libraries:
+libgdbm.so.3: cannot open shared object file:
+No such file or directory
+
+This is because the GDBM package provides a shared library. This is clearly evident from the error message. 
+
+External libraries are usually provided in two forms: static libraries and shared libraries. Static libraries are the '.a' files seen earlier. When a program is linked against a static library, the machine code from the object files for any external functions used by the program is copied from the library into the final executable.
+
+Shared libraries are handled with a more advanced form of linking, which makes the executable file smaller. They use the extension '.so', which stands for shared object.
+
+An executable file linked against a shared library contains only a small table of the functions it requires, instead of the complete machine code from the object files for the external functions. Before the executable file starts running, the machine code for the external functions is copied into memory from the shared library file on disk by the operating system--a process referred to as dynamic linking.
+
+Dynamic linking makes executable files smaller and saves disk space, because one copy of a library can be shared between multiple programs. Most operating systems also provide a virtual memory mechanism which allows one copy of a shared library in physical memory to be used by all running programs, saving memory as well as disk space.
+
+Furthermore, shared libraries make it possible to update a library without recompiling the programs which use it (provided the interface to the library does not change).
+
+Because of these advantages gcc compiles programs to use shared libraries by default on most systems, if they are available. Whenever a static library 'libNAME.a' would be used for linking with the option -lNAME the compiler first checks for an alternative shared library with the same name and a '.so' extension.
+
+In this case, when the compiler searches for the 'libgdbm' library in the link path, it finds the following two files in the directory '/opt/gdbm-1.8.3/lib':
+
+$ cd /opt/gdbm-1.8.3/lib
+$ ls libgdbm.*
+libgdbm.a  libgdbm.so
+
+Consequently, the 'libgdbm.so' shared object file is used in preference to the 'libgdbm.a' static library.
+
+If a program depends on shared libraries, a dynamic loader is also loaded to the memory in addition to the executable binary program.
+However, when the executable file is started its loader function must find the shared library in order to load it into memory.
+
+When we start a process from the command line, the shell first calls the execve() system call to execute the program. It opens the executable file, and after some preparation, loads the executable file into memory.
+
+If the executable file has shared library dependencies, an interpreter is also loaded and run to assemble the dependent shared libraries. This interpreter is the dynamic loader or dynamic linker. Once it finishes its job, the control passes to the user program.
+
+Note: The dynamic loader must not be confused with the standard-linker (ld).
+
+In linux the dynamic loader can be determined by looking at PT_INTERP entry of the program header table of the ELF file.  
+
+$ readelf -l executable | grep interpreter
+
+Output:
+/lib64/ld-linux-x86-64.so.2. 
+
+The dynamic linker performs several tasks:
+* Locating the necessary shared libraries
+* Loading the shared libraries into memory
+* Resolving the program’s undefined symbols using the symbols in shared libraries
+* Assembling the program so that the process can call the functions in the shared library
+
+By default the loader searches for shared libraries only in a predefined set of system directories, such as '/usr/local/lib' and '/usr/lib'. 
+Apart from default, we can specify additional search paths by using the file /etc/ld.so.conf.
+
+If the library is not located in one of these directories it must be added to the load path.
+
+Note:
+The directory containing the shared library can, in principle, be stored ("hard-coded") in the executable itself using the linker option -rpath, but this is not usually done since it creates problems if the library is moved or the executable is copied to another system.
+Linker specific options are provided by -wl,... , in the case of -rpath, we can use 
+for ex: gcc main.c -L. -ldtest -Wl,-rpath=$PWD
+$PWD - present working directory
+
+The simplest way to set the load path is through the environment variable LD_LIBRARY_PATH. For example, the following commands set the load path to '/opt/gdbm-1.8.3/lib' so that 'libgdbm.so' can be found:
+
+
+$ LD_LIBRARY_PATH=/opt/gdbm-1.8.3/lib
+$ export LD_LIBRARY_PATH
+$ ./a.out
+Storing key-value pair... done.
+The executable now runs successfully, prints its message and creates a DBM file called 'test' containing the key-value pair 'testkey' and 'testvalue'.
+
+To save typing, the LD_LIBRARY_PATH environment variable can be set automatically for each session using the appropriate login file, such as '.bash_profile' for the GNU Bash shell.
+
+Several shared library directories can be placed in the load path, as a colon separated list DIR1:DIR2:DIR3:...:DIRN. For example, the following command sets the load path to use the 'lib' directories under '/opt/gdbm-1.8.3' and '/opt/gtk-1.4':
+
+$ LD_LIBRARY_PATH=/opt/gdbm-1.8.3/lib:/opt/gtk-1.4/lib
+$ export LD_LIBRARY_PATH
+If the load path contains existing entries, it can be extended using the syntax LD_LIBRARY_PATH=NEWDIRS:$LD_LIBRARY_PATH. For example, the following command adds the directory '/opt/gsl-1.5/lib' to the load path shown above:
+
+$ LD_LIBRARY_PATH=/opt/gsl-1.5/lib:$LD_LIBRARY_PATH
+$ echo $LD_LIBRARY_PATH
+/opt/gsl-1.5/lib:/opt/gdbm-1.8.3/lib:/opt/gtk-1.4/lib
+It is possible for the system administrator to set the LD_LIBRARY_PATH variable for all users, by adding it to a default login script, such as '/etc/profile'. On GNU systems, a system-wide path can also be defined in the loader configuration file '/etc/ld.so.conf'.
+
+Alternatively, static linking can be forced with the -static option to gcc to avoid the use of shared libraries:
+
+$ gcc -Wall -static -I/opt/gdbm-1.8.3/include/ 
+    -L/opt/gdbm-1.8.3/lib/ dbmain.c -lgdbm
+This creates an executable linked with the static library 'libgdbm.a' which can be run without setting the environment variable LD_LIBRARY_PATH or putting shared libraries in the default directories:
+
+$ ./a.out
+Storing key-value pair... done.
+
+As noted earlier, it is also possible to link directly with individual library files by specifying the full path to the library on the command line. For example, the following command will link directly with the static library 'libgdbm.a',
+
+$ gcc -Wall -I/opt/gdbm-1.8.3/include 
+    dbmain.c /opt/gdbm-1.8.3/lib/libgdbm.a
+
+and the command below will link with the shared library file 'libgdbm.so':
+
+$ gcc -Wall -I/opt/gdbm-1.8.3/include 
+    dbmain.c /opt/gdbm-1.8.3/lib/libgdbm.so
+
+In the latter case it is still necessary to set the library load path when running the executable. The above will only work during compilation. 
+
+
+Compiler Warnings
+-------------------
+The following options are a good choice for finding problems in C and C++ programs
+
+gcc -ansi -pedantic -Wall -W -Wconversion 
+    -Wshadow -Wcast-qual -Wwrite-strings
+
+
+How to make a shared library executable??
+-------------------------------------------
+Some shared libraries act as executables. for ex: 
+
+On 32-bit Linux systems, invoking this
+
+$ /lib/libc.so.6
+and on 64-bit systems this
+
+
+$ /lib/x86_64-linux-gnu/libc.so.6
+in a shell, provides an output like this:
+
+GNU C Library stable release version 2.10.1, by Roland McGrath et al.
+Copyright (C) 2009 Free Software Foundation, Inc.
+This is free software; see the source for copying conditions.
+There is NO warranty; not even for MERCHANTABILITY or FITNESS FOR A
+PARTICULAR PURPOSE.
+Compiled by GNU CC version 4.4.0 20090506 (Red Hat 4.4.0-4).
+Compiled on a Linux >>2.6.18-128.4.1.el5<< system on 2009-08-19.
+
+
+How does this work??
+
+That library has a `main()` function or equivalent entry point, and was compiled in such a way that it is useful both as an executable and as a shared object.
+
+Here is how we may do it
+First, source for our example library, `test.c`:
+
+```c
+#include <stdio.h>                  
+
+void sayHello (char *tag) {         
+    printf("%s: Hello!\n", tag);    
+}                                   
+
+int main (int argc, char *argv[]) { 
+    sayHello(argv[0]);              
+    return 0;                       
+}                   
+```
+
+Compile that:
+
+```
+gcc -fPIC -pie -o libtest.so test.c -Wl,-E
+```
+
+Here, we are compiling a shared library (`-fPIC`), but telling the linker that it's a regular executable (`-pie`), and to make its symbol table exportable (`-Wl,-E`), such that it can be usefully linked against.
+
+And, although `file` will say it's a shared object, it does work as an executable:
+
+```
+> ./libtest.so 
+./libtest.so: Hello!
+```
+
+Now we need to see if it can really be dynamically linked. An example program, `program.c`:
+
+```c
+#include <stdio.h>
+
+extern void sayHello (char*);
+
+int main (int argc, char *argv[]) {
+    puts("Test program.");
+    sayHello(argv[0]);
+    return 0;
+}
+```
+
+Using `extern` saves us having to create a header. Now compile that:
+
+```
+gcc program.c -L. -ltest
+```
+
+Before we can execute it, we need to add the path of `libtest.so` for the dynamic loader:
+
+```
+export LD_LIBRARY_PATH=./
+```
+
+Now:
+
+```
+> ./a.out
+Test program.
+./a.out: Hello!
+```
+
+And `ldd a.out` will show the linkage to `libtest.so`.
+
+

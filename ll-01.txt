@@ -1,0 +1,198 @@
+There are two C/C++ library types:
+1. static libraries (.a): archive of object(.o) files containing code that is linked and becomes part of the application
+2. dynamic libraries (.so) also called shared object libraries: These are dynamically linked at runtime
+
+Creating static libaries
+------------------------
+Let's create a simple static library 'libmath.a' that provides basic mathematical functions add and subtract. 
+We will start by creating two source files add.c and subtract.c with the corresponding function definitions
+
+// add.c
+int add(int a, int b) {
+    return a + b;
+}
+
+// subtract.c
+int subtract(int a, int b) {
+    return a - b;
+}
+
+Now compile each source files into object files
+$ gcc -c add.c -o add.o
+$ gcc -c subtract.c -o subtract.o
+
+
+Use gnu ar utility to create the static library
+$ ar rcs libmath.a add.o subtract.o
+
+where 
+	ar: Command to create archives.
+	rcs: Options for ar:
+	r: Insert the files into the archive (replace existing).
+	c: Create the archive if it doesn't already exist.
+	s: Write an index (symbol table) to the archive, allowing faster lookup of symbols.
+
+Let's use the static library in a program
+
+// main.c
+#include <stdio.h>
+
+// Declare the functions from libmath.a
+extern int add(int a, int b);
+extern int subtract(int a, int b);
+
+int main() {
+    int x = 10, y = 5;
+    printf("Addition: %d\n", add(x, y));
+    printf("Subtraction: %d\n", subtract(x, y));
+    return 0;
+}
+
+Now compile main.c and link it against libmath.a
+
+$ gcc main.c -o main -L. -lmath
+
+where
+	-L.: Specifies to search for libraries in the current directory (.).
+	-lmath: Links against libmath.a.
+
+You can execute the main program
+$ ./main
+Output
+	Addition: 15
+	Subtraction: 5
+
+Create dynamic libraries
+---------------------------
+Let's use the same source files add.c and subtract.c as shown above
+The compilation step includes an extra directive as shown below.
+
+$ gcc -c -fPIC add.c -o add.o
+$ gcc -c -fPIC subtract.c -o subtract.o
+
+Where
+	-fPIC: Generates position-independent code, necessary for shared libraries.
+
+Now create the dynamic library 'libmath.so' from the compiled object files
+
+$ gcc -shared -o libmath.so add.o subtract.o
+
+where
+	-shared: Instructs GCC to create a shared object (dynamic library).
+
+Now let's use the above shared library in a program
+
+// main.c
+#include <stdio.h>
+#include <dlfcn.h>
+
+// Declare function pointers
+typedef int (*add_func)(int, int);
+typedef int (*subtract_func)(int, int);
+
+int main() {
+    // Load the dynamic library
+    void *lib = dlopen("./libmath.so", RTLD_LAZY);
+    if (!lib) {
+        fprintf(stderr, "Error loading library: %s\n", dlerror());
+        return 1;
+    }
+
+    // Retrieve function pointers
+    add_func add = (add_func)dlsym(lib, "add");
+    subtract_func subtract = (subtract_func)dlsym(lib, "subtract");
+    if (!add || !subtract) {
+        fprintf(stderr, "Error retrieving symbols: %s\n", dlerror());
+        dlclose(lib);
+        return 1;
+    }
+
+    // Use the functions
+    int x = 10, y = 5;
+    printf("Addition: %d\n", add(x, y));
+    printf("Subtraction: %d\n", subtract(x, y));
+
+    // Close the library
+    dlclose(lib);
+
+    return 0;
+}
+
+
+where
+	dlopen: Opens the dynamic library (libmath.so in this case) at runtime.
+	dlsym: Retrieves function pointers (add and subtract in this case) from the loaded library.
+	dlclose: Closes the library after usage.
+
+Compile and link the application
+$ gcc main.c -o main -ldl
+
+where
+	-ldl: Links against the dl library which provides dynamic linking support (dlopen, dlsym, etc.).
+
+Let's run the program
+
+$ ./main
+Output
+Addition: 15
+Subtraction: 5
+
+
+Static Executable
+---------------------
+Creating a static executable using GCC involves linking all necessary libraries statically into the executable file itself, 
+instead of relying on dynamic linking to external libraries. This can be useful for creating self-contained executables 
+that do not depend on external library files (.so files). Here’s a step-by-step guide along with an example:
+
+Here is a sample application that uses the functions from the custom static library we created earlier 'libmath.a'
+
+// main.c
+#include <stdio.h>
+
+// Declare functions from libmath.a
+extern int add(int a, int b);
+extern int subtract(int a, int b);
+
+int main() {
+    int x = 10, y = 5;
+    printf("Addition: %d\n", add(x, y));
+    printf("Subtraction: %d\n", subtract(x, y));
+    return 0;
+}
+
+Now compile the source file into an object file
+$ gcc -c main.c -o main.o
+
+Link main.o with libmath.a and standard libraries('libc.a') 
+$ gcc -static main.o -L. -lmath -o static_main
+
+where
+	-static: Instructs GCC to link libraries statically.
+	-L.: Specifies to search for libmath.a in the current directory (.).
+	-lmath: Links against libmath.a.
+
+Running the static executable
+$ ./static_main
+Output
+	Addition: 15
+	Subtraction: 5
+
+Note:
+* When linking statically, GCC will include all necessary library code directly into the executable, resulting 
+in a larger executable file size compared to dynamically linked executables.
+* On Linux systems, even when creating a static executable, it typically still depends on libc (the C standard library), 
+albeit in a statically linked form
+* Even in a statically linked executable, libc functions are typically used for standard C operations such as memory allocation, 
+I/O operations (printf, scanf), string manipulation (strcpy, strlen), and more.
+* When you link statically, the necessary parts of libc are included in the executable itself. This means the code of libc 
+functions gets copied into your executable, reducing the dependency on external shared objects (lib*.so files).
+* It is possible to create fully static executables that have no external dependencies at runtime, including libc. 
+However, achieving this can be challenging due to potential dependencies on system calls and other low-level operations 
+provided by the kernel and libc. Some specialized tools and techniques may be needed to create such fully static executables, 
+often involving custom configurations and potentially sacrificing some functionalities that rely on dynamic linking features.
+
+
+
+
+
+
