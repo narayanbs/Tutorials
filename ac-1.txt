@@ -75,3 +75,86 @@ Each non-bridge PCI device function can implement up to 6 BARs, each of which ca
 A PCI device may also have an option ROM.
 
 Linux uses udevd for device detection and device file creation, by getting uevents when new device is detected. 
+
+-------------------------------------------------
+
+UEFI -- The Unified Extensible Firmware Interface is a publicly available specification that defines a software interface between an operating system and platform firmware. UEFI replaces the legacy Basic Input/Output System (BIOS) boot firmware originally present in all IBM PC-compatible personal computers,
+
+Booting in x86 systems
+-----------------------
+The UEFI-based platform reads the partition table on the system storage and mounts the EFI System Partition (ESP), a VFAT partition labeled with a particular globally unique identifier (GUID) - C12A7328-F81F-11D2-BA4B-00A0C93EC93B in the case of gpt. 
+The ESP contains EFI applications such as bootloaders and utility software, stored in directories specific to software vendors. 
+for ex in  Red Hat Enterprise Linux 6.9 file system, the ESP is /boot/efi/, and EFI software provided by Red Hat is stored in /boot/efi/EFI/redhat/.
+The /boot/efi/EFI/redhat/ directory contains grub.efi, a version of GRUB compiled for the EFI firmware architecture as an EFI application. 
+In the simplest case, the EFI boot manager selects grub.efi as the default bootloader and reads it into memory.
+If the ESP contains other EFI applications, the EFI boot manager might prompt you to select an application to run, rather than load grub.efi automatically.
+GRUB determines which operating system or kernel to start, loads it into memory, and transfers control of the machine to that operating system.
+Because each vendor maintains its own directory of applications in the ESP, chain loading is not normally necessary on UEFI-based systems. The EFI boot manager can load any of the operating system bootloaders that are present in the ESP.
+
+
+Services
+-----------
+EFI defines two types of services: boot services and runtime services. Boot services are available only while the firmware owns the platform
+ (i.e., before the ExitBootServices() call), and they include text and graphical consoles on various devices, and bus, block and file services. Runtime services are still accessible while the operating system is running; they include services such as date, time and NVRAM access.
+
+* Graphics Output Protocol (GOP) services
+The Graphics Output Protocol (GOP) provides runtime services. The operating system is permitted to directly write to the framebuffer provided by GOP during runtime mode.
+* UEFI Memory map services
+* SMM services
+* ACPI services
+* SMBIOS services
+* Device tree services (for RISC processors)
+* Variable services
+UEFI variables provide a way to store data, in particular non-volatile data. Some UEFI variables are shared between platform firmware and operating systems. Variable namespaces are identified by GUIDs, and variables are key/value pairs. For example, UEFI variables can be used to keep crash messages in NVRAM after a crash for the operating system to retrieve after a reboot.[46]
+* Time services
+UEFI provides time services. Time services include support for time zone and daylight saving fields, which allow the hardware real-time clock to be set to local time or UTC.[47] On machines using a PC-AT real-time clock, by default the hardware clock still has to be set to local time for compatibility with BIOS-based Windows,[6] unless using recent versions and an entry in the Windows registry is set to indicate the use of UTC.
+
+
+Applications
+------------
+Interaction between the EFI boot manager and EFI drivers
+Beyond loading an OS, UEFI can run UEFI applications, which reside as files on the EFI System Partition. They can be executed from the UEFI Shell, by the firmware's boot manager, or by other UEFI applications. UEFI applications can be developed and installed independently of the original equipment manufacturers.
+
+A type of UEFI application is an OS boot loader such as GRUB, rEFInd, Gummiboot, and Windows Boot Manager; which loads some OS files into memory and executes them. Also, an OS boot loader can provide a user interface to allow the selection of another UEFI application to run. Utilities like the UEFI Shell are also UEFI applications.
+-------------------------------------------------------------
+
+Legacy BIOS and OS loading
+-------------------------------
+
+CPU fetches and executes instructions from memory, it was BIOS that loaded our 512-byte boot sector into memory and then, having finished
+its initialisations, told the CPU to jump to the start of our code, whereupon it began executing our first instruction, then the next, then the next, etc.
+So our boot sector code is somewhere in memory; but where? We can imagine the main memory as long sequence of bytes that can individually 
+be accessed by an address (i.e. an index), so if we want to find out what is in the 54th byte of memory, then 54 is our address, 
+which is often more convenient to express in hexadecimal: 0x36.
+
+So the start of our boot-sector code, the very first machine code byte, is at some address in memory, and it was BIOS that put us there. 
+We might assume, unless we knew otherwise, that BIOS loaded our code at the start of memory, at address 0x0. 
+It’s not so straightforward, though, because we know that BIOS has already being doing initialisation work on the computer long before it 
+loaded our code, and will actually continue to service hardware interrupts for the clock, disk drives, and so on. So these 
+BIOS routines (e.g. ISRs, services for screen printing, etc.) themselves must be stored somewhere in memory and must be preserved 
+(i.e. not overwritten) whilst they are still of use. 
+Also, we noted earlier that the interrupt vector is located at the start of memory, and were BIOS to load us there, our code would stomp 
+over the table, and upon the next interrupt occurring, the computer will likely crash and reboot: the mapping between interrupt number and 
+ISR would effectively have been severed.
+As it turns out, BIOS likes always to load the boot sector to the address 0x7c00, where it is sure will not be occupied by important routines.
+
+Note:
+IVR -- Interrupt vector table used bios in Real mode to find ISR (interrupt service routines). 
+These are predefined or programmable using some programmable logic device
+
+IDT --> Interrupt descriptor table filled by OS, by specifiying the base address in IDTR (interrupt descriptor table register). 
+These contain the mapping between interrupt and isrs.
+
+Interrupts can raised by hardware or software. 
+A hardware interrupt is usually a dedicated electrical signal to which a special "response circuitry" is attached. This circuitry notices 
+an activation of the interrupt and makes the CPU stop its current execution, save its state, and jump to a predefined address where a 
+handler routine for the interrupt is located. When the handler finishes its work, the CPU resumes execution from where it stopped.
+
+Software interrupts are similar in principle but a bit different in practice. CPUs support special instructions that allow the software to
+simulate an interrupt. When such an instruction is executed, the CPU treats it like an interrupt - stops its normal flow of execution, saves 
+its state and jumps to a handler routine. Such "traps" allow many of the wonders of modern OSes (task scheduling, virtual memory, memory protection, debugging) to be implemented efficiently.
+
+
+
+
+

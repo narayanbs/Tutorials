@@ -1,3 +1,21 @@
+ad-time relocation and virtual memory support are two different concepts. Almost all CPUs and OSes these days have virtual memory support. The only really important point to understand about virtual memory is this: forget physical addresses. That is now a hardware and OS responsibility and, unless you are writing a paging system, you can forget about physical addresses. All addresses that a program uses are virtual addresses. This is a huge advantage and immensely simplifies the programming model. On 32-bit systems, this simply means that each process gets its own 4 GiB memory space, ranging from 0x00000000 to 0xffffffff.
+
+An .exe represents a process. A linker produces .exe from .obj files. While both are binary files, .obj files are not executable because they do not contain the addresses of all the variables and functions. It is the job of the linker to provide these addresses, which it determines by placing these .obj files end-to-end and then computing the exact addresses of all the symbols (functions and variables). Thus, the .exe that is created has every address of functions and variables "hard-coded" into it. But there is still one critical information needed before the .exe can be created. The linker has to have insider knowledge about where in memory the .exe will be loaded. Will it be at address 0x00000000, or at 0xffff0000, or somewhere else? For example, in Windows all .exes are always loaded at an absolute starting address of 0x00400000. This is called the base address. When the linker generates the final addresses of symbols (functions and variables), it computes those from this address onward.
+
+Now, .exes rarely need to be loaded at any other address. But the same is not true for .dlls. .dlls are the same as .exes (both are formatted in the portable executable (PE) file format, which describes the memory layout, for example, where text goes, where data goes, and how to find which one). .dlls have a preferred address, too. This simply means that the linker uses this value when it computes the addresses for symbols inside the .dll. If the .dll is loaded at this address, then we are all set.
+
+But if the .dll cannot be loaded at this address (say it was 0x10000000) because some other .dll had already been loaded at this address, then the loader will find some other space in memory and load the .dll there. However, the global addresses of functions and symbols in the .dll are now incorrect. Thus, the loader has to do a relocation (also called "fixup"), in which it adjusts the addresses of all global symbols and functions to reflect their actual addresses.
+
+In order to do this adjustment, the loader needs to be able to find all such symbols in the .dll. The PE file has a .reloc section that contains the internal offset of all such symbols.
+
+Of course, there are other details, for example, regarding how indirection can be used when the compiler generated the code so that, instead of making direct calls, the calls are indirect and variables are accessed via known memory locations in the header of the .exe.
+
+Finally, the gist is this: You need relocation (of some sort) to adjust addresses in the call and jump as well as variable access instructions when the code does not load at the position (within the 4 GiB address space) it was expected to load. When the OS loads a .exe, it has to pick a suitable place in this 4 GiB address space where it will copy the code and data chunks from this .exe on disk.
+
+
+==================================================================================
+
+
 There are two C/C++ library types:
 1. static libraries (.a): archive of object(.o) files containing code that is linked and becomes part of the application
 2. dynamic libraries (.so) also called shared object libraries: These are dynamically linked at runtime

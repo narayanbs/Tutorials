@@ -1,13 +1,275 @@
-Load-time relocation and virtual memory support are two different concepts. Almost all CPUs and OSes these days have virtual memory support. The only really important point to understand about virtual memory is this: forget physical addresses. That is now a hardware and OS responsibility and, unless you are writing a paging system, you can forget about physical addresses. All addresses that a program uses are virtual addresses. This is a huge advantage and immensely simplifies the programming model. On 32-bit systems, this simply means that each process gets its own 4 GiB memory space, ranging from 0x00000000 to 0xffffffff.
+Signals are an essential aspect of inter-process communication in operating systems, 
+enabling processes to be notified of events or conditions asynchronously.
+When a signal is received by a process, it can be dealt with in several ways. 
+One option is to ignore the signal altogether, while another is to catch the signal 
+using a signal handler. Alternatively, the signal may cause the process to terminate.
+It’s important to note that most signals, if not handled, will result in the termination 
+of the process by default.
+To get a complete list of all the signals in linux,
+$ kill -l 
 
-An .exe represents a process. A linker produces .exe from .obj files. While both are binary files, .obj files are not executable because they do not contain the addresses of all the variables and functions. It is the job of the linker to provide these addresses, which it determines by placing these .obj files end-to-end and then computing the exact addresses of all the symbols (functions and variables). Thus, the .exe that is created has every address of functions and variables "hard-coded" into it. But there is still one critical information needed before the .exe can be created. The linker has to have insider knowledge about where in memory the .exe will be loaded. Will it be at address 0x00000000, or at 0xffff0000, or somewhere else? For example, in Windows all .exes are always loaded at an absolute starting address of 0x00400000. This is called the base address. When the linker generates the final addresses of symbols (functions and variables), it computes those from this address onward.
+ 1) SIGHUP       2) SIGINT       3) SIGQUIT      4) SIGILL       5) SIGTRAP
+ 6) SIGABRT      7) SIGBUS       8) SIGFPE       9) SIGKILL     10) SIGUSR1
+11) SIGSEGV     12) SIGUSR2     13) SIGPIPE     14) SIGALRM     15) SIGTERM
+16) SIGSTKFLT   17) SIGCHLD     18) SIGCONT     19) SIGSTOP     20) SIGTSTP
+21) SIGTTIN     22) SIGTTOU     23) SIGURG      24) SIGXCPU     25) SIGXFSZ
+26) SIGVTALRM   27) SIGPROF     28) SIGWINCH    29) SIGIO       30) SIGPWR
+31) SIGSYS      34) SIGRTMIN    35) SIGRTMIN+1  36) SIGRTMIN+2  37) SIGRTMIN+3
+38) SIGRTMIN+4  39) SIGRTMIN+5  40) SIGRTMIN+6  41) SIGRTMIN+7  42) SIGRTMIN+8
+43) SIGRTMIN+9  44) SIGRTMIN+10 45) SIGRTMIN+11 46) SIGRTMIN+12 47) SIGRTMIN+13
+48) SIGRTMIN+14 49) SIGRTMIN+15 50) SIGRTMAX-14 51) SIGRTMAX-13 52) SIGRTMAX-12
+53) SIGRTMAX-11 54) SIGRTMAX-10 55) SIGRTMAX-9  56) SIGRTMAX-8  57) SIGRTMAX-7
+58) SIGRTMAX-6  59) SIGRTMAX-5  60) SIGRTMAX-4  61) SIGRTMAX-3  62) SIGRTMAX-2
+63) SIGRTMAX-1  64) SIGRTMAX
 
-Now, .exes rarely need to be loaded at any other address. But the same is not true for .dlls. .dlls are the same as .exes (both are formatted in the portable executable (PE) file format, which describes the memory layout, for example, where text goes, where data goes, and how to find which one). .dlls have a preferred address, too. This simply means that the linker uses this value when it computes the addresses for symbols inside the .dll. If the .dll is loaded at this address, then we are all set.
+Each signal is sent in different situations and each has a different behavior. For
+ex: the linux kernel will send SIGFPE when a process attempts to divide by zero. 
+We can also send signals using the kill program. Let's run the following script 
+in the background and stop it using the SIGSTOP signal. 
 
-But if the .dll cannot be loaded at this address (say it was 0x10000000) because some other .dll had already been loaded at this address, then the loader will find some other space in memory and load the .dll there. However, the global addresses of functions and symbols in the .dll are now incorrect. Thus, the loader has to do a relocation (also called "fixup"), in which it adjusts the addresses of all global symbols and functions to reflect their actual addresses.
+$ (sleep 30; echo "Ready!") &
+[1] 26929
+$ kill -SIGSTOP 26929
+[1]+  Stopped                 ( sleep 30; echo "Ready!" )
 
-In order to do this adjustment, the loader needs to be able to find all such symbols in the .dll. The PE file has a .reloc section that contains the internal offset of all such symbols.
+Let's resume it by sending SIGCONT
+$ kill -SIGCONT 26929
+Ready!
+[1]+  Done                    ( sleep 30; echo "Ready!" )
 
-Of course, there are other details, for example, regarding how indirection can be used when the compiler generated the code so that, instead of making direct calls, the calls are indirect and variables are accessed via known memory locations in the header of the .exe.
+In Linux, we can use the trap command to intercept signals so that we can handle them:
+$ trap 'echo "SIGINT"' SIGINT
+$ kill -SIGINT $$
+SIGINT
+$
 
-Finally, the gist is this: You need relocation (of some sort) to adjust addresses in the call and jump as well as variable access instructions when the code does not load at the position (within the 4 GiB address space) it was expected to load. When the OS loads a .exe, it has to pick a suitable place in this 4 GiB address space where it will copy the code and data chunks from this .exe on disk.
+In this case, we set a handler for the SIGINT signal in which we just echo the signal name. 
+After that, we send the signal by passing kill the shell process ID (PID) $$.
+Furthermore, using this method, we can set and invoke handlers for any and all available signals (here, 64):
+$ kill -SIGCONT $$
+$ trap 'echo "TRAP"' $(seq 1 64)
+$ kill -SIGCONT $$
+TRAP
+$
+
+In addition, we can even prevent the default action for all signals except SIGKILL and SIGSTOP:
+$ trap 'echo "TRAP"' $(seq 1 64)
+$ kill -SIGILL $$
+TRAP
+$ kill -SIGUSR1 $$
+TRAP
+$ kill -SIGKILL $$
+Killed
+
+
+Now lets look at a few signals.
+SIGINT: is the signal sent when we press Ctrl+C. The default action is to terminate 
+the process. However, some programs override this action and handle it differently.
+One common example is the bash interpreter. When we press Ctrl+C it doesn’t quit,
+instead, it prints a new and empty prompt line. Another example is when we use gdb 
+to debug a program. We can send SIGINT with Ctrl+C to stop the execution and return 
+it to the gdb‘s interpreter.
+We can think of SIGINT as an interruption request sent by the user. How it is handled 
+usually depends on the process and the situation. 
+Let’s write handle_sigint.sh using the trap command to handle SIGINT and print the current date:
+
+!/bin/bash
+
+trap date SIGINT
+
+read input
+echo User input: $input
+echo Exiting now
+
+We use read input to wait for the user interaction. Now, let’s run our script and let’s press Ctrl+C:
+$ ./handle_sigint.sh 
+^CSat Apr 10 15:32:07 -03 2021
+
+We can see the script didn’t stop. We can now terminate the script by writing some input:
+$ ./handle_sigint.sh 
+^CSat Apr 10 15:32:07 -03 2021
+live long and prosper
+User input: live long and prosper
+Exiting now
+
+If we want to use a signal to terminate it, we can’t use SIGINT with this script. We should use
+SIGTERM, SIGQUIT, or SIGKILL instead.
+
+SIGTERM and SIGQUIT: These signals are meant to terminate the process. In this case, we are specifically
+requesting to finish it. SIGTERM is the default signal when we use the kill command. The default action 
+of both signals is to terminate the process. However, SIGQUIT also generates a core dump before exiting.
+When we send SIGTERM, the process sometimes executes a clean-up routine before exiting.
+We can also handle SIGTERM to ask for confirmation before exiting. Let’s write a script called 
+handle_sigterm.sh to terminate only If the user sends the signal twice:
+
+!/bin/bash
+
+SIGTERM_REQUESTED=0
+handle_sigterm() {
+    if [ $SIGTERM_REQUESTED -eq 0 ]; then
+        echo "Send SIGTERM again to terminate"
+        SIGTERM_REQUESTED=1
+    else
+        echo "SIGTERM received, exiting now"
+        exit 0
+    fi
+}
+
+trap handle_sigterm SIGTERM
+
+TIMEOUT=$(date +%s)
+TIMEOUT=$(($TIMEOUT + 60))
+
+echo "This script will exit in 60 seconds"
+while [ $(date +%s) -lt $TIMEOUT ]; do
+    sleep 1;
+done
+echo Timeout reached, exiting now
+
+Now, let’s run it on background executing $ ./handle_sigterm.sh &. Then, we run $ kill <PID> twice:
+
+$ ./handle_sigterm.sh &
+[1] 6092
+$ kill 6092
+Send SIGTERM again to terminate
+$ kill 6092
+SIGTERM received, exiting now
+[1]+  Done                    ./handle_sigterm.sh
+
+As we can see, the script exited after it received the second SIGTERM.
+
+SIGKILL: When a process receives SIGKILL it is terminated. This is a special signal as it can’t be 
+ignored and we can’t change its behavior. We use this signal to forcefully terminate the process. 
+We should be careful as the process won’t be able to execute any clean-up routine.
+One common way of using SIGKILL is to first send SIGTERM. We give the process some time to terminate,
+we may also send SIGTERM a couple of times. If the process doesn’t finish on its own, then we send 
+SIGKILL to terminate it.
+Let’s rewrite the previous example to try to handle SIGKILL and ask for confirmation:
+
+!/bin/bash
+
+SIGKILL_REQUESTED=0
+handle_sigkill() {
+    if [ $SIGKILL_REQUESTED -eq 0 ]; then
+        echo "Send SIGKILL again to terminate"
+        SIGKILL_REQUESTED=1
+    else
+        echo "Exiting now"
+        exit 0
+    fi
+}
+
+trap handle_sigkill SIGKILL
+
+read input
+echo User input: $input
+
+Now, let’s run it on a terminal, and let’s send SIGKILL only once with $ kill -SIGKILL <pid>:
+
+$ ./handle_sigkill.sh
+Killed
+$
+We can see it terminate right away without asking to re-send the signal.
+
+How SIGINT Relates to SIGTERM, SIGQUIT and SIGKILL???
+The default action for SIGINT, SIGTERM, SIGQUIT, and SIGKILL is to terminate the process. 
+However, SIGTERM, SIGQUIT, and SIGKILL are defined as signals to terminate the process, 
+but SIGINT is defined as an interruption requested by the user.
+In particular, if we send SIGINT (or press Ctrl+C) depending on the process and the situation
+it can behave differently. So, we shouldn’t depend solely on SIGINT to finish a process.
+As SIGINT is intended as a signal sent by the user, usually the processes communicate with 
+each other using other signals. For instance, a parent process usually sends SIGTERM to its 
+children to terminate them, even if SIGINT has the same effect.
+In the case of SIGQUIT, it generates a core dump which is useful for debugging.
+
+Now that we have this in mind, we can see we should choose SIGTERM on top of SIGKILL to 
+terminate a process. SIGTERM is the preferred way as the process has the chance to terminate 
+gracefully.
+As a process can override the default action for SIGINT, SIGTERM, and SIGQUIT, it can be 
+the case that neither of them finishes the process. Also, if the process is hung it may not 
+respond to any of those signals. In that case, we have SIGKILL as the last resort to terminate 
+the process.
+
+Understanding Pending Signals in Linux
+---------------------------------------
+Apart from standard Linux signals used chiefly for interprocess communication, 
+Linux also has real-time signals, those with SIGRTMIN (34) to SIGRTMAX, that offer more advanced 
+features like queuing and ordered delivery, making them suitable for time-sensitive applications.
+Realtime signals are used in Asynchronous I/O.Realtime signals are the mechanism for the kernel 
+to inform your system when an I/O operation has completed.
+(struct aiocb makes the connection between an async I/O request and a signal number.)
+
+A signal becomes pending when it is generated but cannot be delivered to the process immediately. 
+This usually happens if the target process is uninterruptable. Standard signals are represented in
+processes as a bitmap. It follows that they are either set or not, regardless of how often the signal 
+has been sent without being handled by the process.
+
+Real-time signals, on the other hand, are queued. If multiple instances of a real-time signal are sent 
+to a process, they are queued in the order of arrival. This queuing system allows for accumulating 
+multiple instances of the same signal, ensuring none are lost and handled promptly.
+
+
+Linux Signals - More details
+-------------------------------
+In linux, each signal has a current "disposition", which determines how the process 
+behaves when it is delivered the signal. 
+
+Term   Default action is to terminate the process.
+Ign    Default action is to ignore the signal.
+Core   Default action is to terminate the process and dump core
+Stop   Default action is to stop the process.
+Cont   Default action is to continue the process if it is currently stopped.
+
+A process can change the disposition of a signal using sigaction(2) or signal(2).  
+(The latter is less portable when establishing a signal handler; see signal(2) for details.)  
+Using these system calls, a process can elect one of the following behaviors to occur on 
+delivery of the signal:
+perform the default action; ignore the signal; or catch the signal with a signal handler,
+(a programmer-defined function that is automatically invoked when the signal is delivered.)
+
+
+SIGABRT      P1990      Core    Abort signal from abort(3)
+SIGALRM      P1990      Term    Timer signal from alarm(2)
+SIGBUS       P2001      Core    Bus error (bad memory access)
+SIGCHLD      P1990      Ign     Child stopped or terminated
+SIGCLD         -        Ign     A synonym for SIGCHLD
+SIGCONT      P1990      Cont    Continue if stopped
+SIGEMT         -        Term    Emulator trap
+SIGFPE       P1990      Core    Floating-point exception
+SIGHUP       P1990      Term    Hangup detected on controlling terminal
+			       or death of controlling process
+SIGILL       P1990      Core    Illegal Instruction
+SIGINFO        -                A synonym for SIGPWR
+SIGINT       P1990      Term    Interrupt from keyboard
+SIGIO          -        Term    I/O now possible (4.2BSD)
+SIGIOT         -        Core    IOT trap. A synonym for SIGABRT
+SIGKILL      P1990      Term    Kill signal
+SIGLOST        -        Term    File lock lost (unused)
+SIGPIPE      P1990      Term    Broken pipe: write to pipe with no
+			       readers; see pipe(7)
+SIGPOLL      P2001      Term    Pollable event (Sys V);
+			       synonym for SIGIO
+SIGPROF      P2001      Term    Profiling timer expired
+SIGPWR         -        Term    Power failure (System V)
+SIGQUIT      P1990      Core    Quit from keyboard
+SIGSEGV      P1990      Core    Invalid memory reference
+SIGSTKFLT      -        Term    Stack fault on coprocessor (unused)
+SIGSTOP      P1990      Stop    Stop process
+SIGTSTP      P1990      Stop    Stop typed at terminal
+SIGSYS       P2001      Core    Bad system call (SVr4);
+			       see also seccomp(2)
+SIGTERM      P1990      Term    Termination signal
+SIGTRAP      P2001      Core    Trace/breakpoint trap
+SIGTTIN      P1990      Stop    Terminal input for background process
+SIGTTOU      P1990      Stop    Terminal output for background process
+SIGUNUSED      -        Core    Synonymous with SIGSYS
+SIGURG       P2001      Ign     Urgent condition on socket (4.2BSD)
+SIGUSR1      P1990      Term    User-defined signal 1
+SIGUSR2      P1990      Term    User-defined signal 2
+SIGVTALRM    P2001      Term    Virtual alarm clock (4.2BSD)
+SIGXCPU      P2001      Core    CPU time limit exceeded (4.2BSD);
+			       see setrlimit(2)
+SIGXFSZ      P2001      Core    File size limit exceeded (4.2BSD);
+			       see setrlimit(2)
+SIGWINCH       -        Ign     Window resize signal (4.3BSD, Sun)
+
