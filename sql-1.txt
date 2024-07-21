@@ -36,39 +36,33 @@ of data that go into the table
 
 7	INDEX Constraint	Used to create and retrieve data from the database very quickly.f data that go in a table. 
 
-Data Integrity
-
-The following categories of data integrity exist with each RDBMS −
-
-Entity Integrity − This ensures that there are no duplicate rows in a table.
-Domain Integrity − Enforces valid entries for a given column by restricting the type, the format, or the range of values.
-Referential integrity − Rows cannot be deleted, which are used by other records.
-User-Defined Integrity − Enforces some specific business rules that do not fall into entity, domain or referential integrity.
-
 
 Database Normalization
 
-Database normalization is the process of efficiently organizing data in a database. There are two reasons of this normalization process −
-
-Eliminating redundant data, for example, storing the same data in more than one table. Ensuring data dependencies make sense.
+Database normalization is the process of efficiently organizing data in a database. It is useful in eliminating redundant data
+and ensuring data dependencies make sense.
 Normalization guidelines are divided into normal forms; think of a form as the format or the way a database structure is laid out. 
 The aim of normal forms is to organize the database structure, so that it complies with the rules of first normal form, 
-then second normal form and finally the third normal form.
+then second normal form and finally the third normal form. It is your choice to take it further and go to the Fourth Normal Form,
+Fifth Normal Form and so on, but in general, the Third Normal Form is more than enough for a normal Database Application.
 
-It is your choice to take it further and go to the Fourth Normal Form, Fifth Normal Form and so on, 
-but in general, the Third Normal Form is more than enough for a normal Database Application.
+First Normal Form (1NF): 
+This is the most basic level of normalization. In 1NF, each table cell should contain only a single value, 
+each column should have a unique name, and there must be a primary key for identification. 
+The first normal form helps to eliminate duplicate data and simplify queries.
 
-First Normal Form (1NF): This is the most basic level of normalization. In 1NF, each table cell should contain only a single value, 
-and each column should have a unique name. The first normal form helps to eliminate duplicate data and simplify queries.
-Second Normal Form (2NF): 2NF eliminates redundant data by requiring that each non-key attribute be dependent on the primary key. 
-This means that each column should be directly related to the primary key, and not to other columns.
-Third Normal Form (3NF): 3NF builds on 2NF by requiring that all non-key attributes are independent of each other. 
+Second Normal Form (2NF): 
+A table is in 2NF if it meets the following criteria. It must already be in 1NF, it should have no partial dependency,
+that means each non-key attribute must be fully dependent on the primary key. for ex: if the primary key is a composite key,
+and a few columns are dependent on part of the composite key (rather than whole), they should be moved to a seperate table,
+where the part composite key is the primary key. 
+
+Third Normal Form (3NF): 
+3NF builds on 2NF by requiring that all non-key attributes are independent of each other. 
 This means that each column should be directly related to the primary key, and not to any other columns in the same table.
-Boyce-Codd Normal Form (BCNF): BCNF is a stricter form of 3NF that ensures that each determinant in a table is a candidate key. 
-In other words, BCNF ensures that each non-key attribute is dependent only on the candidate key.
-Fourth Normal Form (4NF): 4NF is a further refinement of BCNF that ensures that a table does not contain any multi-valued dependencies.
-Fifth Normal Form (5NF): 5NF is the highest level of normalization and involves decomposing a table into smaller tables 
-to remove data redundancy and improve data integrity.
+Columns that are dependent on other non-primary columns should be moved to a seperate table.
+
+There are 4th and 5th Normal forms as well.
 
 
 SQL Types
