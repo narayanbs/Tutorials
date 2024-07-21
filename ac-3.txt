@@ -61,12 +61,7 @@ locale definition source files are named in the folowing format: language[_terri
 for ex: en_US.UTF-8
 
 To deal with locale data in a logical manner, locale definition source files are divided into six categories. 
-Each category contains a specific aspect of the locale data. The LC_* environment variables and the LANG environment variable 
-can be used to specify the desired locale.
-
-Along with this the unix systems also contain a C and Posix locale, that defines the ANSI C-defined standard locale inherited by all
-processes at startup time.
-
+Each category contains a specific aspect of the locale data. 
 
 Understanding Locale categories
 -------------------------------
@@ -84,7 +79,8 @@ LC_NAME, LC_ADDRESS, LC_TELEPHONE, LC_MEASUREMENT, LC_IDENTIFICATION: I don't kn
 
 Environment variables
 ----------------------
-Applications that use locale settings determine them from environment variables.
+Applications that use locale settings determine them from environment variables, like the LANG environment variable and
+LC_* environment variables.
 
 LANG - specifies the installation default locale. This is the locale every process uses unless LC_* environment variables are explicity set.
   if the LANG envionment variable is not set, it defaults to C
@@ -107,6 +103,11 @@ Environment variables in the medium priority class are:
 	LC_TIME
 The environment variable in the low priority class is:
 	LANG
+
+Along with this the unix systems also contain a C and Posix locale, that defines the ANSI C-defined standard locale inherited by all
+processes at startup time.
+
+-------------
 
 On ubuntu, use locale command to get the current locale settings. 
 
