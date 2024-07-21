@@ -39,7 +39,8 @@ Now, let's delve deeper into fixed-point range, precision, and scale, as they ar
    - A scale of 3, for example, indicates that 3 bits are allocated to the fractional part, allowing for more 
    precise representation of decimal values.
    - The scale affects both the precision and the range of values that can be represented. A larger scale means
-   finer granularity for representing fractional values but reduces the range of representable integers within the same total number of bits.
+   finer granularity for representing fractional values but reduces the range of representable integers within the same
+   total number of bits.
 
 ### Example:
 Let's illustrate these concepts with an example using an 8-bit fixed-point format:
@@ -59,6 +60,7 @@ meaning you can represent values in increments of 0.125.
 
 Adjusting the scale or precision involves balancing the trade-offs between the range of representable values and the 
 precision of fractional representation. In applications where precise fractional calculations are crucial, a larger
-scale (more bits for fractional part) might be necessary, whereas applications requiring a broader range of integer values may sacrifice some precision in the fractional part to allocate more bits for the integer part.
+scale (more bits for fractional part) might be necessary, whereas applications requiring a broader range of integer values 
+may sacrifice some precision in the fractional part to allocate more bits for the integer part.
 
 
