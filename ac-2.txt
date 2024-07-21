@@ -3,7 +3,7 @@ A Fixed-point representation of a fractional number is essentially an integer th
 For example, the value 1.23 can be stored in a variable as the integer value 1230 with implicit scaling factor of 1/1000
 the fraction is often expressed in the same number base as the integer part, but using negative powers of the base b. 
 The most common variants are decimal (base 10) and binary (base 2). The latter is commonly known also as binary scaling. 
-Thus, if n fraction digits are stored, the value will always be an integer multiple of b−n.
+Thus, if n fraction digits are stored, the value will always be an integer multiple of b^−n.
 Fixed point was the norm when dedicated Floating point unit (FPU) was not available in processors, because floating
 arithmetic could be represented as normal integer operations. 
 
