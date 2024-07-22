@@ -61,11 +61,13 @@ another example is echo the price is $100 --> echo the price is 00, shell perfor
 Pathname expansion (wildcards)
 ------------------------------
 Shell uses wildcards to match strings that represent file/directory etc. but what is a wildcard?
-
 A string can be considered a wildcard pattern if it contains one of the following characters: *, ?, or [
 
-* --> wildcard matches any number of characters except slashes on linux, (on windows slashes and backslashes) a.l.a file seperators. (to enable */ or *\ in windows)
+* --> wildcard matches any number of characters (including no characters), except slashes on linux, 
+(on windows slashes and backslashes) a.l.a file seperators. (to enable */ or *\ in windows)
+
 ? --> matches any single character
+
 []  --> matches any single character from the set
 [!] --> matches any single character not from the set
 
