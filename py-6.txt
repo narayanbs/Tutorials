@@ -6,7 +6,7 @@ glob.escape(char) --> fed into glob.glob if pattern contains *,?,[
 
 fnmatch.fnmatch(filename, pattern) --> boolean  (filename & pattern are case=normalized here)
 fnmatch.fnmatchcase(filename, pattern) --> boolean 
-fnmatch.filter(filename, pattern) --> list of filenames that match
+fnmatch.filter(filelist, pattern) --> list of filenames that match
 fnmath.translate(pattern) --> returns regex of the pattern. that can be used for re.match(filename) etc
 
 shutil
