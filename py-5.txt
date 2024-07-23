@@ -147,9 +147,13 @@ root = pathlib.Path('/')
 usr_local = root.joinpath('usr', 'local')
 print(usr_local) --> /usr/local
 
+You can also use slashes (/) to combine paths. 
+
 usr / 'local' --> /usr/local 
 usr / '..' --> /usr/..		(Not Normalized)
 usr / '/etc' --> /etc 
+
+Note: pathlib achieves this by overriding __truediv__ dunder method
 
 
 To normalize and produce an absolute path we use resolve()
