@@ -259,19 +259,21 @@ methods:
 	get(key, default),	
         pop(a) -- remove specified key and return corresponding value
         popitem() -- remove an entry in LIFO order as (key,value)
-        clear(), copy() -- return shallow copy,
+        clear() -- clear the dict
+	copy() -- return shallow copy,
         update() -- update dict from iterable/dict passed
         
 ex:
 	d = {'physics': 66, 'math': 77 }
+	e = {'practical': 55}
+
 	c = d.copy()	# shallow copy  
 	c --> {'physics': 66, 'math': 77}
-	e = {'practical': 55}
-	
+
 	d.update(e)	# updated with dict 
-	
 	d --> {'physics': 66, 'math': 77, 'practical': 55}
-	c --> {'physics': 66, 'math': 77}
+
+	c --> {'physics': 66, 'math': 77} 	# c is the same
 
 	d.update([('chemistry', 99), ('english', 50)]) 	 # updated with iterable
 	d --> {'physics': 66, 'math': 77, 'practical': 55, 'chemistry': 99, 'english': 50}
@@ -279,6 +281,14 @@ ex:
 	x = {}
 	x.update([[1,2],[3,4]])
 	x --> {1:2, 3:4}
+
+When we iterate over a dictionary, we are iterating over the keys by default,
+ex:
+	d --> {'physics': 66, 'math': 77, 'practical': 55, 'chemistry': 99, 'english': 50}
+	for x in d:
+		print(d, end=" ")
+	Output:
+	physics math practical chemistry english
 
 
 Type Conversion  
@@ -309,20 +319,24 @@ float()
 * converts other numeric values into floats
 ex: float(5) = 5.0, float(0xb) = 11.0, float("234") = 234.0, float("hello") = ValueError
 
-Note: complex numbers cannot be converted into int and float
+Note: Both int() and float() cannot convert complex numbers
 
 complex()
 * converts other nummeric values into complex numbers
 ex: complex(3) = 3+0j, complex(8.5) = 8.5+0j, complex(2, 3) = 2+3j, complex("11") = 11+0j, complex("hello") = ValueError
 
-hex(),bin() and oct() will take an integer (other bases) and convert it into hexadecimal, binary and octal respectively
-The values returned are string. 
+hex(),bin() and oct() are built-in functions that print appropriate representations of an integer. 
+It will take an integer (all bases) and print its value in hexadecimal, binary and octal respectively
+The value returned is string. 
+
 ex: hex(0b11111111) = '0xff'
     hex(255) = '0xff'
-    hex('23') = TypeError
-
     oct(255) = '0o377'
     bin(4) = '0b100'
+
+    hex('23') = TypeError
+    oct('23') = TypeError
+    bin('23') = TypeError
 
 str()
 * converts the argument into a string type
@@ -335,7 +349,24 @@ ex:
 
 Note: __repr__() method is intended to hold information about the object so that it can be created again. In contrast __str__() is
 used for human-friendly logging purposes. The string representation in __repr__ should be such that the object could be reconstructed
-using the eval function. for ex: eval(repr("obj")) == obj
+using the eval function i.e  eval(repr("obj")) == obj
+
+for ex:
+	class Person:
+		def __init__(self, name):
+			self.name = name
+		def __eq__(self, other):
+			if isintance(other, Point):
+				return self.name == other.name
+			return False
+		def __repr__(self):
+			return f"Person('{self.name}')"
+
+	p1 = Person("narayan")
+	p1_repr = repr(p1)
+	p2 = eval(p1_repr)
+	print(p1 == p2) 	# True
+
 
 ord()
 * Returns the unicode code point of a one character string
