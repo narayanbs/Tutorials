@@ -363,6 +363,37 @@ UTF-16 encoded text without a BOM (assuming little-endian by default):
   
 For characters requiring surrogate pairs (e.g., U+1F600, which is 😀), the UTF-16 encoding would use two 16-bit code units: `D83D DE00`.
 
+
+Let's look at another example, the sentence "Hello, UTF-16 with BOM!"
+In UTF-16 Little Endian encoding, the hexadecimal representation with BOM (0xFFFE) would look like this:
+FF FE 48 00 65 00 6C 00 6C 00 6F 00 2C 00 20 00 55 00 54 00 46 00 2D 00 31 00 36 00 20 00 77 00 69 00 74 00 68 00 20 42 00 4F 00 4D 00 21 00
+
+	FF FE: Byte Order Mark (BOM) indicating UTF-16 Little Endian.
+	48 00: H (UTF-16 encoding of 'H')
+	65 00: e (UTF-16 encoding of 'e')
+	6C 00: l (UTF-16 encoding of 'l')
+	6F 00: o (UTF-16 encoding of 'o')
+	2C 00: , (UTF-16 encoding of ',')
+	20 00: space (UTF-16 encoding of space)
+	55 00: U (UTF-16 encoding of 'U')
+	54 00: T (UTF-16 encoding of 'T')
+	46 00: F (UTF-16 encoding of 'F')
+	2D 00: - (UTF-16 encoding of '-')
+	31 00: 1 (UTF-16 encoding of '1')
+	36 00: 6 (UTF-16 encoding of '6')
+	20 00: space (UTF-16 encoding of space)
+	77 00: w (UTF-16 encoding of 'w')
+	69 00: i (UTF-16 encoding of 'i')
+	74 00: t (UTF-16 encoding of 't')
+	68 00: h (UTF-16 encoding of 'h')
+	20 00: space (UTF-16 encoding of space)
+	42 00: B (UTF-16 encoding of 'B')
+	4F 00: O (UTF-16 encoding of 'O')
+	4D 00: M (UTF-16 encoding of 'M')
+	21 00: ! (UTF-16 encoding of '!')
+
+
+
 In summary, UTF-16 encoding is recognized primarily through the presence of a Byte Order Mark (BOM) at the beginning of the data, 
 which indicates the byte order of the following 16-bit code units. Applications then interpret these units, handling single code units 
 for characters within the Basic Multilingual Plane (BMP) and surrogate pairs for characters outside the BMP to correctly represent 
