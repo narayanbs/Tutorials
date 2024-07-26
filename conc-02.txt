@@ -1,0 +1,340 @@
+Synchronization Patterns and Problems
+-------------------------------------
+Signalling
+----------
+/* Code Listing 8.1:
+   The general structure of a program that uses signaling after initialization
+ */
+
+void *
+initialize (void *args)
+{
+  /* Cast the arguments into a useful struct type */
+  sem_t *semaphore = (sem_t *) args;
+  /* Perform some time-consuming initialization here */
+  /* Alert calculate thread that initialization is complete */
+  sem_post (semaphore);
+  /* Perform some clean-up or do other work before exiting */
+  pthread_exit (NULL);
+}
+
+int
+main (int argc, char **argv)
+{
+  /* Declarations omitted for brevity */
+  /* For signaling, initialize the semaphore to 0 */
+  sem_t *init_sem = sem_open ("/OpenCSF_Sema", O_CREAT | O_EXCL, S_IRUSR | S_IWUSR, 0);
+  assert (init_sem != SEM_FAILED);
+  /* Create initialization thread */
+  assert (pthread_create (&init, NULL, initialize, init_sem) == 0);
+  /* Perform other work while initialization occurs */
+  /* Pause until initialization is complete */
+  sem_wait (init_sem);
+  sem_unlink ("/OpenCSF_Sema");
+  /* Do other work that depended on complete initialization */
+  return EXIT_SUCCESS;
+}
+
+
+Turnstiles
+-------------
+A turnstile is a variant on signaling that can cause a chain-reaction that unblocks several threads one at a time. 
+The key structure of a turnstile is to follow sem_wait() immediately with a call to sem_post(). As with signaling, 
+the semaphore must be initialized to 0, which ensures that every thread executing the turnstile gets blocked. 
+That is, the turnstile acts like a locked door and the threads form a queue waiting to get in.
+
+Once it becomes acceptable for the threads to enter, one thread makes a single call to sem_post(). This call unblocks 
+exactly one thread that is waiting at the turnstile; that thread returns from the sem_wait() that had blocked it and 
+immediately calls sem_post(), unblocking the next thread. This pattern then continues, with each thread unblocking the 
+next thread in line, one at a time. 
+
+/* Code Listing 8.2:
+   Turnstiles create a sequence of unblocking all other threads
+ */
+
+void *
+user (void *args)
+{
+  sem_t *semaphore = (sem_t *) args;
+
+  /* Turnstile causes a chain reaction of unblocking */
+  sem_wait (semaphore);
+  sem_post (semaphore);
+  /* Do other work and exit the thread */
+}
+
+int
+main (int argc, char **argv)
+{
+  /* Declarations and earlier work */
+  /* Create helper threads */
+  for (i = 0; i < NUM_THREADS; i++)
+    assert (pthread_create (&thread[i], NULL, user, sem) == 0);
+  /* Unblock the first thread, which unblocks the second, etc. */
+  sem_post (sem);
+  /* Continue with other work */
+}
+
+Rendezvous
+-------------
+A rendezvous is a mutual signaling between two threads. The goal of a rendezvous is to ensure that two threads meet at 
+a pre-defined common point. To create a rendezvous, two semaphores are initialized to 0. The two threads then call sem_post() 
+on one semaphore just prior to calling sem_wait() on the other. At run-time, one thread will arrive at the rendezvous first 
+and get blocked by the call to sem_wait(). Then, when the other thread arrives, it unblocks the first by calling sem_post(); 
+however, this thread is not blocked by the call to sem_wait(), as the semaphore’s value has already been incremented to 1.
+
+To illustrate the use of a rendezvous, assume that a program wants to detect corrupted files on a web server. To do this, 
+the program uses one thread to retrieve the file from the web site; a second thread reads the same file from a location 
+that is known to be secure and correct. The two threads need to complete reading the two copies before comparing their 
+contents (a mismatch would indicate corruption)
+
+/* Code Listing 8.3:
+   Separate threads can be used to download a file twice to detect corruption
+ */
+
+void *
+download (void *_args)
+{
+  /* Cast the arguments into a useful struct type */
+  struct args *args = (struct args *) _args;
+  /* Download the file from the potentially corrupted server */
+  /* Rendezvous; must wait until secure loading is done */
+  sem_post (args->download_sem);
+  sem_wait (args->secure_sem);
+  /* Additional work or thread cleanup here */
+}
+
+void *
+secure_load (void *_args)
+{
+  struct args *args = (struct args *) _args;
+  /* Securely load the file from a correct location */
+  /* Rendezvous; must wait until downloading is done */
+  sem_post (args->secure_sem);
+  sem_wait (args->download_sem);
+  /* Additional work or thread cleanup here */
+}
+
+Multiplexing
+-------------
+n many cases, mutual exclusion is too strong of a system requirement, but it is reasonable to place a limit on the number
+of concurrent accesses. For example, network servers (e.g., web or e-mail servers) allow hundreds or thousands of concurrent 
+network connections to serve content to remote users. Allowing an unlimited number of connections would exhaust the system
+resources, such as consuming all of the system’s available memory or trying to read too many files on a single hard drive.
+
+The solution in this case is multiplexing. Multiplexing allows multiple concurrent accesses up to a given limit; additional 
+requests beyond that limit are blocked until more resources become available. The key defining feature of multiplexing is to
+initialize the semaphore’s value to a positive integer greater than 1. This initial value is the maximum number of concurrent
+accesses allowed. Once the thread semaphore has been decremented to 0, the limit has been reached and future accesses are blocked. 
+Mutual exclusion is a special case of multiplexing, where the initial value is 1.
+
+Here is  the code framework for a server that launches a new thread each time a request has been received. Whenever a request 
+is received, the main thread first decrements the semaphore to determine if the limit has been reached. If the limit has not 
+been reached, a new thread handles the request. However, if the maximum number of threads has already been reached, the main 
+thread gets blocked. Eventually, one of the threads serving content finishes. Just before exiting, that thread increments the 
+semaphore, which unblocks the main thread; at that point, the main thread creates a new thread to handle the pending request 
+it had received.
+
+/* Code Listing 8.4:
+   Semaphore multiplexing can place a limit on the number of concurrent threads
+ */
+
+void *
+serve_content (void *_args)
+{
+  /* Cast the args struct to get the semaphore and arguments */
+  struct args *args = (struct args *) _args;
+  /* ... Serve content based on the request ... */
+  /* Thread is exiting; post to allow more threads in */
+  sem_post (args->semaphore);
+  pthread_exit (NULL);
+}
+
+int
+main (int argc, char **argv)
+{
+  /* Initialization and other work */
+  while (1)
+    {
+      /* ... Wait for incoming request ... */
+
+      /* Request received; can a new thread be created? */
+      sem_wait (create_thread_sem);
+      /* Thread limit is not reached, so create a new thread */
+      args = malloc (sizeof (struct args));
+      args->semaphore = create_thread_sem;
+      /* Additional args initialization here */
+      /* Create the thread; up the semaphore if creation fails */
+      if (pthread_create (&child_thread, NULL, serve_content, args) != 0)
+        sem_post (create_thread_sem);
+    }
+}
+
+Lightswitches
+--------------
+The lightswitch allows the first thread of a particular type to perform some initialization as needed. The name derives 
+from the idea of a group of people entering a room; the first person to enter turns on the lights by flipping the lightswitch
+and the last person to leave turns the lights off.
+When providing concurrent access to a resource, it is sometimes necessary to distinguish between the type of threads that are 
+allowed access. For instance, consider a web-based application that allows multiple people to edit a document collaboratively.
+Each user is assigned a separate thread for modifying the contents of the document. In addition, a separate thread is responsible
+for storing a backup copy automatically. Other threads might be running to check the spelling or grammar. When there are different 
+types of threads, it may be necessary for one type of thread to lock out other types while still allowing concurrent access for the same type.
+
+/* Code Listing 8.5:
+   Functions for creating an asymmetric lightswitch
+ */
+
+void
+enter (pthread_mutex_t *lock, sem_t *can_enter, int counter)
+{
+  pthread_mutex_lock (lock);
+  /* First thread waits to be able to enter */
+  if (++counter == 1)
+    sem_wait (can_enter);
+  pthread_mutex_unlock (lock);
+}
+
+void
+leave (pthread_mutex_t *lock, sem_t *can_enter, int counter)
+{
+  pthread_mutex_lock (lock);
+  /* Last thread waits to be able to enter */
+  if (--counter == 0)
+    sem_post (can_enter);
+  pthread_mutex_unlock (unlock);
+}
+
+/* Code Listing 8.6:
+   Using a lightswitch in asymmetric concurrency
+ */
+
+void *
+concurrent_thread (void * _args)
+{
+  /* Cast the args struct to get the data fields */
+  struct args *args = (struct args *) _args;
+  enter (args->lock, args->can_enter, args->counter);
+  /* Critical section for concurrent access */
+  leave (args->lock, args->can_enter, args->counter);
+  /* Do other work and exit thread */
+}
+
+void *
+mutex_thread thread (void * _args)
+{
+  /* Cast the args struct to get the data fields */
+  struct args *args = (struct args *) _args;
+  sem_wait (args->can_enter);
+  /* Critical section for concurrent access */
+  sem_post (args->can_enter);
+  /* Do other work and exit thread */
+}
+
+The code above works for an asymmetric approach in which one type of thread allows concurrent access while another does not. 
+The enter() and leave() functions would be used by the thread type that allows concurrency. The thread type that requires 
+mutual exclusion would work directly with the can_enter semaphore without using the lock. 
+
+The code above is not safe if all types of threads allow for concurrent access to their respective critical sections. 
+Consider the case where a thread of type A has previously entered. After that point, a thread of type B tries to enter, 
+but is blocked by the semaphore within the if statement. Note, though, that this thread still retains the lock as it gets blocked. 
+When any type A thread tries to leave, they will get blocked trying to acquire the lock. Consequently, none of the type A threads 
+can post to the semaphore according to the leave() function. The system would then enter a state of deadlock, as the type A threads 
+are waiting on the type B thread that has the lock while the type B thread is waiting on a type A thread to post to the semaphore.
+
+If the concurrency is not asymmetric—that is, multiple types of threads allow concurrent access—then the if statement would need to be modified.
+the enter() function could be modified to release the lock prior to calling sem_wait(can_enter), then re-acquiring it.
+Note that the leave() function remains unchanged, as sem_post(can_enter) would never block.
+
+/* Code Listing 8.7:
+   A lightswitch for concurrency of all thread types
+ */
+
+void
+enter (pthread_mutex_t *lock, sem_t *can_enter, int counter)
+{
+  pthread_mutex_lock (lock);
+  /* First thread waits to be able to enter */ 
+  if (++counter == 1)
+    {
+      pthread_mutex_unlock (lock);
+      sem_wait (can_enter);
+    }
+  else
+    pthread_mutex_unlock (lock);
+}
+
+As an alternative, the lightswitch could be modified to use condition variables as shown below. In this case, a bool variable 
+is added to indicate whether or not a new type of thread can enter its respective critical section. When the first thread of a
+new type enters the critical section, it would set can_enter to false, blocking out other threads that would try to enter until
+the last leaving thread sets can_enter back to true.
+
+/* Code Listing 8.8:
+   Adapting the lightswitch for condition variables
+ */
+
+void
+enter (pthread_mutex_t *lock, pthread_cond_t *leave,
+       bool can_enter, int counter)
+{
+  pthread_mutex_lock (lock);
+  /* First thread waits to be able to enter */ 
+  if (++counter == 1)
+    {
+      while (! can_enter)
+        pthread_cond_wait (leave, lock);
+      can_enter = false;
+    }
+  pthread_mutex_unlock (lock);
+}
+
+void
+leave (pthread_mutex_t *lock, pthread_cond_t *leave,
+       bool can_enter, int counter)
+{
+  pthread_mutex_lock (lock);
+  /* Last thread waits to be able to enter */
+  if (--counter == 0)
+    {
+      can_enter = true;
+      pthread_cond_signal (leave);
+    }
+  pthread_mutex_unlock (unlock);
+}
+
+Given that the lightswitch pattern is more complex than the other patterns, it is a good design choice to encapsulate the 
+variables into a single struct that can then be passed around. Any thread needing access to the same lightswitch could be passed 
+a pointer to the struct instance in the thread arguments
+Note that this assumes the interface for enter() and leave() have been adapted to receive the struct parameter instead of the individual fields.
+
+/* Code Listing 8.9:
+   A modular approach to lightswitches
+ */
+
+typedef struct lightswitch {
+  pthread_mutex_t *lock;
+  sem_t *can_enter;
+  int counter;
+} ls_t;
+
+void *
+lightswitch_user (void * _args)
+{
+  /* Cast the args struct to get the data fields */
+  ls_t *lightswitch = (struct args *) _args;
+  enter (lightswitch);
+  /* Critical section */
+  leave (lightswitch);
+  /* Do other work and exit thread */
+}
+
+
+Synchronization Problems
+=========================
+Producer - Consumer Problem
+
+Readers - Writers Problem
+
+Dining Philosophers Problem
+
+Cigarette Smokers Problem 

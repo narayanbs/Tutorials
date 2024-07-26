@@ -1,0 +1,437 @@
+Concurrency
+-----------
+In linux a thread is created using the clone system call. clone is similar to fork in that it 
+creates a child process, but it provides more control over what pieces of execution context are
+shared between the calling process and the child process.
+For example, the caller can control whether or not the two processes share the virtual address space, 
+the table of file descriptors, and the table of signal handlers. These system calls also allow
+the new child process to be placed in separate namespaces.
+
+In linux we have the glibc clone wrapper function and a new clone3 system call. 
+When the child process is created with the clone() wrapper function, it commences execution by 
+calling the function pointed to by the argument fn.  (This differs from fork(2), where
+execution continues in the child from the point of the fork(2)call.)  
+The arg argument is passed as the argument of thefunction fn.
+
+When the fn(arg) function returns, the child process terminates. The integer returned by fn is 
+the exit status for the child process.  The child process may also terminate explicitly by
+calling exit(2) or after receiving a fatal signal.
+
+The stack argument specifies the location of the stack used by the child process.  Since the child and 
+calling process may share memory, it is not possible for the child process to execute in the same stack 
+as the calling process.  The calling process must therefore set up memory space for the child stack and 
+pass a pointer to this space to clone().  Stacks grow downward on all processors that run Linux 
+(except the HP PA processors), so stack usually points to the topmost address of the memory space set up
+for the child stack.  Note that clone() does not provide a means whereby the caller can inform the kernel
+of the size of the stack area.
+
+Critical Section and Petersons algorithm
+==========================================
+In concurrent programming, concurrent accesses to shared resources can lead to unexpected or erroneous behavior. 
+Thus, the parts of the program where the shared resource is accessed need to be protected in ways that avoid the 
+concurrent access. This protected section called the critical section cannot be entered by more than one process 
+or thread at a time; others are suspended until the first leaves the critical section. 
+
+One approach to solving the problem of critical sections is to employ Peterson’s solution, an algorithmic approach 
+that uses shared memory to declare intentions.
+The algorithm uses two variables: flag and turn. A flag[n] value of true indicates that the process n wants to enter 
+the critical section. Entrance to the critical section is granted for process P0 if P1 does not want to enter its 
+critical section or if P1 has given priority to P0 by setting turn to 0.
+
+bool flag[2] = {false, false};
+int turn;
+
+P0:      flag[0] = true;
+P0_gate: turn = 1;
+         while (flag[1] && turn == 1)
+         {
+             // busy wait
+         }
+         // critical section
+         ...
+         // end of critical section
+         flag[0] = false;
+
+P1:      flag[1] = true;
+P1_gate: turn = 0;
+         while (flag[0] && turn == 0)
+         {
+             // busy wait
+         }
+         // critical section
+         ...
+         // end of critical section
+         flag[1] = false;
+
+The algorithm satisfies the three criteria to solve the critical-section problem, mutual exclusion, progress, and bounded waiting.
+However, this algorithm is generally not used in modern systems. Peterson’s solution rests on the assumption that the instructions
+are executed in a particular order and memory accesses can be achieved atomically. Both of these assumptions can fail with modern hardware.
+Due to complexities in the design of pipelined CPUs, the instructions may be executed in a different order. 
+Additionally, if the threads are running on different cores that do not guarantee immediate cache coherency, 
+the threads may be using different memory values.
+
+Synchronization Primitives
+---------------------------
+In Linux, there are several synchronization primitives available for coordinating access to shared resources
+and ensuring orderly execution of processes or threads. These synchronization primitives are essential for
+managing concurrency, ensuring data integrity, and preventing race conditions in multi-threaded or multi-process 
+environments within the Linux operating system and other Unix-like systems. 
+Each primitive has its specific use cases and performance characteristics, making them suitable for different
+synchronization scenarios. Here are some of the key synchronization primitives commonly used:
+
+1. **Mutexes (Mutual Exclusion Locks):**
+   - Used to protect shared resources by allowing only one thread to access a resource at a time.
+   - Implemented using `pthread_mutex_t` in POSIX threads (`pthread`) API.
+
+2. **Semaphores:**
+   - Used for signaling between processes or threads to achieve synchronization.
+   - Implemented using `sem_t` in POSIX threads (`pthread`) API or via System V semaphores (`semget`, `semop`, etc.).
+
+3. **Condition Variables:**
+   - Used for signaling between threads to indicate that a certain condition has been met or changed.
+   - Implemented using `pthread_cond_t` in POSIX threads (`pthread`) API.
+
+4. **Spinlocks:**
+   - Similar to mutexes but use busy-waiting (spinning) instead of blocking.
+   - Implemented using `pthread_spinlock_t` in POSIX threads (`pthread`) API or via low-level atomic operations.
+
+5. **Read-Write Locks:**
+   - Allows multiple threads to read simultaneously but requires exclusive access for writing.
+   - Implemented using `pthread_rwlock_t` in POSIX threads (`pthread`) API.
+
+6. **Futexes (Fast User-space Mutexes):**
+   - Mechanism for efficient user-space synchronization.
+   - Used with system calls like `futex` for more efficient locking primitives.
+
+7. **Barrier Synchronization:**
+   - Allows a set of threads to synchronize at a barrier point, where all threads must reach before any can proceed.
+   - Implemented using `pthread_barrier_t` in POSIX threads (`pthread`) API.
+
+8. **Atomic Operations:**
+   - Low-level operations that are guaranteed to be executed atomically, without interruption.
+   - Implemented using atomic types (`atomic_t`, `atomic_long_t`, etc.) and functions (`atomic_read`, `atomic_inc`, etc.).
+
+9. **Eventfd:**
+   - Used for inter-thread communication using file descriptors that can be read from and written to.
+   - Implemented with `eventfd` system call.
+
+10. **Mutex-based Synchronization Primitives (e.g., `pthread_mutexattr_t`):**
+    - Additional attributes and configurations for mutexes to customize behavior, such as robust mutexes
+    (`PTHREAD_MUTEX_ROBUST`) for handling thread termination.
+
+-----------------------------
+
+Mutex Implementation in Linux
+--------------------------------
+Mutex implementation involves sophisticated data structures (`struct mutex`), spinlocks, atomic operations, 
+and efficient wait and wake mechanisms. Understanding these internals is essential for kernel developers 
+and those interested in low-level system programming on Linux.
+
+### 1. `struct mutex` Data Structure
+
+The `struct mutex` in the Linux kernel typically includes the following fields:
+
+```c
+struct mutex {
+    atomic_t count;            // Atomic counter for lock state (0 = unlocked, 1 = locked)
+    spinlock_t wait_lock;      // Spinlock protecting access to wait_list and owner
+    struct list_head wait_list;// List of tasks waiting for this mutex
+    struct task_struct *owner; // Pointer to the task holding the mutex (NULL if unlocked)
+};
+```
+
+- **`count`**: This is an atomic integer (`atomic_t`) that represents the state of the mutex:
+  - `0` indicates that the mutex is unlocked.
+  - `1` indicates that the mutex is locked.
+
+- **`wait_lock`**: This is a spinlock (`spinlock_t`) used to protect access to the `wait_list` and `owner` fields
+of the mutex structure. Spinlocks are lightweight locks that are held for short durations and are not intended for blocking.
+
+- **`wait_list`**: This is a linked list (`struct list_head`) of tasks (`task_struct`) that are waiting to acquire the mutex.
+Tasks waiting on the mutex are added to this list when the mutex is locked.
+
+- **`owner`**: This field points to the task (`task_struct`) that currently holds the mutex. If the mutex is unlocked, `owner` is `NULL`.
+
+### 2. Mutex Operations
+
+#### Initialization (`mutex_init`)
+
+The `mutex_init` function initializes a mutex to an unlocked state. It typically sets `count` to `0`, 
+initializes the `wait_lock`, and initializes the `wait_list`.
+
+#### Locking (`mutex_lock`)
+
+The `mutex_lock` function attempts to acquire a mutex. It follows these steps:
+
+- It acquires the `wait_lock` spinlock to protect the critical section where it checks and potentially modifies the mutex state.
+
+- If `count` is `0` (indicating the mutex is unlocked), it sets `count` to `1` (indicating the mutex is now locked) and
+updates `owner` to the current task.
+
+- If `count` is `1` (indicating the mutex is already locked), it adds the current task to the `wait_list` and puts the task
+to sleep until the mutex becomes available. The task is then scheduled out, allowing other tasks to run.
+
+#### Unlocking (`mutex_unlock`)
+
+The `mutex_unlock` function releases a mutex. It follows these steps:
+
+- It acquires the `wait_lock` spinlock.
+
+- It sets `count` to `0` (indicating the mutex is unlocked).
+
+- It clears the `owner` field (sets it to `NULL`), indicating that no task currently owns the mutex.
+
+- It wakes up one or more tasks from the `wait_list` (using functions like `wake_up_process` or `wake_up_locked`) to allow
+them to attempt to acquire the mutex.
+
+- It releases the `wait_lock` spinlock.
+
+### 3. Wait and Wake Mechanisms
+
+When a task calls `mutex_lock` and the mutex is already locked (`count == 1`), the task adds itself to the `wait_list` 
+and goes to sleep. The `mutex_unlock` function wakes up one or more tasks from the `wait_list` when the mutex is released.
+
+### 4. Spinlocks and Atomic Operations
+
+Spinlocks (`spinlock_t`) are used to protect critical sections of mutex operations (`mutex_lock` and `mutex_unlock`). 
+They are lightweight and suitable for scenarios where blocking is not desirable, such as short-duration locking.
+
+Atomic operations (`atomic_t`) are used to manipulate the `count` field of the mutex structure atomically, ensuring that
+changes to the lock state (`0` or `1`) are performed in a thread-safe manner.
+
+### 5. Performance Considerations
+
+Efficiency is crucial in kernel mutex implementations. Linux kernel mutexes are designed to minimize overhead and contention
+using techniques like spinlocks for short-duration locking and efficient wait and wake mechanisms (`wait_list` management).
+
+### 6. Debugging and Locking Hierarchies
+
+Linux kernel developers often use tools like `lockdep` to detect potential deadlocks and enforce locking hierarchies to 
+prevent them. This involves ensuring that locks are acquired in a predefined order to avoid circular dependencies.
+
+### Example: Basic Usage in Code
+
+Here’s a simplified example of how mutexes might be used in Linux kernel code:
+
+```c
+#include <linux/mutex.h>
+
+// Define and initialize a mutex
+static DEFINE_MUTEX(my_mutex);
+
+// Function using the mutex
+void my_function(void)
+{
+    // Acquire the mutex
+    mutex_lock(&my_mutex);
+
+    // Critical section protected by the mutex
+
+    // Release the mutex
+    mutex_unlock(&my_mutex);
+}
+```
+
+Semaphore 
+-------------
+A semaphore is a generalized synchronization primitive that controls access to a shared resource with an
+integer counter (`value`). Unlike mutexes, which enforce mutual exclusion for one thread at a time, semaphores 
+can allow multiple threads to access the resource simultaneously up to a specified limit.
+
+- **Types**:
+  - **Binary Semaphore**: Acts like a mutex with values 0 and 1, often used for simple synchronization tasks.
+  - **Counting Semaphore**: Allows a specified number of threads to access the resource concurrently, useful 
+  for managing pools of resources.
+
+- **Operations**:
+  - `wait()` (also known as `P()` or `down()`): Decrements the semaphore counter. If the counter becomes negative,
+  the thread blocks until another thread increments the semaphore (`signal()`).
+  - `signal()` (also known as `V()` or `up()`): Increments the semaphore counter. If any threads were waiting (`wait()`),
+  one of them is allowed to proceed.
+
+
+### Example of a Binary Semaphore in Pseudocode:
+
+Here’s a simplified example of a binary semaphore using pseudocode to illustrate the basic principles:
+
+```plaintext
+class Semaphore:
+    int value = 1  # Binary semaphore starts with 1 (available) or 0 (unavailable)
+
+    procedure wait():
+        while value == 0:
+            // Block or wait until value becomes 1 (or acquire a lock)
+        value = 0
+
+    procedure signal():
+        value = 1
+        // Notify waiting threads that value has changed (or release the lock)
+```
+
+- **Explanation**:
+  - `wait()` operation checks if `value` is `0` (not available). If so, it waits (blocks or acquires a lock) 
+  until `value` becomes `1`.
+  - `signal()` operation sets `value` to `1` and notifies any waiting threads that `value` has changed, allowing 
+  them to proceed.
+
+
+- **Counting Semaphore**:
+  - Allows `value` to be greater than `1`, meaning it can manage multiple resources or permits.
+  - Acquire and release operations adjust `value` accordingly, allowing multiple threads to access resources up to
+  the semaphore's limit.
+
+### Linux lmplementation Variations:
+Linux has built-in semaphore implementations optimized for performance and scalability.
+These implementations may use hardware support for atomic operations or other low-level mechanisms to ensure efficient
+semaphore management.There are mainly two types of semaphores in Linux. These are the traditional System V semaphores 
+and the newer POSIX semaphores. The POSIX semaphores have also two types: named semaphores and memory-based (unnamed) semaphores.
+A process can perform three main operations on a semaphore. 
+The first one is the creation of a semaphore. We can specify an initial value for the semaphore during creation.
+The second operation is waiting for a semaphore. The wait operation checks the semaphore’s value, waits (blocks) if the 
+value is less than or equal to 0, and then decrements the value once it’s greater than 0.
+The third operation is posting to a semaphore. The post operation increments the value of the semaphore. 
+In this case, if there are any other threads or processes waiting the semaphore’s value to be greater than 0, 
+the operating system awakes one of them.
+POSIX named semaphores are identified by names that correspond to pathnames in the file system. These files are 
+created in the /dev/shm directory. The file names are in the form of sem.name where name is the semaphore’s name.
+
+Ex: System V Semaphore
+
+#include <stdio.h>
+#include <unistd.h>
+#include <sys/sem.h>
+
+#define SEM_KEY 0x12345
+
+union semun {
+    int val;
+    struct semid_ds *buf;
+    ushort *array;
+};
+
+int main()
+{
+    union semun arg;
+
+    // Create the semaphore
+    int semid = semget(SEM_KEY, 1, IPC_CREAT | 0666);
+
+    // Initialize the semaphore
+    arg.val = 1;
+    semctl(semid, 0, SETVAL, arg);
+  
+    printf("Will sleep\n");
+    sleep(60);
+    printf("Woke up\n");
+
+    // Remove the semaphore set
+    semctl(semid, 0, IPC_RMID);
+
+    return 0;
+}
+
+Ex: Posix Named Semaphore
+
+include <stdio.h>
+#include <unistd.h>
+
+#include <semaphore.h>
+#include <fcntl.h>
+
+int main()
+{
+    char sem_name[] = "my_named_semaphore";
+
+    // Create and open the semaphore
+    sem_t *s = sem_open(sem_name, O_CREAT, S_IRUSR | S_IWUSR, 1);
+  
+    printf("Will sleep\n");
+    sleep(60);
+    printf("Woke up\n");
+
+    // Close the semaphore
+    sem_close(s);
+
+    // Delete the semaphore
+    sem_unlink(sem_name);
+
+    return 0;
+}
+
+The ipcs command to get information about the active System V semaphore sets
+
+$ ipcs -s -i 
+
+------ Semaphore Arrays --------
+keys       semid      owner      perms      nsems
+
+
+To check Posix Named Semaphores, look under /dev/shm folder
+
+$ ls -l /dev/shm
+total 4
+-rw-------. 1 alice alice 32 Jan 13 14:17 sem.my_named_semaphore
+
+You can also use the lsof command to find the process using this named semaphore:
+
+$ lsof /dev/shm/sem.my_named_semaphore
+COMMAND    PID   USER  FD   TYPE DEVICE SIZE/OFF NODE NAME
+sem_posix 4923  alice DEL    REG   0,22            10 /dev/shm/sem.my_named_semaphore
+
+----------------------------
+
+Futex Implementation in Linux
+--------------------------------
+The internal implementation of a futex (short for "fast userspace mutex") in Linux is a fascinating topic
+that involves both user-space and kernel-space components. Futexes are designed to optimize the common case 
+of uncontended mutex operations without requiring unnecessary system calls, thus improving performance in 
+multithreaded applications. Here’s an overview of how futexes are implemented internally in Linux:
+
+### 1. User-Space Component
+
+In user-space, a futex typically consists of:
+
+- **A Futex Address**: This is a user-space address that serves as the core identifier for the futex. 
+It's usually the address of an integer variable (referred to as the "futex word") that is part of the data structure
+being protected by the futex.
+
+- **Atomic Operations**: User-space threads use atomic operations (like `cmpxchg` on x86 architecture) to perform 
+fast and efficient checks and updates to the futex word without needing to enter the kernel.
+
+- **Syscall (`syscall(SYS_futex)`)**: When a thread needs to wait on or wake up other threads blocked on the futex, 
+it eventually makes a system call (`syscall(SYS_futex)`) to interact with the kernel. This syscall has various operations
+(like `FUTEX_WAIT`, `FUTEX_WAKE`, etc.) that allow threads to synchronize their actions with the kernel-managed futex.
+
+### 2. Kernel-Space Component
+
+In the Linux kernel, the futex subsystem is responsible for managing futexes efficiently. Here are the key components 
+of the kernel-side futex implementation:
+
+- **Futex Hash Table**: When threads perform operations on a futex (e.g., `FUTEX_WAIT` or `FUTEX_WAKE`), the kernel uses
+a hash table to locate the futex quickly based on its address.
+
+- **Wait Queue**: Each futex maintains a wait queue (`struct futex_q`) of threads that are currently blocked (i.e., waiting)
+on that futex. Threads are blocked in the kernel, meaning they are not scheduled to run until they are awakened.
+
+- **System Calls (`sys_futex`)**: The `sys_futex` system call is the interface through which user-space threads interact 
+with the kernel's futex implementation. It handles various operations including waiting on a futex (`FUTEX_WAIT`), 
+waking up threads (`FUTEX_WAKE`), and performing more advanced operations like timed waits (`FUTEX_WAIT_BITSET`).
+
+- **Atomic Operations and Locking**: Inside the kernel, futex operations often involve atomic operations to manage the
+state of the futex word and the wait queue efficiently. Locking mechanisms are used to ensure thread safety and consistency
+in manipulating the futex state.
+
+### 3. Wait and Wake Mechanism
+
+When a thread performs a `FUTEX_WAIT` operation:
+
+- If the futex word indicates that the thread should wait (e.g., it's already locked), the thread makes a syscall to the kernel.
+- The kernel then moves the thread to the futex's wait queue, puts it in a blocked state, and schedules another thread to run.
+- When another thread performs a `FUTEX_WAKE` operation on the same futex, the kernel moves one or more threads from the wait 
+queue to the runnable state, allowing them to resume execution.
+
+### 4. Performance Considerations
+
+Futexes are designed for high-performance synchronization, particularly in scenarios with low contention (few threads trying to 
+access the same resource simultaneously). They minimize overhead by avoiding unnecessary context switches and system calls when 
+possible, relying on efficient atomic operations and user-space checks.
