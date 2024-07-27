@@ -117,7 +117,7 @@ secure_load (void *_args)
 
 Multiplexing
 -------------
-n many cases, mutual exclusion is too strong of a system requirement, but it is reasonable to place a limit on the number
+In many cases, mutual exclusion is too strong of a system requirement, but it is reasonable to place a limit on the number
 of concurrent accesses. For example, network servers (e.g., web or e-mail servers) allow hundreds or thousands of concurrent 
 network connections to serve content to remote users. Allowing an unlimited number of connections would exhaust the system
 resources, such as consuming all of the system’s available memory or trying to read too many files on a single hard drive.
@@ -221,7 +221,7 @@ concurrent_thread (void * _args)
 }
 
 void *
-mutex_thread thread (void * _args)
+mutex_thread (void * _args)
 {
   /* Cast the args struct to get the data fields */
   struct args *args = (struct args *) _args;
