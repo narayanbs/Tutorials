@@ -340,10 +340,8 @@ include <stdio.h>
 
 int main()
 {
-    char sem_name[] = "my_named_semaphore";
-
     // Create and open the semaphore
-    sem_t *s = sem_open(sem_name, O_CREAT, S_IRUSR | S_IWUSR, 1);
+    sem_t *s = sem_open(my_named_semaphore, O_CREAT, S_IRUSR | S_IWUSR, 1);
   
     printf("Will sleep\n");
     sleep(60);
@@ -377,6 +375,49 @@ You can also use the lsof command to find the process using this named semaphore
 $ lsof /dev/shm/sem.my_named_semaphore
 COMMAND    PID   USER  FD   TYPE DEVICE SIZE/OFF NODE NAME
 sem_posix 4923  alice DEL    REG   0,22            10 /dev/shm/sem.my_named_semaphore
+
+Ex: Unnamed Posix Semaphore
+
+// C program to demonstrate working of Semaphores 
+#include <stdio.h> 
+#include <pthread.h> 
+#include <semaphore.h> 
+#include <unistd.h> 
+  
+sem_t mutex; 
+  
+void* thread(void* arg) 
+{ 
+    //wait 
+    sem_wait(&mutex); 
+    printf("\nEntered..\n"); 
+  
+    //critical section 
+    sleep(4); 
+      
+    //signal 
+    printf("\nJust Exiting...\n"); 
+    sem_post(&mutex); 
+} 
+  
+  
+int main() 
+{ 
+    // Initializes a semaphore pointed by mutex variable, 
+    // Equivalent to sem_open in named semaphore
+    // Initializes mutex with value 1, the second argument 0 specifies
+    // if the semaphore is shared between threads. 0 means it is shared.
+    sem_init(&mutex, 0, 1); 
+    pthread_t t1,t2; 
+    pthread_create(&t1,NULL,thread,NULL); 
+    sleep(2); 
+    pthread_create(&t2,NULL,thread,NULL); 
+    pthread_join(t1,NULL); 
+    pthread_join(t2,NULL); 
+    // destroys the unnamed semaphore pointed by mutext
+    sem_destroy(&mutex); 
+    return 0; 
+}
 
 ----------------------------
 
