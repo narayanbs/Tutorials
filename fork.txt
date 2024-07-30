@@ -1,26 +1,276 @@
-fork() -- In unix it starts new processes. 
-Basically, how it works is this: the parent process (the one that already exists) fork()'s a child process (the new one). 
-The child process gets a copy of the parent's data. Voila! You have two processes where there was only one!
+fork()
+-----------
+In unix it starts new processes. The process executing the fork() call is called a parent 
+process. The child process created receives a unique Process Identifier (PID) but retains 
+the parent’s PID as its Parent Process Identifier (PPID).
+The child process has identical data to its parent process. However, both processes have 
+separate address spaces.
+After the creation of the child process, both the parent and child processes execute 
+simultaneously. They execute the next step after the fork() system call.
+Since the parent and child processes have different address spaces, any modifications 
+made to one process will not reflect on the other.
+
+Later improvements introduced the copy-on-write mechanism, which allows the parent and 
+child processes to share the same address space. This removed the need to copy data to 
+the child process. If any process modifies the pages in the shared address space, the 
+system allocates a new address space that allows both processes to run independently.
+
 ex:
-    pid = fork()    
+	include<stdio.h>
+	#include<stdlib.h>
+	#include<unistd.h>
+	#include<sys/types.h>
 
-    if pid == 0 it indicates you are the child process. 
-    if pid == -1 it indicates an error occured and no child was created.
-    Any other value indicates you are the parent process.
+	int main(int argc, char **argv) {
+	    pid_t pid = fork();
+	    if (pid==0) {
+		printf("This is the Child process and pid is: %d\n",getpid());
+		exit(0);
+	    } else if (pid > 0) {
+		printf("This is the Parent process and pid is: %d\n",getpid());
+	    } else {
+		printf("Error while forking\n");
+		exit(EXIT_FAILURE);
+	    }
+	    return 0;
+	}
 
-First of all, you should know something of process behavior under Unix. When a process dies, it doesn't really go away completely. 
-It's dead, so it's no longer running, but a small remnant is waiting around for the parent process to pick up. 
-This remnant contains the return value from the child process and some other goop. So after a parent process fork()s a child process, 
-it must wait() (or waitpid()) for that child process to exit. It is this act of wait()ing that allows all remnants of the child to vanish.
+The fork() call returns the value of the child process as zero to differentiate it from 
+its parent. The actual value of the child process identifier is the value returned to the 
+parent process.
+
+vfork
+-------
+It is a legacy system call that was originally created in BSD V3.0 as a simpler version 
+of the fork() system call. This is because executing the fork() system call, before the 
+copy-on-write mechanism was created, involved copying everything from the parent process, 
+including address space, which was very inefficient.
+
+Similar to the fork() system call, vfork() also creates a child process that’s 
+identical to its parent process. However, the child process temporarily suspends the 
+parent process until the child process terminates normally, abnormally, or until it 
+executes the exec system call starting a new process.
+The child process created by the vfork() system call inherits its parent’s attributes. 
+These include file descriptors, current working directory, signal dispositions, and more.
+
+	include <sys/types.h>
+	#include <unistd.h>
+	#include <stdio.h>
+	#include <stdlib.h>
+
+	int main() {
+	    pid_t pid = vfork();  //creating the child process
+
+	    printf("parent process pid before if...else block: %d\n", getpid());
+
+	    if (pid == 0) {  //checking if this is the a child process
+		printf("This is the child process and pid is: %d\n\n", getpid());
+		exit(0);
+	    } else if (pid > 0) {  //parent process execution
+		printf("This is the parent process and pid is: %d\n", getpid());
+	    } else {
+		printf("Error while forking\n");
+		exit(EXIT_FAILURE);
+	    }
+	    return 0;
+	}
+
+output:
+./a.out
+parent process pid before if...else block: 117117
+This is the child process and pid is: 117117
+
+parent process pid before if...else block: 117116
+This is the parent process and pid is: 117116
+
+The vfork() system call returns the output twice, first in the child process and then in 
+the parent process.
+Since both processes share the same address space, we have matching PID values in the 
+first output. In the if else block, the child process is run first because it blocks the 
+parent process while executing.
+
+
+exec
+-----------
+The exec() system function runs a new process in the context of an existing process and 
+replaces it. This is also referred to as an overlay.
+The function doesn’t create a new process, so the PID doesn’t change. However, the 
+new process replaces the data, heap, stack, and machine code of the current process. It 
+loads the new process into the current process space and executes it from the entry 
+point. Control never returns to the original process unless there’s an exec() error. 
+This system function belongs to a family functions that includes execl(), execlp(), 
+execv(), execvp(), execle(), and execve().
+
+ex: Let’s create the first program named exec_test1.c:
+
+	include <stdio.h>
+	#include <unistd.h>
+	#include <stdlib.h>
+
+	int main(int argc, char *argv[]) {
+	    printf("PID of exec_test1.c = %d\n", getpid());
+	    char *args[] = {"Hello", "From", "Parent", NULL};
+	    execv("./exec_test2", args);
+	    printf("Back to exec_test1.c");
+	    return 0;
+	}
+	
+Here, we’re creating a function called main() and passing in arguments. Inside the 
+function, we’re printing the PID after fetching it using the getpid() function. We then 
+declare a character array where we pass in three strings as arguments. We’re calling 
+the execv() system call, then passing in the results of executing the second program as 
+an argument.
+
+Let’s now create the second program called exec_test2.c:
+
+	include <stdio.h>
+	#include <unistd.h>
+	#include <stdlib.h>
+
+	int main(int argc, char *argv[]) {
+	    printf("Hello from exec_test2.c\n");
+	    printf("PID of exec_test2.c process is: %d\n", getpid());
+	    return 0;
+	}
+
+output:
+./exec_test1
+PID of exec_test1.c = 171939
+Hello from exec_test2.c
+PID of exec_test2.c process is: 171939
+
+From the output above, we can notice that the PID didn’t change in the second 
+program’s process. Furthermore, the last print statement from exec_test1.c file 
+wasn’t printed. This is because executing the execv() system call replaced the 
+currently running process, and we haven’t included a way of returning back to the first 
+process.
+
+
+clone
+---------
+The clone() system call is an upgraded version of the fork call. It’s powerful since it 
+creates a child process and provides more precise control over the data shared between 
+the parent and child processes. The caller of this system call can control the table of 
+file descriptors, the table of signal handlers, and whether the two processes share the 
+same address space.
+
+clone() system call allows the child process to be placed in different namespaces. With 
+the flexibility that comes with using the clone() system call, we can choose to share an 
+address space with the parent process, emulating the vfork() system call. We can also 
+choose to share file system information, open files, and signal handlers using different 
+flags available.
+
+This is the signature of the clone() system call:
+
+int clone(int (*fn)(void *), void *stack, int flags, void *arg, ...
+                 /* pid_t *parent_tid, void *tls, pid_t *child_tid */ );
+
+Note:
+*parent_tid: points to the storage location of child process thread identifier (TID) in 
+parent process memory
+*child_tid: points to the storage location of the child process thread identifier (TID) 
+in the child process memory
+
+ex:
+
+	// We have to define the _GNU_SOURCE to get access to clone(2) and the CLONE_*
+
+	define _GNU_SOURCE
+	#include <sched.h>
+	#include <sys/syscall.h>
+	#include <sys/wait.h>
+	#include <stdio.h>
+	#include <stdlib.h>
+	#include <string.h>
+	#include <unistd.h>
+
+	static int child_func(void* arg) {
+	    char* buffer = (char*)arg;
+	    printf("Child sees buffer = \"%s\"\n", buffer);
+	    strcpy(buffer, "hello from child");
+	    return 0;
+	}
+
+	int main(int argc, char** argv) {
+	    // Allocate stack for child task.
+	    const int STACK_SIZE = 65536;
+	    char* stack = malloc(STACK_SIZE);
+	    if (!stack) {
+		perror("malloc");
+		exit(1);
+	    }
+
+	    // When called with the command-line argument "vm", set the CLONE_VM flag on.
+	    unsigned long flags = 0;
+	    if (argc > 1 && !strcmp(argv[1], "vm")) {
+		flags |= CLONE_VM;
+	    }
+
+	    char buffer[100];
+	    strcpy(buffer, "hello from parent");
+	    if (clone(child_func, stack + STACK_SIZE, flags | SIGCHLD, buffer) == -1) {
+		perror("clone");
+		exit(1);
+	    }
+
+	    int status;
+	    if (wait(&status) == -1) {
+		perror("wait");
+		exit(1);
+	    }
+
+	    printf("Child exited with status %d. buffer = \"%s\"\n", status, buffer);
+	    return 0;
+	}
+
+
+Output:
+
+// without CLONE_VM flag
+
+./a.out
+Child sees buffer = "hello from parent"
+Child exited with status 0. buffer = "hello from parent"
+
+// with CLONE_VM flag
+
+./a.out vm
+Child sees buf = "hello from parent"
+Child exited with status 0. buf = "hello from child"
+
+
+When we execute it without the vm argument, the CLONE_VM flag isn’t active, and the 
+parent process virtual memory is cloned into the child process. The child process can 
+access the message passed by the parent process in buffer, but anything written into 
+buffer by the child isn’t accessible to the parent process.
+
+But, when we pass in the vm argument, CLONE_VM is active and the child process shares the 
+parent’s process memory. We can see it writing into buffer:
+
+
+
+waiting calls --- wait(), waitpid()
+------------------------------------
+First of all, you should know something of process behavior under Unix. When a process 
+dies, it doesn't really go away completely. 
+It's dead, so it's no longer running, but a small remnant is waiting around for the 
+parent process to pick up. 
+This remnant contains the return value from the child process and some other goop. So 
+after a parent process fork()s a child process, 
+it must wait() (or waitpid()) for that child process to exit. It is this act of wait()ing 
+that allows all remnants of the child to vanish.
 
 pid_t waitpid(pid_t pid, int *wstatus, int options);
 pid_t wait(int *wstatus);
 
-The waitpid() system call suspends execution of the calling process until a child specified by pid argument has terminated.
-The wait() system call suspends execution of the calling process until one of its children terminates.
+The waitpid() system call suspends execution of the calling process until a child 
+specified by pid argument has terminated.
+The wait() system call suspends execution of the calling process until one of its 
+children terminates.
 It's equivalent to waitpid(-1, &status, 0);
 
-But these calls return immediately with the result if the child process has already terminated, before we could call wait or waitpid.
+But these calls return immediately with the result if the child process has already 
+terminated, before we could call wait or waitpid.
 
 ex:
 
@@ -61,7 +311,8 @@ int main(void)
 In Depth
 ----------
 
-The parent process can wait for state changes of the child process and obtain information about it. 
+The parent process can wait for state changes of the child process and obtain information 
+about it. 
 The state change is considered to be: 
     a) the child terminated; 
     b) the child was stopped by a signal; 
@@ -72,22 +323,28 @@ pid_t wait(int *wstatus);
 pid_t waitpid(pid_t pid, int *wstatus, int options);
 
 
-If the state has already occured before waitXX() is called then they return immediately. Otherwise they block until either a 
-child changes state or a signal handler interrupts the call (assuming that system calls are not automatically restarted using 
+If the state has already occured before waitXX() is called then they return immediately. 
+Otherwise they block until either a 
+child changes state or a signal handler interrupts the call (assuming that system calls 
+are not automatically restarted using 
 the SA_RESTART flag of sigaction
 
-By default, waitpid() waits only for terminated children, but this behavior is modifiable via the options argument.
+By default, waitpid() waits only for terminated children, but this behavior is modifiable 
+via the options argument.
 The value of pid can be:
-< -1 --> meaning wait for any child process whose process group ID is equal to the absolute value of pid.
+< -1 --> meaning wait for any child process whose process group ID is equal to the 
+absolute value of pid.
 
 -1 --> meaning wait for any child process.
 
-0 --> meaning wait for any child process whose process group ID is equal to that of the calling process.
+0 --> meaning wait for any child process whose process group ID is equal to that of the 
+calling process.
 
 > 0 --> meaning wait for the child whose process ID is equal to the value of pid.
 
 
-In the case of a terminated child, performing a wait allows the system to release the resources associated with the child; if a
+In the case of a terminated child, performing a wait allows the system to release the 
+resources associated with the child; if a
 wait is not performed, then the terminated child remains in a "zombie" state.
 
 
