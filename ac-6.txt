@@ -1,0 +1,295 @@
+
+##### Effective type of Object
+
+Effective type of an object is the type given when the object is declared. 
+ex:
+int x;  effective type is int. 
+
+Memory returned from `malloc` has no effective type. For example:
+
+int *x = malloc(sizeof(int));
+
+Assuming an `int` is 4 bytes in size, `x` now points to 4 bytes of memory with no 
+effective type. This memory gets an effective type when assigned to:
+
+*x = 123; 
+Now those bytes have an effective type of `int`.
+
+Alignment
+----------------
+In C programming, pointer alignment refers to the way pointers are positioned in memory 
+relative to the boundaries of the data types they point to. Alignment is important for 
+performance reasons and for adhering to the requirements of certain hardware 
+architectures.
+
+What Does "Aligned to the Correct Type" Mean?
+When we say a pointer is "aligned to the correct type," we are referring to the fact that 
+the pointer's address is properly aligned according to the type of data it points to. 
+Different types of data may have different alignment requirements. For example:
+
+char: Typically has the least strict alignment requirements and can be aligned at any 
+byte boundary.
+int: May require alignment to a 4-byte boundary (on many systems).
+double: Might need to be aligned to an 8-byte boundary.
+The alignment requirements are dictated by the hardware and can affect the performance of 
+memory access operations. If a pointer is not correctly aligned for the type it points 
+to, accessing data through that pointer can lead to inefficient access or even hardware 
+exceptions on some systems.
+
+Why Is Alignment Important?
+Performance: Many CPUs are optimized to access memory efficiently when data is aligned on 
+certain boundaries. Misaligned access can be slower or require additional instructions to 
+handle.
+
+Hardware Constraints: Some architectures require that data be aligned to specific 
+boundaries. Accessing misaligned data can lead to hardware exceptions or crashes.
+Portability: Proper alignment ensures that your code runs correctly across different 
+hardware platforms, which may have different alignment requirements.
+
+Examples of Allocation with specific alignment
+---------------------------------------------
+Using posix_memalign:
+
+#include <stdlib.h>
+#include <stdio.h>
+
+int main() {
+    void *ptr;
+    size_t alignment = 16; // Example alignment requirement
+    size_t size = 1024;    // Size of memory to allocate
+
+    if (posix_memalign(&ptr, alignment, size) != 0) {
+        perror("posix_memalign failed");
+        return 1;
+    }
+
+    // Use ptr as needed
+    printf("Memory allocated at address: %p\n", ptr);
+
+    free(ptr); // Free the allocated memory
+    return 0;
+}
+
+Using aligned_alloc: (C11)
+
+The alignment must be a power of two and a multiple of sizeof(void *).
+
+#include <stdlib.h>
+#include <stdio.h>
+
+int main() {
+    size_t alignment = 16; // Must be a power of 2 and a multiple of `sizeof(void *)`
+    size_t size = 1024;    // Size of memory to allocate
+
+    void *ptr = aligned_alloc(alignment, size);
+    if (ptr == NULL) {
+        perror("aligned_alloc failed");
+        return 1;
+    }
+
+    // Use ptr as needed
+    printf("Memory allocated at address: %p\n", ptr);
+
+    free(ptr); // Free the allocated memory
+    return 0;
+}
+
+malloc
+-----------
+According to the C standard, malloc guarantees that the memory it returns is suitably 
+aligned for any kind of object, meaning it should be aligned according to the 
+requirements of the most restrictive data type supported by the implementation. This 
+typically means that the memory is aligned to the size of the largest data type (like 
+double or long long) that the platform supports.
+On most systems, malloc returns memory aligned to at least the size of void * or the 
+maximum alignment required by the most restrictive data type. This ensures that you can 
+safely use the allocated memory for any type without worrying about alignment issues.
+
+Consider the following example:
+
+#include <stdio.h>
+#include <stdlib.h>
+
+int main() {
+    int *ptr = (int *)malloc(sizeof(int));
+    if (ptr == NULL) {
+        perror("Failed to allocate memory");
+        return 1;
+    }
+
+    printf("Address of ptr: %p\n", (void *)ptr);
+    printf("Address of *ptr: %p\n", (void *)ptr);
+
+    // Check if address is correctly aligned for an integer
+    if ((uintptr_t)ptr % alignof(int) == 0) {
+        printf("Pointer is correctly aligned for int.\n");
+    } else {
+        printf("Pointer is not correctly aligned for int.\n");
+    }
+
+    free(ptr);
+    return 0;
+}
+
+In this code:
+
+malloc allocates memory for an int, which should naturally be aligned to the size 
+required for an int.
+We check the alignment by using modulo arithmetic with alignof(int), which tells us the 
+alignment requirement for an int on the system.
+
+Note:  
+According to the C standard the cases where the pointer is known to be aligned 
+to the target type include the following:
+* The pointer could point to an object declared with a suitable alignment specifier. 
+* It could point to an object returned by aligned_alloc(), calloc(), malloc(), or realloc(),
+
+
+casting, strict aliasing, type punning rules of pointers in C
+-----------------------------------------------------------------
+If a pointer is known to be correctly aligned to the target type, then a cast to that type is permitted. 
+For example, The following compliant solution uses the alignment specifier, which is new to C11, 
+to declare the char object c with the same alignment as that of an object of type int. As a result, the two pointers 
+reference equally aligned pointer types:
+
+#include <stdalign.h>
+#include <assert.h>
+  
+void func(void) {
+  /* Align c to the alignment of an int */
+  alignas(int) char c = 'x';
+  int *ip = (int *)&c;
+  char *cp = (char *)ip;
+  /* Both cp and &c point to equally aligned objects */
+  assert(cp == &c);
+}
+
+
+Before we talk more about casting and type punning let's look at another rule, 
+
+Strict Aliasing
+---------------
+Strict aliasing rule in C standard enables the compiler to optimize code under the assumption that pointers to different 
+types do not point to the same memory location. This means that no two pointers of incompatible types point to the same memory 
+location. 
+
+for ex:
+
+```
+	void f(float *x, int * y) {
+		*x = 1;
+		*y = 1;
+		return *x;
+	}
+```
+
+Here the compiler knows that x and y cannot alias at the same location. so it can 
+optimize the code to return 1 directly without accessing the memory. 
+But if the function had both `int *` arguments, x and y could point at the same memory 
+location, the compiler has to fetch the code from x and return it. even though it could 
+have just returned 1. 
+
+The above rule can affect casting between pointer types. For example, 
+casting a float * to an int * and accessing the same memory through both pointers is not 
+strictly allowed by the standard. The compiler might generate incorrect code under the 
+assumption that the two types do not alias
+
+for ex: Say we call the above function like this
+
+	int main() {
+	    int x = 0;
+	    std::cout << x << "\n";   // Expect 0
+	    x = f(reinterpret_cast<float*>(&x), &x);
+	    std::cout << x << "\n";   // Expect 0?
+	}
+
+``
+Type Punning
+--------------
+Say we want to circumvent the type system and interpret an object as a different type. This is called type punning, 
+to reinterpret a segment of memory as another type. Type punning is useful for tasks that want access to the underlying 
+representation of an object to view, transport or manipulate. Typical areas we find type punning being used are compilers,
+serialization, networking code, etc…
+Traditionally this has been accomplished by taking the address of the object, casting it to a pointer of the type we want to 
+reinterpret it as and then accessing the value, or in other words by aliasing. For example:
+
+int x = 1;
+
+// In C
+float *fp = (float*)&x;  // Not a valid aliasing
+
+// In C++
+float *fp = reinterpret_cast<float*>(&x);  // Not a valid aliasing
+
+printf( "%f\n", *fp );
+
+As we have seen earlier this is not a valid aliasing, so we are invoking undefined behavior. But traditionally compilers did not 
+take advantage of strict aliasing rules and this type of code usually just worked, developers have unfortunately gotten used to 
+doing things this way. 
+
+A common alternate method for type punning is through unions, which is valid in C but undefined behavior in C++
+
+union u1
+{
+    int n;
+    float f;
+};
+
+union u1 u;
+u.f = 1.0f;
+
+printf( "%d\n", u.n );  // UB in C++ n is not the active member
+
+So, How do we Type Pun correctly?
+
+The standard method for type punning in both C and C++ is memcpy. This may seem a little heavy handed but the optimizer should 
+recognize the use of memcpy for type punning and optimize it away and generate a register to register move. 
+
+Let's look at an example. 
+A classic case of type punning is the Quake III fast inverse square root function, where the bits of an 
+IEEE 754 floating-point number are interpreted as a 32-bit integer:
+
+float y = number;
+long  i = *(long *) &y;                 // evil floating point bit level hacking
+i       = 0x5f3759df - (i >> 1);        // what the fuck? 
+y       = *(float *) &i;
+
+
+using memcpy, valid version of the inverse square root code could be:
+
+float y = number;
+uint32_t i;
+static_assert(sizeof(i) == sizeof(y), "error: different sizes");
+std::memcpy(&i, &y, sizeof(i));         // evil floating point bit level hacking
+i = 0x5f3759df - (i >> 1);              // what the fuck? 
+std::memcpy(&y, &i, sizeof(y));
+
+In C++20 we may use bit_cast
+
+float y = number;
+auto  i = std::bit_cast<uint32_t>(y);   // evil floating point bit level hacking
+i       = 0x5f3759df - (i >> 1);        // what the fuck? 
+y       = std::bit_cast<float>(i);
+std::cout << bit_cast<float>(0x447a0000) << "\n"; //assuming sizeof(float) == sizeof(unsigned int)
+
+
+
+Before finishing, according to the C Standard the following casts are valid
+-----------------------------------
+It is safe to
+* It is safe to convert a pointer from any type T* to any type U* if alignof(U) <= alignof(T)
+* Cast from any object-pointer type to void *
+* Cast from any object-pointer type to char *, signed char * or unsigned char *
+* Cast among pointers to types differing only in signedness and / or type qualifiers. i.e (signed, unsigned, const, volatile etc)
+* Cast from a pointer to a structure type to a pointer to the type of the structure's first member
+* Cast from a pointer to a union type to a pointer to the type of any member of the union
+* Cast from a pointer to an array type to a pointer to the array's element type, and vice versa
+* Cast directly from a type T* to a type U* if one can safely convert from T* to U* via one or more safe intermediate conversions.
+* Cast between any two function-pointer types
+
+Note:
+The safety of a pointer conversion is only about the conversion itself. It is not necessarily safe to dereference the pointer
+resulting from a safe conversion, or, for function pointers, to call the pointed-to function via the converted pointer.
+
+`
+
