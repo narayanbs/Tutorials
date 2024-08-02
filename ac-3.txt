@@ -263,7 +263,8 @@ There are various other encodings that use a byte of values, with the base ascii
 ISO 10646 -- Unicode. 
 
 Unicode specifies code points, with each code point (hexadecimal numbers) indicating a character. Initially the code points were 16-bit and could represent 65536
-characters, but now the number of characters has extended to 21-bit. The initial set of 16-bit encodings is known as Basic Multilingual Plane (BMP).
+characters, but now the number of characters has extended to 21-bit. The initial set of 16-bit encodings is known as Basic Multilingual Plane (BMP). 
+Anything beyond is called the supplementary plane. So Scalar values 0x000000 to 0x00ffff is BMP, values 0x010000 to 0x10FFFF is supplementary plane.
 
 Fixed-length UCS-2 (16-bit i.e 2 bytes) was used to represent these code points. UCS-2 is redundant now since it can only represent the BMP.
 UCS-4 is another fixed-length encoding that uses 4 bytes to represent the code points. 
@@ -315,8 +316,17 @@ In summary, multibyte UTF-8 sequences are identified based on the structure of t
 the number of bytes in the sequence and the structure that subsequent bytes must follow. 
 This structured approach ensures accurate encoding and decoding of characters across different platforms and systems that support UTF-8.
 
+---------------
 UTF-16 is another character encoding scheme that stands for "Unicode Transformation Format - 16-bit". 
-It encodes each Unicode code point as either one or two 16-bit code units. Here's how UTF-16 is recognized and interpreted:
+It encodes each Unicode code point as either one or two 16-bit code units. Scalar values in the BMP (0x000000 to 0x00FFFF) can be represented
+in a single 16-bit code unit, Scalar values from 0x010000 to 0x10FFFF are represented as two 16-bit code units. These two code units
+are called a "surrogate pair" (High surrogate and low surrogate). The range for high surrogate is 0x00D800 (U+D800) to 0x00DBFF (U+DBFF).
+The range for low surrogate is 0x00DC00 (U+DC00) to 0x00DFFF (U+DFFF). 
+
+Note: The complete range U+D800 to U+DFFF are not unicode characters and will never occur in a unicode character string. Hence they
+are used for encoding the supplementary characters. 
+
+Now let's look at how UTF-16 encoded string is interpreted. 
 
 1. **Byte Order Mark (BOM)**:
    - UTF-16 uses a Byte Order Mark (BOM) at the beginning of the encoded data to indicate the byte order (endianness) of the text. 
@@ -330,18 +340,55 @@ It encodes each Unicode code point as either one or two 16-bit code units. Here'
 2. **Interpreting 16-bit Code Units**:
    - Once the BOM (if present) indicates the byte order, UTF-16 text is then interpreted by parsing 16-bit code units.
    - Each Unicode code point is encoded using one or two 16-bit code units (also known as code points in the UTF-16 scheme).
-   - Single 16-bit code units represent characters from the Basic Multilingual Plane (BMP), which includes most commonly 
-   used characters and symbols.
-   - If a character lies outside the BMP (e.g., Supplementary Planes), it is represented by a surrogate pair consisting
-of two 16-bit code units (one from the high-surrogates range and one from the low-surrogates range).
+   - Single 16-bit code units represent characters from the Basic Multilingual Plane (BMP),If a character lies outside the BMP
+    (i.e code points above U+FFFF called Supplementary Planes), it is represented by a surrogate pair consisting of two 16-bit code units. 
+    The first code unit encodes the upper 11 bits of the scalar value, as a code unit ranging from 0xD800-0xDBFF. There's a bit of trickiness
+    to encode values from 0x01-0x10 in four bits. The second code unit encodes the lower 10 bits of the scalar value, as a code unit ranging 
+    from 0xDC00-0xDFFF.
 
-3. **Handling Surrogate Pairs**:
-   - Surrogate pairs are pairs of 16-bit code units that together represent a single Unicode code point beyond the BMP.
-   - High-surrogate code units (`D800` to `DBFF`) and low-surrogate code units (`DC00` to `DFFF`) are used together to encode supplementary characters.
-   - Applications need to recognize surrogate pairs and correctly interpret them to reconstruct the actual Unicode code point.
+Now let's look at this in more detail:
 
-### Example:
-Let's take an example 
+**Handling Surrogate Pairs**:
+
+   - First find the unicode point we want to encode.
+   - To adjust for supplementary planes, subtract the base code point U+10000 from our code point 
+
+	   codepoint_adjusted  = codepoint - 0x10000
+
+   - Now calculate the high surrogate, they are in the range U+D800 to U+DBFF. 
+     To find the high surrogate, shift the adjusted code point 10 bits to the right.
+     Here 0x400 is 1024 which is 2^10, the number of possible values for the high surrogate part.
+
+	   High Surrogate = 0xD800 + (codepoint_adjusted / 0x400)
+
+   - To find the low surrogate, they are in the range U+DC00 to U+DFFF, extract the lower 10 bits of
+     adjusted code point. Here 0x400 is 1024 which extracts the lower 10 bits. 
+
+	   Low Surrogate = 0xDC00 + (codepoint_adjusted mod 0x400)
+
+
+Let's use the example of the Grinning Face Emoji (😀), which has the Unicode code point U+1F600.
+
+1. **Adjust the code point**:
+
+   codePoint_adjusted = 0x1F600 - 0x10000 = 0xF600
+
+2. **Calculate the high surrogate**:
+   High Surrogate = 0xD800 + (0xF600/0x400) = 0xD800 + 0x03D = 0xD83D
+
+3. **Calculate the low surrogate**:
+   Low Surrogate = 0xDC00 + (0xF600 mod 0x400) = 0xDC00 + 0x200 = 0xDE00
+
+So, the surrogate pair for U+1F600 (😀) is:
+
+- **High Surrogate**: `0xD83D`
+- **Low Surrogate**: `0xDE00`
+
+When encoded in UTF-16, the Grinning Face Emoji is represented by the code units `D83D` and `DE00`.
+
+### UTF-16 Examples:
+------------------------
+-------------------------
 
 When encoded in UTF-16 with the BOM FE FF, the character 'λ' (U+03BB) will be represented as the sequence of bytes: FE FF 03 3B.
 Here's how it breaks down:
@@ -361,10 +408,23 @@ UTF-16 encoded text without a BOM (assuming little-endian by default):
   - Since there is no BOM, it assumes little-endian encoding by default.
   
   
-For characters requiring surrogate pairs (e.g., U+1F600, which is 😀), the UTF-16 encoding would use two 16-bit code units: `D83D DE00`.
+For characters requiring surrogate pairs (e.g., U+1F600, which is 😀), the UTF-16 encoding would first calculate the surrogate pair.
+The range for high surrogates is from U+D800 to U+DBFF. The range for low surrogates is from U+DC00 to U+DFFF.
+
+To find the surrogate pair, you can use the following formula:
+	High surrogate = 0xD800 + ((codePoint - 0x10000) >> 10)
+	Low surrogate = 0xDC00 + ((codePoint - 0x10000) & 0x3FF)
+
+Applying this to U+1F600:
+	High surrogate = 0xD800 + ((0x1F600 - 0x10000) >> 10) = 0xD83D
+	Low surrogate = 0xDC00 + ((0x1F600 - 0x10000) & 0x3FF) = 0xDE00
+
+So, the surrogate pair for the 😀 emoji in UTF-16 is:
+	High surrogate: 0xD83D
+	Low surrogate: 0xDE00
 
 
-Let's look at another example, the sentence "Hello, UTF-16 with BOM!"
+Now, let's look at encoding the sentence "Hello, UTF-16 with BOM!"
 In UTF-16 Little Endian encoding, the hexadecimal representation with BOM (0xFFFE) would look like this:
 FF FE 48 00 65 00 6C 00 6C 00 6F 00 2C 00 20 00 55 00 54 00 46 00 2D 00 31 00 36 00 20 00 77 00 69 00 74 00 68 00 20 42 00 4F 00 4D 00 21 00
 
