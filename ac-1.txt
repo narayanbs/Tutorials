@@ -5,14 +5,15 @@ associated chipset. . If the specified CPU socket type and chipset is supported 
 motherboards will have chipsets that are provided by intel or amd, that enable communication b/w CPU, RAM storage and 
 other peripherals. Intel normally supports the same chipsets for two generations of CPU. 
 
-When a system is powered on, a CPLD(Complex programmable logic device) will ensure appropriate voltage levels ans power 
-settings to each peripheral, and assert the reset vector. The CPU jumps to the BIOS/UEFI firmware code that is located 
+When a system is powered on, a CPLD(Complex programmable logic device) will ensure appropriate voltage levels and power 
+settings to each peripheral, and de-asserts the reset line of the CPU. The CPU starts fetching instructions from a location
+known as the reset vector. The instruction is a jump to the BIOS/UEFI firmware code that is located 
 on a non-volatile memory in the motherboard. 
 
-The motherboard firmware contains information such as boot order, hardware configuration, system time etc.
-During the boot process, only the hardware modules strictly necessary to find and start the OS are loaded.
-These hardware modules are: motherboard, hard drive, RAM, graphics card, keyboard, mouse, screen (that is detected by 
-the graphics card), network card, CD / DVD, and a few extra peripherals such as USB units.
+The motherboard firmware will perform hardware detection and also contains information such as boot order, 
+hardware configuration, system time etc. During the boot process, only the hardware modules strictly necessary to 
+find and start the OS are loaded. These hardware modules are: motherboard, hard drive, RAM, graphics card, keyboard, mouse, 
+screen (that is detected by the graphics card), network card, CD / DVD, and a few extra peripherals such as USB units.
 
 Each hardware module you connect to a computer has a controller that is like a small firmware with all the information 
 of the stored device: manufacturer, device type, protocols, etc.. for ex: Network cards, video cards, RAID controllers, 

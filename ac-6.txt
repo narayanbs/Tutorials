@@ -1,3 +1,5 @@
+C language Keynotes
+===========================
 
 ##### Effective type of Object
 
@@ -46,6 +48,47 @@ boundaries. Accessing misaligned data can lead to hardware exceptions or crashes
 Portability: Proper alignment ensures that your code runs correctly across different 
 hardware platforms, which may have different alignment requirements.
 
+Example of obtaining alignment of types
+----------------------------------------
+#include <stdalign.h>
+#include <stdio.h>
+
+int main() {
+  // Print the alignment requirements of various types
+  printf("Alignment of char: %zu bytes\n", alignof(char));
+  printf("Alignment of int: %zu bytes\n", alignof(int));
+  printf("Alignment of double: %zu bytes\n", alignof(double));
+  printf("Alignment of long: %zu bytes\n", alignof(long));
+  printf("Alignment of long long: %zu bytes\n", alignof(long long));
+  printf("Alignment of struct { char c; int i; }: %zu bytes\n", alignof(struct {
+           char c;
+           int i;
+         }));
+
+  // Define a struct with different types
+  struct MyStruct {
+    char c;
+    int i;
+    double d;
+  };
+
+  // Print the alignment requirement of the struct
+  printf("Alignment of MyStruct { char c; int i; double d; }; : %zu bytes\n",
+         alignof(struct MyStruct));
+
+  return 0;
+}
+
+Output:
+
+Alignment of char: 1 bytes
+Alignment of int: 4 bytes
+Alignment of double: 8 bytes
+Alignment of long: 8 bytes
+Alignment of long long: 8 bytes
+Alignment of struct { char c; int i; }: 4 bytes
+Alignment of MyStruct { char c; int i; double d; }; : 8 bytes
+
 Examples of Allocation with specific alignment
 ---------------------------------------------
 Using posix_memalign:
@@ -55,8 +98,9 @@ Using posix_memalign:
 
 int main() {
     void *ptr;
-    size_t alignment = 16; // Example alignment requirement
+    size_t alignment = 16; // Must be a power of 2 and a multiple of `sizeof(void *)`
     size_t size = 1024;    // Size of memory to allocate
+
 
     if (posix_memalign(&ptr, alignment, size) != 0) {
         perror("posix_memalign failed");
@@ -78,10 +122,11 @@ The alignment must be a power of two and a multiple of sizeof(void *).
 #include <stdio.h>
 
 int main() {
+    void *ptr;
     size_t alignment = 16; // Must be a power of 2 and a multiple of `sizeof(void *)`
     size_t size = 1024;    // Size of memory to allocate
 
-    void *ptr = aligned_alloc(alignment, size);
+    ptr = aligned_alloc(alignment, size);
     if (ptr == NULL) {
         perror("aligned_alloc failed");
         return 1;
@@ -164,7 +209,6 @@ void func(void) {
   assert(cp == &c);
 }
 
-
 Before we talk more about casting and type punning let's look at another rule, 
 
 Strict Aliasing
@@ -178,7 +222,7 @@ for ex:
 ```
 	void f(float *x, int * y) {
 		*x = 1;
-		*y = 1;
+		*y = 2;
 		return *x;
 	}
 ```
@@ -273,11 +317,10 @@ y       = std::bit_cast<float>(i);
 std::cout << bit_cast<float>(0x447a0000) << "\n"; //assuming sizeof(float) == sizeof(unsigned int)
 
 
-
 Before finishing, according to the C Standard the following casts are valid
 -----------------------------------
 It is safe to
-* It is safe to convert a pointer from any type T* to any type U* if alignof(U) <= alignof(T)
+* Convert a pointer from any type T* to any type U* if alignof(U) <= alignof(T)
 * Cast from any object-pointer type to void *
 * Cast from any object-pointer type to char *, signed char * or unsigned char *
 * Cast among pointers to types differing only in signedness and / or type qualifiers. i.e (signed, unsigned, const, volatile etc)

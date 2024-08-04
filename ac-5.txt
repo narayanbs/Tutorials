@@ -13,18 +13,12 @@ The `SIGTTOU` signal in Unix-like operating systems is used to notify a process 
 In summary, `SIGTTOU` is a signal sent to a background process when it attempts to write to its controlling terminal, reminding it to respect the foreground process group's exclusive access to terminal I/O operations. This mechanism helps maintain orderly and secure terminal interaction in Unix-like systems.
 
 ----------------------------------
-The `stty tostop` command is used in Unix-like operating systems to configure terminal settings related to job control. Specifically, it controls whether background processes that attempt to write to the terminal are automatically stopped (suspended) by the operating system, receiving the `SIGTTOU` signal, when they are not in the foreground process group.
+The `stty tostop` command is used in Unix-like operating systems to configure terminal settings related to job control.
 
-Here’s a breakdown of what `stty tostop` does:
+ **Job Control**: In Unix systems, job control refers to the ability to manage multiple processes interacting with a terminal. This includes foreground and background processes, where only the foreground process group is allowed to read from or write to the terminal.
 
-1. **Job Control**: In Unix systems, job control refers to the ability to manage multiple processes interacting with a terminal. This includes foreground and background processes, where only the foreground process group is allowed to read from or write to the terminal.
+ **`stty` Command**: The `stty` command is used to manipulate terminal settings. It stands for "set terminal options".
 
-2. **`stty` Command**: The `stty` command is used to manipulate terminal settings. It stands for "set terminal options".
+ **`tostop` Option**: When you use `stty tostop`, you are setting a terminal option that specifies the default behavior for background processes attempting to write to the terminal. Specifically, it causes these processes to be automatically stopped (suspended) by the operating system if they attempt to write to the terminal while not being in the foreground process group. This behavior helps prevent background processes from interfering with foreground processes that need exclusive access to the terminal for input and output operations.
 
-3. **`tostop` Option**: When you use `stty tostop`, you are setting a terminal option that specifies the default behavior for background processes attempting to write to the terminal. Specifically, it causes these processes to be automatically stopped (suspended) by the operating system if they attempt to write to the terminal while not being in the foreground process group.
 
-4. **Effect**: After running `stty tostop`, any background process that tries to write to the terminal will be suspended and put into a stopped state. This behavior helps prevent background processes from interfering with foreground processes that need exclusive access to the terminal for input and output operations.
-
-5. **Usage**: The `stty tostop` command is typically used in scripts or interactive sessions where you want to ensure proper job control behavior. It's especially useful in environments where you have multiple concurrent processes interacting with the terminal, such as in shell scripting or remote sessions.
-
-In summary, `stty tostop` is a command used to configure terminal settings to enforce job control mechanisms in Unix-like systems, ensuring that background processes do not interfere with foreground processes' access to the terminal.
