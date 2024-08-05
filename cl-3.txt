@@ -52,7 +52,7 @@ ordinary user to execute commands as a different user (usually the superuser) in
 
 Note: -----------
 If for some reason you wish to enable the root account, you will need to give it a password:
-sudo passwd
+$ sudo passwd
 
 sudo will prompt you for your password, and then ask you to supply a new password for root as shown below:
 
@@ -63,11 +63,45 @@ passwd: password updated successfully
 
 To disable the root account password, use the following passwd syntax:
 
-sudo passwd -l root
--------------------------
+$ sudo passwd -l root
 
-In ubuntu, the su command is used to become another user during a login session. Invoked without a username, su defaults to becoming the
-superuser. The optional argument - may be used to provide an environment similar to what the user would expect had the user logged in directly.
+Granting sudo privileges to Users
+----------------------------------
+/etc/sudoers configuration file defines which users have 'sudo' access and which commands they can execute.
+To edit the configuration file, we use the 'visudo' command
+$ sudo visudo
+
+To grant sudo access to a specific user, add the following line
+username ALL=(ALL) ALL
+
+where
+- `username` is the name of the user.
+- `ALL` means the user can run commands as any user or group.
+- `ALL` at the end specifies that the user can execute any command.
+
+To grant sudo access to a group, add the following line
+%groupname ALL=(ALL) ALL
+
+where
+- `%groupname` represents the name of the group.
+
+In the sudoers file we can fine tune the permissions with specific rules.
+To allow a user to run specific commands, add the following line
+username ALL=(ALL) /path/to/command
+
+To allow a group to run specific commands, add the following line
+%groupname ALL=(ALL) /path/to/command
+
+After editing the sudoers file, always test to ensure your configuration works as expected. 
+You can do this by switching to the user and running a command that requires sudo.
+
+To view the sudo privileges of a user, use the following command
+$ sudo -l
+
+------------
+In ubuntu, the su command is used to become another user during a login session. Invoked without a username,
+su defaults to becoming the superuser. The optional argument - may be used to provide an environment similar 
+to what the user would expect had the user logged in directly.
 The - argument changes the session to the new user with his home directory as the current working directory. 
 
 so sudo su - test_user --> Change user ID to test_user and /home/test_user as current working directory
@@ -122,11 +156,14 @@ Adding users to a group
 -----------------------
 There are two types of groups in Linux operating systems:
 
-The Primary group – When a user creates a file, the file’s group is set to the user’s primary group. Usually, the name of the group 
-is the same as the name of the user. The information about the user’s primary group is stored in the /etc/passwd file.
+The Primary group – When a user creates a file, the file’s group is set to the user’s primary group. Usually, 
+the name of the group is the same as the name of the user. The information about the user’s primary group is
+stored in the /etc/passwd file.
 
-Secondary or supplementary group - Useful when you want to grant certain file permissions to a set of users who are members of the group. 
-For example, if you add a specific user to the docker group, the user will inherit the group’s access rights and be able to run docker commands.
+Secondary or supplementary group - Useful when you want to grant certain file permissions to a set of users
+who are members of the group. 
+For example, if you add a specific user to the docker group, the user will inherit the group’s access rights
+and be able to run docker commands.
 
 To change a user's primary group
 usermod -g <groupName> <username>
@@ -210,16 +247,17 @@ To put this into the command syntax, chmod 650 test.txt
 Default Permissions and umask
 --------------------------------
 
-By default, the permissions on directories are 777 and files are 666 in ubuntu. so when we create a file we expect the permissions to be
--rw-rw-rw.. But we notice that 
+By default, the permissions on directories are 777 and files are 666 in ubuntu. so when we create a file
+we expect the permissions to be -rw-rw-rw.. But we notice that 
 $ touch hello.txt
 $ ls -ld hello.txt
 -rw-rw-r-- 1 batman batman 0 Feb 20 15:18 hello.txt
 
 Why are the permissions different? This is due to umask. 
 
-umask (unmask) --> umask is a shell setting that deﬁnes a mask that will be subtracted from the default permissions. this will change the default permission on ﬁles and directories.
-
+umask (unmask) --> umask is a unix shell setting that masks or restricts the default permissions that are applied
+when a new file or directory is created. The default file and directory permissions are determined by the umask. 
+It deﬁnes a mask that will be subtracted from the default permissions. 
 typing umask gives 0002 (octal 002).
 
 $ umask 
@@ -233,7 +271,8 @@ $ ls -ld hello.txt will give -rw-rw-r (666 - 002 = 664) as the default permissio
 You can set the umask as follows
 $ umask 027
 
-This will set the default permissions on a directory to 750 (that is, 777 - 027 = 750). This command also aﬀects all new ﬁles (with default permissions) inside the directory where the command is run.
+This will set the default permissions on a directory to 750 (that is, 777 - 027 = 750). This command also aﬀects all new 
+ﬁles (with default permissions) inside the directory where the command is run.
 
 
 Fourth access level - Special Permission	
