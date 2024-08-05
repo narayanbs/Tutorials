@@ -40,7 +40,7 @@ use fzf for better fuzzy search
 
 Most linux distros used a superuser account root user "su" by default. But this introduced a problem, users tended to login as root user
 unnecessarily. so security was compromised. By default, Ubuntu disables logins to the root account (by failing to set a password for the account),
-his does not mean that the root account has been deleted, or that it may not be accessed. Instead, it has been given a password hash that matches 
+This does not mean that the root account has been deleted, or that it may not be accessed. Instead, it has been given a password hash that matches 
 no possible value, and so may not log in directly by itself. Instead, the sudo utility (“superuser do”) is used to carry out
 system administrative duties. sudo allows an authorised user to temporarily elevate their privileges using their own password instead of 
 having to know the password belonging to the root account. This provides accountability for all user actions, and gives the administrator control 
