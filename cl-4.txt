@@ -67,7 +67,7 @@ Date and Time
 -------------
 find / -mtime 50 --> all files modified 50 days back
 find / -atime 50 --> all files accessed 50 days back
-find / -mtime +50 -mtime -100 --> last 50 - 100 days modified files
+find / -mtime +50 -mtime -100 --> modified more than 50 days back and less than 100 days back. 
 find / -cmin -60 --> changed files in last 1 hour
 find / -mmin -60 --> modified files in last 1 hour
 find / -amin -60 --> accessed files in last 1 hour
