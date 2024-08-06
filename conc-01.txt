@@ -38,11 +38,11 @@ The algorithm uses two variables: flag and turn. A flag[n] value of true indicat
 the critical section. Entrance to the critical section is granted for process P0 if P1 does not want to enter its 
 critical section or if P1 has given priority to P0 by setting turn to 0.
 
-bool flag[2] = {false, false};
+bool flag[2] = {false, false}; 
 int turn;
 
-P0:      flag[0] = true;
-P0_gate: turn = 1;
+P0:      flag[0] = true;    // Process P0 indicates interest in entering the critical section
+P0_gate: turn = 1;          // Give the other process a turn
          while (flag[1] && turn == 1)
          {
              // busy wait
@@ -52,8 +52,8 @@ P0_gate: turn = 1;
          // end of critical section
          flag[0] = false;
 
-P1:      flag[1] = true;
-P1_gate: turn = 0;
+P1:      flag[1] = true;    // Process P1 indicates interest in entering the critical section
+P1_gate: turn = 0;          // Give the other process a turn
          while (flag[0] && turn == 0)
          {
              // busy wait
