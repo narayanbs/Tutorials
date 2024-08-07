@@ -351,45 +351,74 @@ wait is not performed, then the terminated child remains in a "zombie" state.
 # Here is an example of waitpid, where the parent waits for all the child processes to exit.
 # We use WNOHANG to make the waiting  non-blocking.
 
-
 import os
 import time
+import sys
 
+def child_process(child_id):
+    """Function to simulate a child process."""
+    print(f"Child process {os.getpid()} (ID: {child_id}) started.")
+    time.sleep(5)  # Simulate some work
+    print(f"Child process {os.getpid()} (ID: {child_id}) exiting.")
+    os._exit(child_id)  # Exit with a status code equal to child_id
 
-def child_process():
-    print(f"Child pid {os.getpid()} started")
-    time.sleep(2)
-    print(f"Child pid {os.getpid()} finished")
-
-
-def parent_process():
-    children = []
-    num_children = 5
-
-    for _ in range(num_children):
-        pid = os.fork()
+def parent_process(num_children):
+    """Function to simulate the parent process."""
+    child_pids = []
+    
+    # Fork multiple child processes
+    for i in range(num_children):
+        try:
+            pid = os.fork()
+        except OSError as e:
+            print(f"Fork failed: {e}", file=sys.stderr)
+            sys.exit(1)
+        
         if pid == 0:
-            child_process()
-            os._exit(0)
+            # In child process
+            try:
+                child_process(i)
+            except Exception as e:
+                print(f"Error in child process {i}: {e}", file=sys.stderr)
+                os._exit(1)
         else:
-            children.append(pid)
-
-    print("Parent process started")
-    while children:
-        pid, _ = os.waitpid(-1, os.WNOHANG)
-        if pid == 0:
-            print("No child processes have exited. doing other work...")
-            time.sleep(1)
-        else:
-            if pid in children:
-                children.remove(pid)
-                print(f"Child PID {pid} has finished")
-
-    print("All child processes have finished")
-
+            # In parent process
+            child_pids.append(pid)
+    
+    print(f"Parent process {os.getpid()} waiting for {num_children} child processes.")
+    
+    # Track the number of remaining child processes
+    remaining_children = num_children
+    
+    while remaining_children > 0:
+        try:
+            # Non-blocking wait
+            pid, status = os.waitpid(-1, os.WNOHANG)
+            
+            if pid == 0:
+                # No child process has exited yet
+                print("No child process finished yet, checking again...")
+                time.sleep(1)  # Sleep briefly before checking again
+            else:
+                # Child process has exited
+                if pid in child_pids:
+                    child_pids.remove(pid)
+                    remaining_children -= 1
+                    if os.WIFEXITED(status):
+                        exit_code = os.WEXITSTATUS(status)
+                        print(f"Child process {pid} exited with status {exit_code}.")
+                    elif os.WIFSIGNALED(status):
+                        signal_number = os.WTERMSIG(status)
+                        print(f"Child process {pid} was terminated by signal {signal_number}.")
+                    else:
+                        print(f"Child process {pid} exited with unknown status {status}.")
+                else:
+                    print(f"Unexpected child process PID {pid} reported.")
+        except OSError as e:
+            print(f"Error while waiting for child process: {e}", file=sys.stderr)
+            break
 
 if __name__ == "__main__":
-    parent_process()
-
-
+    num_children = 3  # Number of child processes to fork
+    parent_process(num_children)
 
