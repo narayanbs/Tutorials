@@ -358,7 +358,7 @@ int main()
 
 The ipcs command to get information about the active System V semaphore sets
 
-$ ipcs -s -i 
+$ ipcs -s  
 
 ------ Semaphore Arrays --------
 keys       semid      owner      perms      nsems
