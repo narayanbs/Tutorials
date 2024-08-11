@@ -196,7 +196,101 @@ They are fairly simple for most hosts:
 
 These rules simply mean that if all else fails because there is no match, send the packet to the default gateway.
 
-Let's see a routing example: Let's say PC1 would like to send a packet to PC3. 
+Let's look at a few routing examples:
+
+Example 1:
+-----------
+Suppose you have a Linux machine with the following network interfaces and IP addresses:
+
+- eth0: 192.168.1.10/24 (Subnet Mask: 255.255.255.0)
+- eth1: 10.0.0.10/24 (Subnet Mask: 255.255.255.0)
+- Gateway for eth0: 192.168.1.1
+- Gateway for eth1: 10.0.0.1
+
+And you have the following routing table:
+
+```
+Kernel IP routing table
+Destination     Gateway         Genmask         Flags Metric Ref    Use Iface
+192.168.1.0     *               255.255.255.0   U     0      0        0 eth0
+10.0.0.0        *               255.255.255.0   U     0      0        0 eth1
+0.0.0.0         192.168.1.1     0.0.0.0         UG    100    0        0 eth0
+```
+
+### Routing Decision
+Let's break down how the Linux kernel would make a routing decision for a given packet based on this table.
+
+#### Example Packet Destination
+Assume you want to send a packet to the IP address 10.0.0.50.
+
+1. Determine the Destination Network: 
+   - The destination IP 10.0.0.50 falls within the network 10.0.0.0/24 (the network associated with eth1).
+
+2. Check the Routing Table:
+   - The routing table has two specific routes for the 10.0.0.0/24 network and the 192.168.1.0/24 network, and a default route (0.0.0.0).
+
+   ```
+   Destination     Gateway         Genmask         Flags Metric Ref    Use Iface
+   10.0.0.0        *               255.255.255.0   U     0      0        0 eth1
+   ```
+
+   - The packet’s destination address 10.0.0.50 matches the route with the destination 10.0.0.0 and the subnet mask 255.255.255.0. 
+
+3. Select the Best Route:
+   - The best route is selected based on the longest prefix match. In this case, the destination 10.0.0.50 directly matches the route 10.0.0.0/24, so it is the most specific route.
+
+4. Forward the Packet:
+   - Since the route for 10.0.0.0/24 specifies the interface eth1 and has no gateway (meaning it's a directly connected network), the packet will be sent out through eth1.
+
+
+In the context of a Linux routing table, the * in the "Gateway" column signifies that there is no specific gateway for that route. 
+
+For ex: Consider the following routing table
+
+Kernel IP routing table
+Destination     Gateway         Genmask         Flags Metric Ref    Use Iface
+172.16.0.0      *               255.255.255.0   U     0      0        0 eth2
+192.168.1.0     *               255.255.255.0   U     0      0        0 eth0
+10.0.0.0        *               255.255.255.0   U     0      0        0 eth1
+0.0.0.0         192.168.1.1     0.0.0.0         UG    100    0        0 eth0
+
+### Explanation of Each Route:
+
+1. Route to 172.16.0.0/24:
+   - Destination: 172.16.0.0
+   - Gateway: `*`
+   - Genmask: 255.255.255.0
+   - Iface: eth2
+
+   This means that the network 172.16.0.0/24 is directly connected to the eth2 interface. Packets destined for this network will be sent directly through eth2, with no need for a gateway.
+
+2. Route to 192.168.1.0/24:
+   - Destination: 192.168.1.0
+   - Gateway: `*`
+   - Genmask: 255.255.255.0
+   - Iface: eth0
+
+   This means that the network 192.168.1.0/24 is directly connected to the eth0 interface. Packets destined for this network will be sent directly through eth0, with no need for a gateway.
+
+3. Route to 10.0.0.0/24:
+   - Destination: 10.0.0.0
+   - Gateway: `*`
+   - Genmask: 255.255.255.0
+   - Iface: eth1
+
+   This means that the network 10.0.0.0/24 is directly connected to the eth1 interface. Packets destined for this network will be sent directly through eth1, with no need for a gateway.
+
+4. Default Route (0.0.0.0/0):
+   - Destination: 0.0.0.0
+   - Gateway: 192.168.1.1
+   - Genmask: 0.0.0.0
+   - Iface: eth0
+
+   This is the default route, used when there is no specific route for a given destination. Packets for destinations not listed in other routes will be sent to the gateway 192.168.1.1 via the eth0 interface.
+
+Example 2:
+------------
+Let's see another routing example
 
 [PC1] -------------- [router : eth0] ------------------ [PC3]
 10.0.0.4		RouterA				101.25.67.7
@@ -208,18 +302,18 @@ Suppose we have the following routing table entries
 
 Network-Destination	Netmask		Gateway		Interface	Metric
 
-101.15.67.0		255.255.255.0	10.0.0.2	eth3		1
+101.25.67.0		255.255.255.0	10.0.0.2	eth3		1
 
 0.0.0.0			0.0.0.0		10.0.0.1	eth0		0
 
 192.25.67.0		255.255.255.0	10.0.0.3	eth5		10
 
-Since a path exists (first entry), the packet will be forwarded to the gateay 10.0.0.2 through interface eth3 on RouterA.
+Since a path exists (first entry), the packet will be forwarded to the gateway 10.0.0.2 through interface eth3 on RouterA.
 
 Now let's consider the second entry. Suppose the user of PC1 wants to send a packet to PC25 on the network 200.0.2.0. 
 RouterA will check its routing table for an entry to the address on which PC25 is located. As there is no recorded entry, 
 it forwards this packet to the default gateway at 10.0.0.1 through interface eth0. 
-The default gateway is always present in any routing table. t’s used when there is no entry for a specific network on the routing table. 
+The default gateway is always present in any routing table. It’s used when there is no entry for a specific network on the routing table. 
 The default gateway usually connects to other remote networks. For example, in a home environment, the default gateway is connected to the Internet.
 
 In the third and final entry, just like the first entry, a packet addressed to destination 192.25.67.0 will be forwarded to 
