@@ -55,9 +55,10 @@ Additionally, gateways often act as security checkpoints, implementing firewalls
 7. NAT - Network Address Translation. It's a way to map multiple private addresses inside a local network to a 
 public IP address before transferring the information onto the internet. An external address, usually routable, 
 is the "outside" of the NAT. The machines behind the NAT have an "inside" address that is usually non-routable. 
-When a connection is made between an inside address and an outside address, the NAT system in the middle creates 
-a forwarding table entry consisting of (outside_ip, outside_port, nat_host_ip, nat_host_port, inside_ip, inside_port). 
-Any packet matching the first four parts gets its destination re-written to the last two parts.
+When a connection is made between an inside address and an outside address, NAT device replaces the source private ip address/port
+with its own public address and a "unique port number" (to differentiate b/w multiple outbound requests from the same i/p).
+The NAT system in the middle creates a forwarding table entry consisting of (outside_ip, outside_port, nat_host_ip, 
+nat_host_port, inside_ip, inside_port). Any packet matching the first four parts gets its destination re-written to the last two parts.
 If a packet is received that doesn't match an entry in the NAT table, then there is no way for the NAT box to
 know where to forward it unless a forwarding rule was manually defined. That's why, by default, a machine behind a NAT device 
 is "protected". Your home router performs NAT.. The system has an internal address, and our ISP provides us an external IP to 
