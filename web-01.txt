@@ -10,10 +10,12 @@
 <base href="" target="">
 href: The base URL to be used throughout the document for relative URLs. Absolute and relative URLs are allowed
 target: 
-  * _self (default) - show the result in the current browsing context
-  * _blank - show the result in a new, unnamed browsing context
-  * _parent - if inside a frame, show the result in the parent browsing context of the current one, else the same as _self
-  * _top - show the result in the browsing context that is an ancestor of the current one and has no parent, else the same as _self
+  * _self (default) - show the result in the current browsing context i.e same frame, tab or window
+  * _blank - show the result in a new, unnamed browsing context (new tab or browser window)
+  * _parent - show result in parent frame or iframe of current frame. If its within a nested frame, it will load the content in the
+    frame that is directly above it, not necessarily the browser window, else the same as _self
+  * _top - show the result in the top most browsing context, i.e full browser window or tab overriding any existing frames or iframes, 
+    else the same as _self
 
 ex:
   <base href="https://www.example.com/" />
