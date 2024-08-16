@@ -34,9 +34,31 @@ RESPONSE-BODY
 * Content-Length header may be available for PUT/POST requests, but not for GET requests
 * The size of the buffer used in socket.recv() (4k, 8k, 16k...) may not be big enough to handle the payload.
 * In the case of POST/PUT requests we can use the Content-Length Header and make multiple sock.recv to fetch all the data. 
-* It may be important to set a timeout on the socket when handling requests either at the server or client. 
+* It is also important to set a timeout on the socket when handling requests either at the server or client. 
 * socket.settimeout(0.5) or requests.get("http://www.google.com", timeout=2)
-* The Content-Length header should be part of the response. 
+* socket.settimeout() sets the connection time out, It doesn't specify the read/write timeouts
+* For that we can use setsockopt SO_RCVTIMEO and SO_SNDTIMEO socket options
+Ex:
+    struct timeval timeout;      
+    timeout.tv_sec = 10;
+    timeout.tv_usec = 0;
+    
+    if (setsockopt (sockfd, SOL_SOCKET, SO_RCVTIMEO, &timeout,
+                sizeof timeout) < 0)
+        error("setsockopt failed\n");
+
+    if (setsockopt (sockfd, SOL_SOCKET, SO_SNDTIMEO, &timeout,
+                sizeof timeout) < 0)
+        error("setsockopt failed\n");
+
+*  If a receive operation has been blocked for this much time without receiving additional data, it returns with a 
+short count or with the error EWOULDBLOCK if no data were received. 
+*  If a send operation has blocked for this much time, it returns with a partial count or with the error EWOULDBLOCK 
+if no data were sent.
+
+* We can also specify timeout as part of the select call
+
+* The Content-Length header should always be part of the response. 
 * Transfer-Encoding header specifies the form of encoding used to safely transfer the payload body
 It is normally used when a response is sent. None of the browsers send it as part of the request. 
 
