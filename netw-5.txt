@@ -1,0 +1,199 @@
+Things to remember while developing a web server.
+
+* create and open a TCP socket
+* Request / Response of HTTP protocol is as follows
+
+Request (GET & POST)
+----------------------
+
+GET /path HTTP/1.1\r\n
+Header-Name: Header-Value\r\n
+Header-Name: Header-Value\r\n
+Header-Name: Header-Value\r\n
+Header-Name: Header-Value\r\n
+\r\n
+
+POST /path HTTP/1.1\r\n
+Header-Name: Header-Value\r\n
+Header-Name: Header-Value\r\n
+Header-Name: Header-Value\r\n
+Header-Name: Header-Value\r\n
+\r\n
+REQUEST-BODY
+
+Response
+-----------
+HTTP/1.1 200 OK\r\n
+Header-Name: Header-Value\r\n
+Header-Name: Header-Value\r\n
+Header-Name: Header-Value\r\n
+Header-Name: Header-Value\r\n
+\r\n
+RESPONSE-BODY
+
+* Content-Length header may be available for PUT/POST requests, but not for GET requests
+* The size of the buffer used in socket.recv() (4k, 8k, 16k...) may not be big enough to handle the payload.
+* In the case of POST/PUT requests we can use the Content-Length Header and make multiple sock.recv to fetch all the data. 
+* The Content-Length header should be part of the response. 
+* Transfer-Encoding header specifies the form of encoding used to safely transfer the payload body
+It is normally used when a response is sent. None of the browsers send it as part of the request. 
+
+Possible values include
+
+Transfer-Encoding: chunked
+Transfer-Encoding: compress
+Transfer-Encoding: deflate
+Transfer-Encoding: gzip
+
+// Several values can be listed, separated by a comma
+Transfer-Encoding: gzip, chunked
+
+chunked - Data is sent in a series of chunks. The Content-Length header is omitted in this case and at 
+the beginning of each chunk you need to add the length of the current chunk in hexadecimal format,
+followed by '\r\n' and then the chunk itself, followed by another '\r\n'. The terminating chunk is a 
+regular chunk, with the exception that its length is zero. It is followed by the trailer, which consists 
+of a (possibly empty) sequence of header fields.
+Example of a chunked response
+
+HTTP/1.1 200 OK
+Content-Type: text/plain
+Transfer-Encoding: chunked
+
+7\r\n
+Mozilla\r\n
+11\r\n
+Developer Network\r\n
+0\r\n
+\r\ni
+
+
+Chunked encoding is useful when larger amounts of data are sent to the client and the total size of the 
+response may not be known until the request has been fully processed. For example, when generating a large 
+HTML table resulting from a database query or when transmitting large images.
+
+
+compress - A format using the Lempel-Ziv-Welch (LZW) algorithm
+deflate - using the zlib structure with deflate algorithm
+gzip - A format using the Lempel-Ziv coding (LZ77), with a 32-bit CRC
+
+-------------------------------------------
+
+Web server in python with payload size check
+-----------------------------------------------
+
+from collections import defaultdict
+import socket
+from typing import DefaultDict, Dict
+
+host = "localhost"
+port = 8080
+
+RESPONSE = b"""\
+HTTP/1.1 200 OK
+Content-Type: text/html
+Content-Length: 21
+
+<h1>Hello Chunai</h1>""".replace(
+    b"\n", b"\r\n"
+)
+
+
+def get_lines(buff):
+    while True:
+        try:
+            i = buff.index(b"\r\n")
+            line, buff = buff[:i], buff[i + 2 :]
+            if not line:
+                break
+            yield line
+        except ValueError:
+            break
+
+
+def get_headers(buff):
+    lines = get_lines(buff)
+
+    try:
+        request_line = next(lines).decode("ascii")
+    except StopIteration:
+        raise ValueError("Request line missing.")
+
+    try:
+        method, path, _ = request_line.split(" ")
+    except ValueError:
+        raise ValueError(f"Malformed request line {request_line!r}.")
+
+    headers = defaultdict(list)
+    buff = b""
+    while True:
+        try:
+            line = next(lines)
+        except StopIteration as e:
+            buff = e.value
+            break
+
+        try:
+            name, value = line.decode("ascii").split(":", 1)
+            headers[name].append(value.lstrip())
+        except ValueError:
+            raise ValueError(f"Malformed header line {line!r}.")
+
+    return headers, buff, method
+
+
+def handle_request(sock, bufsize=16_384):
+    buff = b""
+    data = sock.recv(bufsize)
+    if not data:
+        return b""
+    buff += data
+    headers, buff, method = get_headers(buff)
+    # if method is not GET, then we can
+    # get the size of the payload using content-length header
+    # if our buffer size is too low then we can make multiple
+    # sock.recv to get the data
+    if method != "GET":
+        content_length = 0
+        try:
+            content_length = headers["Content-Length"][-1]
+        except KeyError:
+            print("Invalid Request. Content-Length is empty")
+            print("Raise error")
+            return
+        else:
+            dataremaining = content_length - len(data)
+            while dataremaining:
+                data = sock.recv(bufsize)
+                if not data:
+                    return buff
+                buff += data
+                dataremaining -= len(data)
+    return buff
+
+
+def main():
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM, 0) as server_sock:
+        server_sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        server_sock.bind((host, port))
+        server_sock.listen(2)
+        print(f"Server listening at {host}:{port}")
+        while True:
+            try:
+                client_sock, client_addr = server_sock.accept()
+                print(f"Client connected at {client_addr}")
+                with client_sock:
+                    buff = handle_request(client_sock)
+                    client_sock.sendall(RESPONSE)
+            except KeyboardInterrupt:
+                break
+        print("Shutting down server")
+
+
+if __name__ == "__main__":
+    main()
+
+
+
+
+
+
