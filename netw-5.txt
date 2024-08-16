@@ -34,6 +34,8 @@ RESPONSE-BODY
 * Content-Length header may be available for PUT/POST requests, but not for GET requests
 * The size of the buffer used in socket.recv() (4k, 8k, 16k...) may not be big enough to handle the payload.
 * In the case of POST/PUT requests we can use the Content-Length Header and make multiple sock.recv to fetch all the data. 
+* It may be important to set a timeout on the socket when handling requests either at the server or client. 
+* socket.settimeout(0.5) or requests.get("http://www.google.com", timeout=2)
 * The Content-Length header should be part of the response. 
 * Transfer-Encoding header specifies the form of encoding used to safely transfer the payload body
 It is normally used when a response is sent. None of the browsers send it as part of the request. 
@@ -143,7 +145,16 @@ def get_headers(buff):
 
 def handle_request(sock, bufsize=16_384):
     buff = b""
+    # we can set a timeout for the socket while receiving data
+    #sock.settimeout(0.5)
+    # try:
+    #	data = sock.recv(bufsize)
+    # except socket.timeout:
+    # 	print("Socket timed out...Returning")
+    #	return buff
+	
     data = sock.recv(bufsize)
+    
     if not data:
         return b""
     buff += data
