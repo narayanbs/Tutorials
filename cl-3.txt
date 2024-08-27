@@ -67,6 +67,23 @@ $ sudo passwd -l root
 
 Granting sudo privileges to Users
 ----------------------------------
+There are two ways to grant sudo privileges, the first by adding a user to the sudo group and
+the second by modifying the /etc/sudoers file.
+
+Method 1
+---------
+Add a new user to the system using "adduser" or "useradd" command.
+$ sudo adduser Narayan
+
+
+Use the "usermod" command to add the user to the sudo group:
+$ usermod -aG sudo Narayan
+
+By default on Ubuntu, all members of the sudo group have full sudo privileges.
+
+Method 2
+---------
+
 /etc/sudoers configuration file defines which users have 'sudo' access and which commands they can execute.
 To edit the configuration file, we use the 'visudo' command
 $ sudo visudo
