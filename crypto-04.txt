@@ -28,7 +28,6 @@ import random
 # Setting a fixed seed for reproducibility
 random.seed(42)
 print(random.random())  # Generate some random numbers
-print(random.random())  
 
 random.random() produces a random floats in the interval [0, 1]
 random.randint(a,b) produces a random int in the range [a, b] including both end points
@@ -54,15 +53,5 @@ secrets.token_urlsace(n) returns random URL-safe text string, containing n rando
 
 # Others
 secrets.compare_digest(a, b) Return True if strings or bytes-like objects a and b are equal, otherwise False, 
-
-
-
-
-
-
-
-
-
-
 
 
