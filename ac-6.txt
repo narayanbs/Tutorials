@@ -1,5 +1,23 @@
 C language Keynotes
 ===========================
+##### Initialization and Assignment of Array
+Both may use the = operator but arrays are not assignable. 
+for ex: 
+  int arr[] = { 1,2,3,4,5}; is initialization, but
+
+  int arr[];
+  arr = {1,2,3,4,5}; is not allowed. 
+
+Another example
+
+struct Person {
+    char name[10];
+    int age;
+};
+
+Person p = {.name="narayan", .age=40}; // ok
+Person p;
+p.name = "narayan"; // not ok 
 
 ##### Effective type of Object
 
