@@ -204,7 +204,8 @@ output = io.StringIO()
 output.write('This goes into the buffer. ')
 print('And so does this.', file=output)
 
-# Retrieve the contents of the buffer
+# Retrieve the contents of the string buffer (as string)
+# This does not change the stream position
 print(output.getvalue())
 
 output.close()  # discard buffer memory
@@ -263,7 +264,7 @@ output = io.BytesIO()
 output.write('This goes into the buffer. '.encode('utf-8'))
 output.write('ÁÇÊ'.encode('utf-8'))
 
-# Retrieve the contents of the buffer
+# Retrieve the contents of the buffer as bytes
 print(output.getvalue())
 
 output.close()  # discard buffer memory
@@ -279,7 +280,20 @@ b'This goes into the buffer. \xc3\x81\xc3\x87\xc3\x8a'
 b'Inital value for read buffer'
 
 
-for io.BytesIO getBuffer() returns the buffer. 
+# io.BytesIO getbuffer() returns a readable and writable view 
+# over the contents of the buffer without copying them. 
+# Also modifying the view will transparently update
+# the contents of the buffer.
+
+for ex:
+b = io.BytesIO(b"abcdef")
+view = b.getbuffer()
+view[2:4] = b"56"
+print(b.getvalue()) 
+
+# output
+b"ab56ef"
+
 
 >>> output = io.BytesIO()
 >>> output.write("this goes into buffer".encode("utf-8"))
