@@ -149,7 +149,11 @@ To add a user and create a home directory use the -m option
 $ sudo useradd -m john
 
 Home directory will be created at /home/john, and (.bash_logout  .bashrc  .profile) files will be copied from /etc/skel 
-The entry can be seen in the three files mentioned above. 
+
+To create home directory for an existing user (in case we forgot the -m option during useradd)
+$ sudo mkhomedir_helper john
+
+Once a user is created, an entry can be seen in the three files mentioned above. 
 
 An entry from /etc/passwd can be obtained using
 getent passwd john --> john:x:1001:1001:John Simpson,100,,:/home/john:/bin/bash
