@@ -52,7 +52,7 @@ ordinary user to execute commands as a different user (usually the superuser) in
 
 Note: -----------
 If for some reason you wish to enable the root account, you will need to give it a password:
-$ sudo passwd
+$ sudo passwd root
 
 sudo will prompt you for your password, and then ask you to supply a new password for root as shown below:
 
