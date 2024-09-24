@@ -130,7 +130,6 @@ int main() {
 }
 
 localeconv --> provides localized numeric and monetary formatting information 
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <locale.h>
@@ -229,9 +228,8 @@ int main() {
 }
 
 
-Note: By setting LC_ALL to "". for ex: locale.setlocale(locale.LC_ALL, ""), locale for all
+Note: By setting LC_ALL to "". for ex: setlocale(LC_ALL, ""), locale for all
 categories defaults to current locale.(typically specified in the LANG environment variable)
-We can also set "C" locale explicitly using `export LC_ALL=C`
 
 -----------------------------------
 
