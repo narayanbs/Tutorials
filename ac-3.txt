@@ -87,37 +87,6 @@ LANG - specifies the installation default locale. This is the locale every proce
 
 LC_ALL - Overrides the value of the LANG environment variable and the values of any other LC_* environment variables.
 
-By default in Posix systems, the "C" locale, also known as the "POSIX" locale is the default locale. It defines the language
-and character set (ASCII), sorting and collation rules, numeric formatting .. etc. This ANSI C-defined standard locale is inherited
-by all processes at startup time.
-
-
-Let's look at a simple localization program written in C.
-
-#include <stdio.h>
-#include <stdlib.h>
-#include <locale.h>
-
-int main(void)
-{
-    /* Locale is set to "C" before this. This call sets it
-       to the "current locale" by reading environment variables: */
-    setlocale(LC_ALL, "");
-
-    const struct lconv * const currentlocale = localeconv();
-
-    printf("In the current locale, the default currency symbol is: %s\n",
-        currentlocale->currency_symbol);
-
-    return EXIT_SUCCESS;
-}
-
-
-One important setting is to set LC_ALL to "". for ex: locale.setlocale(locale.LC_ALL, "") This sets the locale for all
-categories to the default current locale.(typically specified in the LANG environment variable)
-We can also set "C" locale explicitly using `export LC_ALL=C`
-
-
 The environment variables that affect locale selection can be grouped into three priority classes: high, medium, and low. 
 Environment variables in the high priority class are:
 	LC_ALL
@@ -131,7 +100,140 @@ Environment variables in the medium priority class are:
 The environment variable in the low priority class is:
 	LANG
 
--------------
+
+Note: 
+By default in Posix systems, the "C" locale, also known as the "POSIX" locale is the default locale. It defines the language
+and character set (ASCII), sorting and collation rules, numeric formatting .. etc. This ANSI C-defined standard locale is inherited
+by all processes at startup time.
+
+
+Localization
+----------------
+The process of adapting a program to a specific locale is called localization. It is an essential part of ii8n.
+Programming languages provide localization functions that enable programs to adapt to the specific locale. 
+
+
+Localization functions in C language
+--------------------------------------
+setlocale --> Sets or retrieves the program’s current locale.
+
+#include <locale.h>
+#include <stdio.h>
+
+int main() {
+    // Set the locale to "C"
+    setlocale(LC_ALL, "C");
+
+    // Retrieves the current locale (NULL is specified to retrieve)
+    printf("Current locale: %s\n", setlocale(LC_ALL, NULL));
+    return 0;
+}
+
+localeconv --> provides localized numeric and monetary formatting information 
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <locale.h>
+
+int main(void)
+{
+    /* Locale is set to "C" before this. This call sets it
+       to the "current locale" by reading environment variables: */
+    setlocale(LC_ALL, "");
+      or
+    /* we can set explicitly  
+     * setlocale(LC_NUMERIC, "en_US.UTF-8");
+    */
+
+    const struct lconv * const currentlocale = localeconv();
+
+    printf("In the current locale, the default currency symbol is: %s\n",
+        currentlocale->currency_symbol);
+
+    printf("Decimal point: %s\n", currentlocale->decimal_point);
+
+    printf("Thousands separator: %s\n", currentlocale->thousands_sep);
+
+    return EXIT_SUCCESS;
+}
+
+Locale aware functions like printf, strcoll and others use localeconv internally for formatting.
+
+//printf
+#include <locale.h>
+#include <stdio.h>
+
+int main() {
+    // Set the locale to "C"
+    setlocale(LC_ALL, "C");
+
+    // Print a floating-point number
+    printf("Floating point number: %.2f\n", 1234.5678);
+    return 0;
+}
+
+//strcoll - Compares two strings according to the current locale.
+#include <locale.h>
+#include <stdio.h>
+#include <string.h>
+
+int main() {
+    setlocale(LC_ALL, "C");
+
+    const char *str1 = "apple";
+    const char *str2 = "banana";
+
+    int result = strcoll(str1, str2);
+    if (result < 0) {
+        printf("%s is less than %s\n", str1, str2);
+    } else if (result > 0) {
+        printf("%s is greater than %s\n", str1, str2);
+    } else {
+        printf("%s is equal to %s\n", str1, str2);
+    }
+    return 0;
+}
+
+// strftime - Formats date and time according to the current locale.
+#include <locale.h>
+#include <stdio.h>
+#include <time.h>
+
+int main() {
+    setlocale(LC_ALL, "C");
+
+    time_t t = time(NULL);
+    struct tm *tm_info = localtime(&t);
+    char buffer[80];
+
+    strftime(buffer, sizeof(buffer), "%Y-%m-%d %H:%M:%S", tm_info);
+    printf("Current date and time: %s\n", buffer);
+    return 0;
+}
+
+// wcstombs - Converts wide-character strings to multibyte character strings, respecting the locale
+#include <locale.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <wchar.h>
+
+int main() {
+    setlocale(LC_ALL, "C");
+
+    wchar_t wide_str[] = L"Hello, World!";
+    char mb_str[50];
+
+    wcstombs(mb_str, wide_str, sizeof(mb_str));
+    printf("Multibyte string: %s\n", mb_str);
+    return 0;
+}
+
+
+Note: By setting LC_ALL to "". for ex: locale.setlocale(locale.LC_ALL, ""), locale for all
+categories defaults to current locale.(typically specified in the LANG environment variable)
+We can also set "C" locale explicitly using `export LC_ALL=C`
+
+-----------------------------------
 
 On ubuntu, use locale command to get the current locale settings. 
 
