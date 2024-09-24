@@ -83,13 +83,40 @@ Applications that use locale settings determine them from environment variables,
 LC_* environment variables.
 
 LANG - specifies the installation default locale. This is the locale every process uses unless LC_* environment variables are explicity set.
-  if the LANG envionment variable is not set, it defaults to C
+  if the LANG envionment variable is not set, it defaults to "C"
 
 LC_ALL - Overrides the value of the LANG environment variable and the values of any other LC_* environment variables.
-  One important setting is to set LC_ALL to "". for ex: locale.setlocale(locale.LC_ALL, "") This sets the locale for all
-  categories to the default setting.(typically specified in the LANG environment variable)
 
-LC_* - Categories specified above can be used as environment variables. 
+By default in Posix systems, the "C" locale, also known as the "POSIX" locale is the default locale. It defines the language
+and character set (ASCII), sorting and collation rules, numeric formatting .. etc. This ANSI C-defined standard locale is inherited
+by all processes at startup time.
+
+
+Let's look at a simple localization program written in C.
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <locale.h>
+
+int main(void)
+{
+    /* Locale is set to "C" before this. This call sets it
+       to the "current locale" by reading environment variables: */
+    setlocale(LC_ALL, "");
+
+    const struct lconv * const currentlocale = localeconv();
+
+    printf("In the current locale, the default currency symbol is: %s\n",
+        currentlocale->currency_symbol);
+
+    return EXIT_SUCCESS;
+}
+
+
+One important setting is to set LC_ALL to "". for ex: locale.setlocale(locale.LC_ALL, "") This sets the locale for all
+categories to the default current locale.(typically specified in the LANG environment variable)
+We can also set "C" locale explicitly using `export LC_ALL=C`
+
 
 The environment variables that affect locale selection can be grouped into three priority classes: high, medium, and low. 
 Environment variables in the high priority class are:
@@ -103,9 +130,6 @@ Environment variables in the medium priority class are:
 	LC_TIME
 The environment variable in the low priority class is:
 	LANG
-
-Along with this the unix systems also contain a C and Posix locale, that defines the ANSI C-defined standard locale inherited by all
-processes at startup time.
 
 -------------
 
