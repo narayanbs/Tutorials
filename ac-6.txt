@@ -352,5 +352,67 @@ Note:
 The safety of a pointer conversion is only about the conversion itself. It is not necessarily safe to dereference the pointer
 resulting from a safe conversion, or, for function pointers, to call the pointed-to function via the converted pointer.
 
-`
+-------------------------------
+setjmp and longjmp
+--------------------
+setjmp and longjmp are subroutines that let you perform complex flow control in C language.  
+The state of a program depends completely on the contents of its memory (i.e. the code, globals, heap, and stack), and
+the contents of its registers. The contents of the registers includes the stack pointer (sp), frame pointer (fp), and 
+program counter (pc). What setjmp() does is save the contents of the registers so that longjmp() can restore them later. 
+In this way, longjmp() ``returns'' to the state of the program when setjmp() was called.  
+
+Specifically:
+
+#include < setjmp.h >
+int setjmp(jmp_buf env);
+
+This says to save the current state of the registers into env.
+
+If you look in /usr/include/setjmp.h, you'll see that jmp_buf is defined as:
+
+#define _JBLEN  9
+typedef struct { int _jb[_JBLEN + 1]; } jmp_buf[1];
+
+This is an irritating way of saying that jmp_buf is an array of _JBLEN+1 integers.
+So, when you call setjmp(), you pass it the address of an array of integers, and it stores the value of the registers 
+in that array. Setjmp() returns 0 when you call it in this way. 
+
+longjmp(jmp_buf env, int val);
+Longjmp() resets the registers to the values saved in env. This includes the sp, fp and pc.
+What this means is that longjmp() doesn't return. Instead, when you call it, you return as if you have just called
+the setjmp() call that saved env. This is because the pc is restored along with the other registers. Setjmp() returns
+the val argument of longjmp(), which is not allowed to be zero (read the man page). Thus, you know when setjmp() returns
+a non-zero value that longjmp() was called, and is returning to setjmp(). 
+
+Example:
+
+#include <setjmp.h> 
+#include <stdio.h> 
+jmp_buf buf; 
+void func() 
+{ 
+    printf("Hello Chunai \n"); 
+  
+    // Jump to the point setup by setjmp 
+    longjmp(buf, 1); 
+  
+    printf("Greeting\n"); 
+} 
+  
+int main() 
+{ 
+    // Setup jump position using buf and return 0 
+    if (setjmp(buf)) 
+        printf("Welcome\n"); 
+    else { 
+        printf("Wilkomen\n"); 
+        func(); 
+    } 
+    return 0; 
+}
+
+Output:
+Wilkomen
+Hello Chunai
+Welcome
 
