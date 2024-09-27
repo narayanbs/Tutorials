@@ -1,5 +1,35 @@
 C language Keynotes
 ===========================
+##### Note about intptr_t, uintptr_t, ptrdiff_t and size_t 
+
+intptr_t and uintptr_t can can hold pointer values meaning they are large enough to hold all the addresses.
+
+From the man pages:
+       intptr_t is a signed integer type such that any valid (void *)
+       value can be converted to this type and then converted back.  It
+       is capable of storing values in the range [INTPTR_MIN,
+       INTPTR_MAX].
+
+       uintptr_t is an unsigned integer type such that any valid (void
+       *) value can be converted to this type and then converted back.
+       It is capable of storing values in the range [0, INTPTR_MAX].
+
+       ptrdiff_t is used for a count of elements, or an array index.  It is the
+       result of subtracting two pointers. It is a signed integer type
+       capable of storing values in the range [PTRDIFF_MIN,
+       PTRDIFF_MAX].
+
+       size_t Used for a count of bytes.  It is the result of the
+              sizeof() operator.  It is an unsigned integer type capable
+              of storing values in the range [0, SIZE_MAX].
+        
+intptr_t and ptrdiff_t are synonyms. so INTPTR_MIN/MAX AND PTRDIFF_MIN/MAX are the same.
+size_t and uintptr_t are synonyms. 
+
+So which should we use? use ptrdiff_t for pointer arithmetic. when subtracting pointers offsets can be negative.
+use ptrdiff_t for sizes and array index. use size_t only when interacting with external interfaces where unsignedness might matter. 
+use uintptr_t for converting pointer addresses to integers (since addresses cant be negative) and during bit manipulation.
+
 ##### Initialization and Assignment of Array
 Both may use the = operator but arrays are not assignable. 
 for ex: 
