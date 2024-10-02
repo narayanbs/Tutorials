@@ -79,6 +79,10 @@ LC_NAME, LC_ADDRESS, LC_TELEPHONE, LC_MEASUREMENT, LC_IDENTIFICATION: I don't kn
 
 Environment variables
 ----------------------
+In Posix systems, the "C" locale, also known as the "POSIX" locale is the default locale. This ANSI C-defined standard locale 
+is inherited by all processes at startup time. The setlocale function in "C" can be used to modify this or to retrieve the locale
+as will be shown later. 
+
 Applications that use locale settings determine them from environment variables, like the LANG environment variable and
 LC_* environment variables.
 
@@ -100,44 +104,45 @@ Environment variables in the medium priority class are:
 The environment variable in the low priority class is:
 	LANG
 
+setlocale in C language
+------------------------
 
-Note: 
-By default in Posix systems, the "C" locale, also known as the "POSIX" locale is the default locale. It defines the language
-and character set (ASCII), sorting and collation rules, numeric formatting .. etc. This ANSI C-defined standard locale is inherited
-by all processes at startup time.
+char* setlocale(CATEGORY, LOCALE)
 
+setlocale can be used to modify or retrieve the program’s current locale. If a program doesn't contain this function, it is
+assumed to run in the default "C" locale. 
 
-Localization
-----------------
-The process of adapting a program to a specific locale is called localization. It is an essential part of ii8n.
-Programming languages provide localization functions that enable programs to adapt to the specific locale. 
+If a valid locale and category are given, the functions return a pointer to the string associated with the specified locale and category. 
+If the locale argument is NULL, the functions return the current locale.
 
+setlocale(LC_ALL, NULL) --> used to retrieve the current locale
+setlocale(LC_ALL, "") --> sets the current locale to the default locale specified by the operating system.
+setlocale(LC_ALL, "en_US.UTF8") --> set the current locale to en_US.UTF8
 
-Localization functions in C language
---------------------------------------
-setlocale --> Sets or retrieves the program’s current locale.
+Examples:
+----------
 
 #include <locale.h>
 #include <stdio.h>
 
 int main() {
-    // Set the locale to "C"
-    setlocale(LC_ALL, "C");
-
     // Retrieves the current locale (NULL is specified to retrieve)
     printf("Current locale: %s\n", setlocale(LC_ALL, NULL));
+
+    // Set the locale explicitly
+    setlocale(LC_ALL, "en_US.UTF8");
     return 0;
 }
 
 localeconv --> provides localized numeric and monetary formatting information 
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <locale.h>
 
 int main(void)
 {
-    /* Locale is set to "C" before this. This call sets it
-       to the "current locale" by reading environment variables: */
+    /* This call sets the "current locale" by reading environment variables: */
     setlocale(LC_ALL, "");
       or
     /* we can set explicitly  
@@ -227,9 +232,9 @@ int main() {
     return 0;
 }
 
-
-Note: By setting LC_ALL to "". for ex: setlocale(LC_ALL, ""), locale for all
-categories defaults to current locale.(typically specified in the LANG environment variable)
+Note:
+The process of adapting a program to a specific locale is called localization. It is an essential part of ii8n.
+Programming languages provide localization functions that enable programs to adapt to the specific locale. 
 
 -----------------------------------
 
