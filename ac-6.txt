@@ -486,7 +486,7 @@ value = 0b00000000 00000000 00000000 01111000  (which is 120 in decimal)
 Now let's shift it by 32
 shl eax, 32  ; Attempt to shift left by 32
 
-so shifting by 32 causes the shift amount to  become (shift_amt & 0x1f) i.e 32 & 0x1f which is  = 0.
+so shifting by 32 causes the shift amount to  become (shift_amt & 0x1f) i.e 32 & 0x1f which is 0.
 
 value = 0b00000000 00000000 00000000 01111000  (still 120 in decimal)
 
