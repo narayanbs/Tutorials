@@ -30,8 +30,8 @@ So which should we use? use ptrdiff_t for pointer arithmetic. when subtracting p
 use ptrdiff_t for sizes and array index. use size_t only when interacting with external interfaces where unsignedness might matter. 
 use uintptr_t for converting pointer addresses to integers (since addresses cant be negative) and during bit manipulation.
 
-##### Initialization and Assignment of Array
-Both may use the = operator but arrays are not assignable. 
+##### Initialization and Assignment 
+Arrays are not assignable. 
 for ex: 
   int arr[] = { 1,2,3,4,5}; is initialization, but
 
@@ -48,6 +48,18 @@ struct Person {
 Person p = {.name="narayan", .age=40}; // ok
 Person p;
 p.name = "narayan"; // not ok 
+
+Let's look at structs now
+
+struct Person { char name[10]; int age };
+struct Person p = {.name="Narayan", .age = 44}; // initialization
+struct Person per;
+per = { .name = "narayan", .age = 44 }; // not allowed
+
+we can however do this.
+per = (struct Person){ .name = "narayan", .age = 44 } // we are copying a new tmp struct
+
+We cannot do that for arrays however, since arrays are not assignable.
 
 ##### Effective type of Object
 
