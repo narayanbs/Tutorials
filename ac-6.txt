@@ -478,7 +478,7 @@ value = 0b00000000 00000000 00000000 00001111  (which is 15 in decimal)
 Let's shift it by 3
 shl eax, 3  ; Shift left logical (SHL) operation
 
-shifting by 3, causes the shift amount to become (shift_amnt & 0x1f) i.e 3 & 0x1f which is similar to 3 % 32 = 3. 
+shifting by 3, causes the shift amount to become (shift_amnt & 0x1f) i.e 3 & 0x1f which is 3. 
 
 The result is 
 value = 0b00000000 00000000 00000000 01111000  (which is 120 in decimal)
@@ -486,14 +486,14 @@ value = 0b00000000 00000000 00000000 01111000  (which is 120 in decimal)
 Now let's shift it by 32
 shl eax, 32  ; Attempt to shift left by 32
 
-so shifting by 32 causes the shift amount to  become (shift_amt & 0x1f) i.e 32 & 0x1f which is similar to 32 % 32 = 0.
+so shifting by 32 causes the shift amount to  become (shift_amt & 0x1f) i.e 32 & 0x1f which is  = 0.
 
 value = 0b00000000 00000000 00000000 01111000  (still 120 in decimal)
 
 If we shift it by 37
 shl eax, 37  ; Attempt to shift left by 37
 
-the shift amount becomes 37 & 0x1f which is similar to 37 % 32 = 5. 
+the shift amount becomes 37 & 0x1f which is 5. 
 
 
 Current value = 0b00000000 00000000 00000000 01111000  (still 120 in decimal)
