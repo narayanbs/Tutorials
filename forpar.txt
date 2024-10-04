@@ -1,0 +1,51 @@
+Complete Example
+
+* Plug in the USB drive
+* Identify the block device
+$ lsblk -e7
+	or
+$ sudo lshw -class disk -short
+
+sdb
+|___ sdb1
+
+* We see that the drive already has a partition. Let's format the drive 
+* first unmount the filesystem in the partition
+$ sudo umount /dev/sdb1
+* Erase everything in the drive
+$ sudo dd if=/dev/zero of=/dev/sdb bs=4M status=progress & sync
+* It will pretend to be stuck just wait for some time. You may get an output like below
+~~~
+dd if=/dev/zero of=/dev/sdb bs=4k && sync
+dd: error writing '/dev/sdb': No space left on device
+
+1984257+0 records in
+1984256+0 records out
+8127512576 bytes (8.1 GB) copied, 1236.37 s, 6.6 MB/s
+~~~
+* The device is formatted.
+
+* Now let's create a partition and mount a filesystem on it using parted.
+
+* sudo parted /dev/sdb
+(parted)print
+
+
+(parted)mklabel msdos 		# Note use gpt in place of msdos for uefi
+
+(parted)mkpart primary fat32 1MiB 100%
+
+(parted)print
+(parted)q
+
+* Now mount a filesystem into the partition
+$ sudo mkfs.vfat -F32 /dev/sdb1
+
+* That's it. We have created a partition and mounted a file system into it. 
+
+* To power off the usb drive 
+$ sudo udisksctl unmount -b /dev/sdb1
+$ sudo udisksctl power-off -b /dev/sdb
+
+For further info look at post-10 (Disk Paritions and Mounting Filesystems) in notes
+-----------------------------------------------------
