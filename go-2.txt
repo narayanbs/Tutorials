@@ -64,14 +64,14 @@ ex:
 * Pointer specific rule - if types dont share the same underlying type, but both of them are unnamed pointers whose base have the 
 same underlying type, then they can be explicitly converted.
 In Go, an unnamed pointer type can be represented with *T , where T can be an arbitrary type. Type T is called the base type of pointer type *T .
-We can declare named pointer types, but generally, it's not recommended to use named pointer types, for unnamed pointer types have better readabilities.
+Named pointer is represented by a type definition. ex: type IntPtr *int 
 ex:
 	type MyInt int
 
-	var a *MyInt 	// a is value of unnamed pointer type	(*MyInt makes it unnamed)
-	var b *int 	// b is value of unnamed pointer type
+	var a *MyInt 	// a is value of unnamed pointer type	(MyInt is the base type)
+	var b *int 	// b is value of unnamed pointer type  (int is the base type)
 
-	the base of *MyInt is MyInt and *int is int, but their underlying types is int, so
+	while the base of the two pointers are different i.e (*MyInt is MyInt and *int is int), but their underlying types is int, so
 
 	a = (*MyInt)(*int)
 	b = (*int)(*MyInt)
@@ -81,7 +81,7 @@ ex:
 
 * strings
 	- A string value can be explicitly converted to a slice type whose underlying type is []byte (a.k.a., []uint8), and vice versa.
-	- A string value can be explicitly converted to a slice type whose underlying type is []rune (a.k.a., []int32), and	vice versa
+	- A string value can be explicitly converted to a slice type whose underlying type is []rune (a.k.a., []int32), and vice versa
 	- If the type (or default type) of a value is an integer type, then the value can be explicitly converted to string types.
 
 * slices - slice may be converted to an array. if the length of the array type is larger than the length of the slice, a panic occurs.

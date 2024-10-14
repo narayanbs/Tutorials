@@ -3,6 +3,42 @@
 go was designed to run on multiple cores and built to support concurrency. concurrency in go is cheap and easy.
 go is used in automation applications, command line apps for devops and sre tasks.
 
+Data Types
+===========
+Basic - Boolean, Number, String  
+
+	Boolean - bool (values true or false)  
+	Number - uint8/int8, uint16/int16, uint32/int32, uint64/int64, uint/int (either 32 or 64-bit implementation defined)
+		byte alias for uint8, rune alias for int32, uintptr (width not defined but can hold all the bits for a pointer value).
+		float32, float64 (IEEE 754 floating-point number)
+		complex64, complex128 (internally either two float32 array, or two float64 array)
+	Strings -- sequence of bytes (type string)
+				
+Aggregate - Array, struct
+
+Reference - Pointer,function,slice,map,channel
+
+interface type
+
+
+Default values
+===============
+0 for all integer types,
+0.0 for floating point numbers,
+false for booleans,
+"" for strings,
+nil for pointers,functions,slices,maps,channels and interfaces 
+
+The elements of an array or struct will have its fields zeroed if no value is specified. This initialization is done recursively:
+
+type T struct {
+    n int
+    f float64
+    next *T
+}
+fmt.Println([2]T{}) // [{0 0.0 <nil>} {0 0.0 <nil>}]
+
+
 Variables and constants
 =======================
 
@@ -72,16 +108,19 @@ A constant value can be represented by:
 * a conversion with a result that is a constant
 * result of some built-in functions
 
-constants can be typed or untyped. if they are specified without a type they are untyped. An untyped constant has a default type which could be
-bool,rune,int,float64,complex128 and string depending on the context.
+constants can be typed or untyped. if they are specified without a type they are untyped. An untyped constant has a default type which
+could be bool,rune,int,float64,complex128 and string depending on the context.
 
 const declaration
 ------------------
-const <const_name> data_type = value  // only data_type is optional, constants have to be initialized.
-ex: 	const ticketNumber int32 = 400 	// typed constant, 
+const <const_name> data_type = value  	// only data_type is optional, constants have to be initialized.
+
+ex: 	
+	const ticketNumber int32 = 400 	// typed constant, 
 	const ticketNumber = 400 	// untyped constant - so default type is int 
 	
-	const ticketNumber int or const ticketNumber 	// error , value is mandatory 
+	const ticketNumber int		// error, value is mandatory 
+	const ticketNumber 		// error , value is mandatory 
 
 Note: Constants cannot be declared using the := syntax.	
 
@@ -110,8 +149,8 @@ const Δ = Σ + 2.0e-4       //            (untyped complex constant)
 const Φ = iota*1i - 1/1i   //            (untyped complex constant)
 
 
-Numeric constants have arbitrary precision. They represent exact values and do not overflow. so if you have a constant expressions,if the result
- needs to be converted to a fixed precision where it does not fit into the target type's valid range, it results in a compile time-error.    
+Numeric constants have arbitrary precision. They represent exact values. Suppose we have a constant expressions,if the result needs 
+to be converted to a fixed precision where it does not fit into the target type's valid range, it results in a compile time-error.    
 
 
 Example:
@@ -125,11 +164,18 @@ import (
 )
 
 func main() {
-	fmt.Println(math.MaxInt)
+
+
+	const X = 255				// untyped constant
+	const Y int8 = 255 			// compile error - value too large, overflow 
+
+	// Untyped constants
 
 	const I = 9223372036854775807		// Max int value math.MaxInt
 	const F = 0.2939723974
 	const C = 1 + 2i
+
+	// typed constants
 
 	const I1 int = I
 	const F1 float32 = F
@@ -137,19 +183,19 @@ func main() {
 
 	fmt.Println(I1, F1, C1)
 	
-	const FF = 123.0
-	const CC = 1.0 + 0.0i 
+	const FF = 123.0		// untyped floating point constant
+	const CC = 1.0 + 0.0i		// untyped complex constant 
 
 
-	// const I2 int = F     	cannot represent 0.2939723974 as int, so compile error
-	const I2 int = FF 		// FF can be represented as int so this works
-	// const F2 float32 = C 	cannot represent 1 + 2i as float32, compile error
+	// const I2 int = F     	// untyped constant 0.2939723974 cannot be represented as int, so compile error
+	const I2 int = FF 		// FF is an untyped constant and can be represented as int so this works
+	// const F2 float32 = C 	// cannot represent untyped constant 1 + 2i as float32, compile error
 	const F2 float32 = CC 		// this works since 1.0 + 0.0i can be represented as a float32
-	const C2 complex64 = I		
+	const C2 complex64 = I		// this works too since untyped constant can be represented as complex64
 
 	fmt.Println(I2, F2, C2)
 
-	// const I3 int32 = I2     	cannot use int I2 as int32, explicit conversion needed
+	// const I3 int32 = I2     	// cannot use int I2 as int32, explicit conversion needed
 	const I3 int32 = int32(I2)
 	const F3 float32 = F2		// both are float32 so implicit conversion 
 	// const C3 complex128 = C2    	// cannot use this, error, explicit conversion required
@@ -182,43 +228,6 @@ More examples
 			
 Note: Declared variable has to be used, otherwise golang raises an error. 
 
-
-Data Types
-===========
-Basic - Boolean, Number, String  
-
-	Boolean - bool (values true or false)  
-	Number - uint8/int8, uint16/int16, uint32/int32, uint64/int64, uint/int (either 32 or 64-bit implementation defined)
-		byte alias for uint8, rune alias for int32, uintptr (width not defined but can hold all the bits for a pointer value).
-		float32, float64 (IEEE 754 floating-point number)
-		complex64, complex128 (internally either two float32 array, or two float64 array)
-	Strings -- sequence of bytes (type string)
-				
-Aggregate - Array, struct
-
-Reference - Pointer,function,slice,map,channel
-
-interface type
-
-
-Default values
-===============
-0 for all integer types,
-0.0 for floating point numbers,
-false for booleans,
-"" for strings,
-nil for pointers,functions,slices,maps,channels and interfaces 
-
-The elements of an array or struct will have its fields zeroed if no value is specified. This initialization is done recursively:
-
-type T struct {
-    n int
-    f float64
-    next *T
-}
-fmt.Println([2]T{}) // [{0 0.0 <nil>} {0 0.0 <nil>}]
-
-
 Note: 
 -----
 ***
@@ -230,39 +239,43 @@ ex: var a int8 = 127
 	
     var b uint8 = 255
     	b + 1 // 0
-    	
-Numeric constants represent exact values of arbitrary precision and do not overflow.  so if you have a constant expressions, since they have arbitrary precision, if the result is to be converted to a fixed precision where it does not fit into the target type's valid range, it results in a compile time-error.    	
 
-for ex:
+
+However, we have seen before that numeric constants can represent exact values of arbitrary precision. If the value is 
+too large to fit into a target type's valid range, then such a conversion or assignment will result in a compile time error. 
+
+Ex:
+	i := int8(0xff) 	// compile time error - constant 255 overflows int8
+				// the maximum value for int8 is 0x7f
+
 	var a int8 = 128 	// compile time error since 128 is untyped int constant and can't fit into int8
 	
-another ex:
-	const maxuint64 = 0xffffffffffffffff
-	var key uint64 = maxuint64 * maxuint64
+
+	const maxuint64 = 0xffffffffffffffff		// max value of uint64
+	var key uint64 = maxuint64 * maxuint64		// compile time error
 	fmt.Println(key)
 
-The above yields:
-cannot use maxuint64 * maxuint64 (untyped int constant 340282366920938463426481119284349108225) as uint64 value in variable declaration (overflows)
+The above yields the following error:
+	cannot use maxuint64 * maxuint64 (untyped int constant 340282366920938463426481119284349108225) as uint64 value 
+	in variable declaration (overflows)
 
-You can simply use a type conversion:
 
+The following will work though:
+
+	i := uint8(0xff)	// 0xff is a valid value for uint8
+	i2 := int8(i)		// it can be converted to int8 
+
+similarly
 
 	i := uint64(0xffffffffffffffff)
-	i2 := int64(i)
+	i2 := int64(i) 
 	fmt.Println(i, i2)
 	Output:
 	18446744073709551615 -1
 
 
+Converting uintxx to intxx always succeeds: it doesn't change the memory representation just the type. 
 
-Converting uint64 to int64 always succeeds: it doesn't change the memory representation just the type. What may confuse you is if you try to convert an untyped integer constant value to int64:
-
-	i3 := int64(0xffffffffffffffff) // Compile time error!
-	
-This is a compile time error as the constant value 0xffffffffffffffff (which is represented with arbitrary precision) does not fit into int64 because the max value that fits into int64 is 0x7fffffffffffffff:
-
-	error: constant 18446744073709551615 overflows int64
-	
 Another example
 
 	i := uint8(0xff)
@@ -280,12 +293,24 @@ Another example
 	65534
 	-2	
 	
-But the compiler will complain if we use int16(0xFFFE) doesn't work because 0xfffe is an untyped integer constant which cannot be represented by a value of type int16.
+But the compiler will complain if we use int16(0xFFFE) doesn't work because 0xfffe is an untyped integer constant which 
+cannot be represented by a value of type int16.
 
+Likewise, 
+
+	i3 := int64(0xffffffffffffffff) // Compile time error!
+	
+This is a compile time error as the constant value 0xffffffffffffffff (which is represented with arbitrary precision) does not fit
+into int64 because the max value that fits into int64 is 0x7fffffffffffffff:
+
+	error: constant 18446744073709551615 overflows int64
+	
 
 ***
 complex numbers have a real and imaginary part as a parameter and returns a complex type. for ex: c := 6 + 7i  
-Both the real and imaginary parts must be of the same type. ie either float32 or float64. If both the real and imaginary parts are float32, this function returns a complex value of type complex64. If both the real and imaginary parts are of type float64, this function returns a complex value of type complex128
+Both the real and imaginary parts must be of the same type. ie either float32 or float64. If both the real and imaginary parts are float32,
+this function returns a complex value of type complex64. If both the real and imaginary parts are of type float64, this function returns
+a complex value of type complex128
 ex: 
 	var a float32 = 22.23
 	var b float32 = 33.33
@@ -741,7 +766,7 @@ ex:
 	b := 255
 	var a *int = &b
 	fmt.Printf("Type of a is %T\n", a)
-	fmt.Println("address of b is", a)
+	fmt.Printf("address of b is %p\n", a)
 
 	output	
 	Type of a is *int  
@@ -1249,6 +1274,23 @@ Functions are values too. They can be passed around just like other values.Funct
 
 Go functions may be closures. 
 
+	func powerof(x int) func(y int) int {
+		return func(y int) int {
+			return int(math.Pow(float64(y), float64(x)))
+		}
+	}
+
+	square := powerof(2)
+	cube := power(3)
+
+	fmt.Println(square(8))
+	fmt.Println(cube(4))
+	o/p: 
+	64
+	64
+
+	---
+
 	func adder() func(int) int {
 		sum := 0
 		return func(x int) int {
@@ -1268,7 +1310,8 @@ Variadic functions
 	func hello(a int, b ...int) {  
 	}	
 
-the parameter b is variadic since it's type is prefixed by ellipsis and it can accept any number of arguments. This function can be called by using the syntax.
+the parameter b is variadic since it's type is prefixed by ellipsis and it can accept any number of arguments. 
+This function can be called by using the syntax.
 
 	hello(1, 2) //passing one argument "2" to b  
 	hello(5, 6, 7, 8, 9) //passing arguments "6, 7, 8 and 9" to b
@@ -1319,7 +1362,8 @@ The receivers cannot be a pointer defined type or an interface type.
 
 so type P *int is not allowed 
 
-[The receiver type must be of the form T or *T where T is a type name. The type denoted by T is called the receiver base type; it must not be a pointer or interface type and it must be declared in the same package as the method]
+[The receiver type must be of the form T or *T where T is a type name. The type denoted by T is called the receiver base type; 
+it must not be a pointer or interface type and it must be declared in the same package as the method]
 
 
 Methods are declared as follows:
@@ -1356,7 +1400,7 @@ ex:
 
 
 Methods with the same name can be defined on different types whereas functions with the same names are not allowed. 
-Let's assume that we have a Square and Circle structure. It's possible to define a method named Area on both Square and Circle
+Let's assume that we have a Rectangle and Circle structure. It's possible to define a method named Area on both Rectangle and Circle
 
 	type Rectangle struct {  
 	    length int
@@ -1449,6 +1493,80 @@ In this case, if a pointer receiver is used, the struct will not be copied and o
 In all other situations, value receivers can be used.
 
 
+Passing value receiver to a method with pointer receiver
+----------------------------------------------------------
+When you pass a value receiver to a method defined with a pointer receiver in Go, the language automatically 
+converts the value to a pointer to that value. This means that Go will take care of creating a pointer to the original value for you.
+
+Ex:
+
+	package main
+
+	import (
+	    "fmt"
+	)
+
+	type Circle struct {
+	    Radius int
+	}
+
+	// Method with pointer receiver
+	func (c *Circle) Scale(factor int) {
+	    c.Radius *= factor
+	}
+
+	func main() {
+	    // Create a Circle instance
+	    c := Circle{Radius: 5}
+
+	    // Call the pointer receiver method using the value
+	    c.Scale(2)
+
+	    fmt.Println("Scaled Circle Radius:", c.Radius) // Output: Scaled Circle Radius: 10
+	}
+
+Passing pointer receiver to method with value receiver
+-------------------------------------------------------
+When you pass a pointer receiver to a method defined with a value receiver, Go simply dereferences the pointer, passing the value 
+that the pointer points to.
+Ex:
+
+	package main
+
+	import (
+	    "fmt"
+	)
+
+	type Rectangle struct {
+	    Width, Height int
+	}
+
+	// Method with value receiver
+	func (r Rectangle) Area() int {
+	    return r.Width * r.Height
+	}
+
+	// Method with pointer receiver
+	func (r *Rectangle) Scale(factor int) {
+	    r.Width *= factor
+	    r.Height *= factor
+	}
+
+	func main() {
+	    // Create a Rectangle instance
+	    rect := &Rectangle{Width: 10, Height: 5} // pointer to Rectangle
+
+	    // Call the value receiver method using a pointer
+	    area := rect.Area() // Go automatically dereferences rect
+	    fmt.Println("Area:", area) // Output: Area: 50
+
+	    // Call the pointer receiver method
+	    rect.Scale(2)
+	    fmt.Println("Scaled Rectangle:", *rect) // Output: Scaled Rectangle: {20 10}
+	}
+
+
+
 Methods of embedded struct fields 
 ----------------------------------
 They can be called as if they belong to the structure where the anonymous field is defined.
@@ -1488,17 +1606,21 @@ They can be called as if they belong to the structure where the anonymous field 
 
 Method sets: 
 --------------
-The method set of a type determines the methods that can be called on an operand of that type. Every type has a (possibly empty) method set associated with it:
+The method set of a type determines the methods that can be called on an operand of that type. Every type has a (possibly empty) 
+method set associated with it:
 
 The method set of a defined type T consists of all methods declared with receiver type T.
-The method set of a pointer to a defined type T (where T is neither a pointer nor an interface) is the set of all methods declared with receiver *T or T.
-The method set of an interface type is the intersection of the method sets of each type in the interface's type set (the resulting method set is usually just the set of declared methods in the interface).
+The method set of a pointer to a defined type T (where T is neither a pointer nor an interface) is the set of all methods declared 
+with receiver *T or T.
+The method set of an interface type is the intersection of the method sets of each type in the interface's type set (the resulting
+method set is usually just the set of declared methods in the interface).
 
 Method Sets of embedded field types
 ------------------------------------
 Given a struct type S and a named type T, promoted methods are included in the method set of the struct as follows:
 
-If S contains an embedded field T, the method sets of S and *S both include promoted methods with receiver T. The method set of *S also includes promoted methods with receiver *T.
+If S contains an embedded field T, the method sets of S and *S both include promoted methods with receiver T. 
+The method set of *S also includes promoted methods with receiver *T.
 If S contains an embedded field *T, the method sets of S and *S both include promoted methods with receiver T or *T.
 	
 	

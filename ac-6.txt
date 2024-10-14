@@ -501,3 +501,66 @@ Current value = 0b00000000 00000000 00000000 01111000  (still 120 in decimal)
 Let's shift by 5, The result would be 
 value = 0b00000000 00000000 00001111 00000000  (which is 3840 in decimal)
 
+-----------------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------------------------------------
+C datatypes and conversion revision
+--------------------------------------
+
+bool, char, short, int, long, long lonG
+float, double, long double
+enum, void
+array, struct, union
+pointer, function,
+
+bool -> true or false (false = 0 and anything else is true)
+char -> smallest addressable unit of memory that can contain basic character set (min size - 8 bits)
+
+
+Type Hierarchy
+--------------
+
+bool <= char <= short <= int <= long <= long long <= float <= double <= long double
+
+unsigned == signed 
+
+conversion rules
+-----------------
+If we declare a literal without a suffix (U, UL, L,LL), by default it is treated as int. If the value exceeds
+int the compiler may treat it as long or long long depending on its size and implementation.
+If the literal exceeds the limit of long or long long, then its undefined behavior.
+
+Likewise a floating point literal is a double by default.
+
+char and short (signed/unsigned) are promoted to int in arithmetic expression. If int is unable to represent the value, then it 
+is promoted to unsigned int. 
+for ex: if size of short and int is the same say 16-bits, when unsigned short is promoted, it cannot be represented 
+by int, so it is promoted to unsigned int. 
+
+Likewise promotion occurs in an expression where operands have two different ranks in the type hierarchy.(int, long, long long)
+Like the previous case, if signed type is unable to represent the value, unsigned type is used. 
+
+unsigned integer overflow is defined. When it exceeds the maximum value, it wraps around to zero. 
+for ex: adding 1 to UINT_MAX gives zero.
+
+signed integer overflow is undefined behavior. It may wrap around from INT_MAX to INT_MIN or other compiler specific behavior.
+
+So if we try to cram a long value into int, if its signed, then it's undefined behavior, but in the case of unsigned, it wraps around.
+the result would be like 'value % (ULONG_MAX + 1)'.
+If we try to put a negative value into unsigned, then the value is repeatedly added by UXXX_MAX + 1. 
+for ex: -1 for unsigned int is -1 + UINT_MAX + 1 ==> UINT_MAX
+
+Similarly for float and double, if we try to cram a value larger than a float into a float and it is not representable, 
+it is undefined behavior. If the value is less than the max value, it is rounded to the nearest representable value. 
+
+when we convert an integer to floating point, it is transformed into floating point representation. 5 becomes 5.0
+Since floats have limited precision, very large integers might lose precision in floating point representation.
+when a float is converted to integer, the decimal point and everything after it is removed 
+
+float can be converted to double without loss of precision, double can be converted to floating point by approximating to 
+nearest value. If value is too large for a float, then it is undefined behavior.
+
+
+
