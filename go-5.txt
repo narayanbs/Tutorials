@@ -60,6 +60,13 @@ ex:
 	ones,bits := mask.Size()		--> 24, 32
 
 
+func ParseCIDR(s string) (IP, *IPNet, error)
+It returns the IP address and network implied by the IP and prefix length.
+
+Ex: net.ParseCIDR("192.0.2.1/24") returns IP 192.0.2.1 and network 192.0.2.0/24
+
+Look at examples to get subnets in repos
+
 Golang DNS Lookup: CNAME, MX, NS, TXT & SRV
 --------------------------------------------
 
