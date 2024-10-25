@@ -458,7 +458,16 @@ Wilkomen
 Hello Chunai
 Welcome
 
-------------------------------
+------------------------------------------------------------------------------------------------------------
+Left shift and right shift of bits
+---------------------------------
+If we shift bits to the left, the lower order bits are filled in the right with zeros
+if we shift bits to the right, then 
+ * for -ve numbers, the higher order bits are filled from left with 1's 
+ * for +ve numbers, the higher order bits are filled from left with 0's
+
+----------------
+
 What happens if we bit shift (left << or right >>) beyond the number of bits of the variable?
 for instance, if we have a uint32_t variable and we left shift it by 32 bits or beyond? 
 It is undefined behavior in C language. So different processor architectures behave differently. 
@@ -494,7 +503,6 @@ If we shift it by 37
 shl eax, 37  ; Attempt to shift left by 37
 
 the shift amount becomes 37 & 0x1f which is 5. 
-
 
 Current value = 0b00000000 00000000 00000000 01111000  (still 120 in decimal)
 
