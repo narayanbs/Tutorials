@@ -466,6 +466,7 @@ if we shift bits to the right, then
  * for -ve numbers, the higher order bits are filled from left with 1's 
  * for +ve numbers, the higher order bits are filled from left with 0's
 
+Since unsigned integers are always positive, right shifting fills zeros on the left. 
 ----------------
 
 What happens if we bit shift (left << or right >>) beyond the number of bits of the variable?
