@@ -216,6 +216,24 @@ passwd -u <user_name> --> used to unlock the password of a user
 passwd -d <user_name> --> Deletes the password for an account
 
 
+-----------------------------------------------
+shell configuration
+-----------------------------------------------
+We can find the default shell by using
+$ echo $SHELL
+/bin/bash
+
+As we mentioned earlier, the default shell of a user will be mentioned in the /etc/passwd file. 
+username:x:1001:1001::/home/username:/bin/bash
+
+we can use chsh command to change the default shell associated with the user.
+$ chsh -s /bin/zsh
+
+-s specifies we want to change the default shell.
+
+$ echo $SHELL
+/bin/zsh
+
 ------------------------------------------------
 		File Permissions
 ------------------------------------------------
