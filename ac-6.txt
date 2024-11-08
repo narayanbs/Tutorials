@@ -459,23 +459,30 @@ Hello Chunai
 Welcome
 
 ------------------------------------------------------------------------------------------------------------
-Left shift and right shift of bits
+Shift / Rotate of bits
+------------------------------------------
+Left shift / right shift of bits -- Instructions like SHR, SHL or SAR
 ---------------------------------
 If we shift bits to the left, the lower order bits are filled in the right with zeros
 if we shift bits to the right, then 
  * for -ve numbers, the higher order bits are filled from left with 1's 
  * for +ve numbers, the higher order bits are filled from left with 0's
-
 Since unsigned integers are always positive, right shifting fills zeros on the left. 
-----------------
 
-What happens if we bit shift (left << or right >>) beyond the number of bits of the variable?
-for instance, if we have a uint32_t variable and we left shift it by 32 bits or beyond? 
-It is undefined behavior in C language. So different processor architectures behave differently. 
+Left rotate / right rotate of bits - Instructions like ROL, ROR
+------------------------------------
+Left or right rotation insert bits that are shifted out into the opposite end. 
+So bits that fall of the left are wrapped around to the right end. Similarly bits that fall of the right during 
+a right rotate will be wrapped around to the left end. 
 
-In x86 the shift amount is truncated to 5-bits, this means x86 CPUs will shift by n & 31 places 
-(i.e. whatever the value is of the low five bits of n); whereas PowerPC truncates it to 6-bits,
-they will shift by n & 63 places (i.e. the value of the low six bits of n).
+
+what happens if we shift bits beyond the size of the integer we are shifting. 
+Say we have an uint32_t and we left shift or right shift it by 32 bits or beyond? It is undefined behavior in C language. So
+different processor architectures behave differently. 
+
+In x86 (32 -bit system), the shift amount is restricted to 5 bits i.e max 31 places. This means the x86 cpus
+will shift by n & 31 places. Similarly in Power PC (64-bit system) the shift amount is restricted to 6-bits 
+i.e they will shift by n & 63 places (i.e the low six bits of n).
 
 so uint32_var << shift_amt is treated as uint32_var << (shift_amt & 0x1f) in x86
 and uint32_var << shift_amt is treated as uint32_var << (shift_amt & 0x3f) in PowerPC 

@@ -353,12 +353,18 @@ Range			Number of Addresses			Network Address			Broadcast Address
 >>> IPv4Address("10.243.156.214") in IPv4Network("10.0.0.0/8")
 True
 
-A second special address type is a link-local address, which is one reachable only from within a given subnet. They are not guaranteed
+In the context of IPV6, a specific block of addresses in the fc00::/7 (specifically fc00::/8 to fdff::/8) range are considered private. 
+
+A second special address type is a link-local address, which is reachable only from within a given subnet. They are not guaranteed
 to be unique beyond their network segment. Therefore routers do not forward packets with link-local source or destination addresses.
 (
-How are they different from private addresses? private addresses are allocated administratively:  by a local network administrator
-either statically or automatically allocated by a suitably configured DHCP server. But link-local addresses are allocated automatically
-when a computer has not been configured with a static-ip address and cannot find a DHCP server.
+How are they different from private addresses? private addresses can be routed within the private network and are not routable on
+the public network. Where as link local can only communicate wihin a subnet, i.e Link local addreses can only be valid on the link,
+not beyond the link. They cannot be forwarded by routers.
+
+private addresses are allocated administratively:  by a local network administrator either statically or automatically allocated by 
+a suitably configured DHCP server. But link-local addresses are allocated automatically, often using the MAC address for stateless
+configuration. when a computer has not been configured with a static-ip address and cannot find a DHCP server.
 Many routers are supplied pre-configured with DHCP service for a commonly used private address range such as 192.168.0.0/16. 
 If a LAN does not have such a router present, the PCs will use link-local addresses
 )
@@ -413,6 +419,20 @@ True
 
 Generally an IP address can either be static or dynamic. A static ip doesn't change with time. A dynamic ip will change
 from time to time, as they are allocated by the DHCP server in the network.
+
+Note: Zone Information in IPV6
+------------------------------
+In the context of IPv6, "zone information" refers to the scope or zone index that is used to specify the local network scope 
+for link-local addresses. Link local addresses are typically only valid within the same network segment or link, and when they are used, 
+the system needs to know which specific network interface the address corresponds to, especially in situations where multiple 
+network interfaces exist on a device.
+In order to distinguish between different interfaces when using link-local addresses, IPv6 utilizes zone identifiers (also called zone indices).
+A zone identifier is a number or a string that refers to a specific network interface, ensuring that the link-local address is associated with 
+the correct interface on a multi-interface device.
+For example, a link-local IPv6 address might be written as:
+fe80::1%eth0
+Here, the %eth0 is the zone identifier, which specifies that the address fe80::1 is valid on the interface eth0
+
 
 Network Interface Overview
 --------------------------
