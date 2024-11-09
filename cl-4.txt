@@ -1,22 +1,56 @@
+Find Command
+-------------------------------
+-------------------------------
+Yes, by default, the `find` command in Unix-like systems returns file names separated by newline characters (`\n`). 
+For example, if you run the following command:
+
+find . -name "*.txt"
+
+It will list all `.txt` files in the current directory and its subdirectories, with each file name on a new line. 
+The output will look something like this:
+
+```
+./file1.txt
+./subdir/file2.txt
+./subdir/otherdir/file3.txt
+```
+However, this default behavior of separating file names by newlines can lead to problems if any of the file names 
+themselves contain newline characters. In such cases, the newline could break the output into unintended multiple entries.
+
+### Handling Newlines Safely
+To handle this safely, especially when you want to pass file names to another command like `xargs`, you can use the `-print0` option
+with `find` to make it output file names separated by null characters (`\0`) instead of newlines. 
+This avoids issues with files that contain spaces, newlines, or other special characters.
+
+For example:
+find . -name "*.txt" -print0
+
+This will output file names like this:
+
+./file1.txt\0./subdir/file2.txt\0./subdir/otherdir/file3.txt\0
+
+Then, you can safely pipe this output to `xargs` with the `-0` option to ensure that file names are correctly handled, 
+even if they contain spaces or newlines:
+
+find . -name "*.txt" -print0 | xargs -0 rm
+
+This way, `xargs` will treat each file name as a single argument, regardless of any unusual characters it may contain.
+
+
 Find examples
 --------------
-
 name
 ------
 find . -name tecmint.txt --> find file in current directory (and sub-directories)
-find /home -name tecmint.txt --> find file in home directory (and sub-directories)
 find /home -iname tecmint.txt --> find file ignoring case in home dir (and sub-dir)
 
 name and type
 -------------
 find . -type f -name "*.php" --> all php files in current directory recursively (quotes around *.php because shell expands * wildcard)
-find . -type f -name tecmint.php --> find php files whose name is tecmint.php 
-find . -type d -name Tecmint --> find all directories with name Tecmint recursively in current directory
 find /home -type d -name "*" --> find all directories recursively inside /home directory
 
 find /home -maxdepth 1 -type d -name Revision --> find directories with name Revision only in home directory
 find . -maxdepth 1 -name *.mkv --> search mkv files in current directory
-
 
 permissions
 ------------
@@ -28,12 +62,6 @@ find / -perm /u=s --> find all suid set files
 find / -perm /g=s --> find all guid set files
 find / -perm /u=r --> find read only files
 find / -perm /a=x --> find all executable files
-
-# find files with 777 permission and chmod it to 644
-find / -type f -perm 0777  -exec chmod 644 {} \; 
-
-# find directories with 777 permission and chmod it to 755
-find / -type d -perm 777  -exec chmod 755 {} \;
 
 Remove
 ---------
@@ -56,11 +84,8 @@ find /tmp -type f -name ".*"
 Users and groups
 -----------------
 find / -user root -name tecmint.txt --> find file based on user
-
 find /home -user mordor --> find all files that belong to mordor under /home
-
 find / -group developer --> group
-
 find /home -user mordor -iname "*.txt" --> all txt files of user
 
 Date and Time 
@@ -79,6 +104,31 @@ find / -size +50M -size -100M --> between 50 and 100 MB
 
 find / -type f -size +100M -exec rm -f {} \; --> find and delete 100MB files
 find / -type f -name *.mp3 -size +10M -exec rm {} \; --> find all mp3 files that are more than 10Mb in size and delete them
+
+Combining Multiple criteria
+----------------------------
+find . -type f -name "*.txt" -and -size +1M  ---> To find all .txt files larger than 1MB
+find . -name "example.txt" -or -mtime -2 ---> To find files either named example.txt or modified in the last 2 days:
+
+Excluding directories
+---------------------
+To search for all .log files in the /var directory but exclude the /var/log directory:
+find /var -path "/var/log" -prune -o -type f -name "*.log" -print
+
+Using -exec to Execute Commands
+--------------------------------
+# find files with 777 permission and chmod it to 644
+find / -type f -perm 0777  -exec chmod 644 {} \; 
+
+# find directories with 777 permission and chmod it to 755
+find / -type d -perm 777  -exec chmod 755 {} \;
+
+To find all media files larger than 500MB and move them to the /backup directory:
+find /path/to/search -type f \( -name "*.mp4" -o -name "*.mp3" -o -name "*.mkv" \) -size +500M -exec mv {} /backup \;
+
+To move all .log files from /var/log to /backup/logs:
+find /var/log -type f -name "*.log" -exec mv {} /backup/logs \;
+
 
 -----------------------------------------------------
 Grep Examples
