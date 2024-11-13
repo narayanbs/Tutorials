@@ -28,7 +28,8 @@ Examples of assymetric cryptographic algorithms are: RSA, DSA, ECC (Elliptic cur
 AES - Advanced Encryption Standard 
 ----------------------------------
 A symmetric key encryption standard adopted by the U.S. government.,it is widely adopted for securing sensitive data. 
-It operates on fixed-size blocks of data (128 bits in AES), using a variable key size of 128, 192, or 256 bits.
+It is a block cipher and operates on fixed-size blocks of data (128 bits in AES), using a variable key size of 128, 192, or 256 bits.
+We can AES with different Block ciphers modes of operation like ECB, CBC, OFB, CFB, CTR.
 
 Here's how AES works in a nutshell:
 

@@ -1,3 +1,6 @@
+Note: A fingerprint is a short unique indentifer or Hash of a public key.
+
+
 OpenSSH, GPG (GnuPG), and OpenSSL are all cryptographic tools that serve different purposes and have distinct functionalities:
 
 1. **OpenSSH (Open Secure Shell)**:
