@@ -1,5 +1,8 @@
 Primer on how dns works and how resolution happens 
 ----------------------------------------------------
+FORWARD DNS LOOKUP
+*******************
+
 When we use the browser to access a domain or when we use a command line program as shown below,
 
 >>> socket.gethostbyname("www.example.com") 
@@ -134,19 +137,72 @@ research.swtch.com is an alias for ghs.google.com.
 ghs.google.com has address 142.250.77.179
 ghs.google.com has IPv6 address 2404:6800:4007:80f::2013k
 
+***************************************************************************
+Reverse DNS Lookup,  Pointer Record , FQDN (Fully Qualified domain name)
+**************************************************************************
+A reverse DNS lookup is the process of resolving an IP address to its associated domain name, which is the opposite 
+of a typical forward DNS lookup (resolving a domain name to an IP address). The result of a reverse DNS lookup is often
+represented by a PTR (Pointer) record, which points to a Fully Qualified Domain Name (FQDN).
 
-Fully Qualified Domain Name and Reverse Lookup
-***********************************************
+Essentially, While forward DNS lookup uses A or AAAA records to map domain names to IP addresses, reverse DNS lookup uses PTR records 
+to map IP addresses back to domain names.
 
-How do we get the fully qualified domain name? FQDN is the result of a reverse lookup of the IP address
+A ptr record will typically look like  <IP-address-in-reverse>.in-addr.arpa.    IN    PTR   <hostname>.
 
-We can use the following commands to do a reverse lookup
+for ex:
+
+$ dig -x 8.8.8.8
+
+8.8.8.8.in-addr.arpa.    IN    PTR   google-public-dns-a.google.com.	--> for ipv4
+
+2001.4860.4860.0.0.0.0.0.0.8.8.8.8.ip6.arpa.   IN    PTR   google-public-dns-a.google.com.  	--> ipv6
+
+Here google-public-dns-a.google.com is the Fully qualified domain name. 
+
+Another example
+
+$ dig -x 203.0.113.45
+
+45.113.0.203.in-addr.arpa.   IN	   PTR   mail.example.com.
+
+Kere, PTR record points to mail.example.com, which would indicate that the IP address 203.0.113.45 is associated with 
+the mail server for the domain example.com.
+
+The Fully Qualified Domain Name (FQDN) in the PTR record indicates the hostname or domain name associated with the given IP address. 
+This typically represents the server or device associated with that IP address. For example, a PTR record might point to the domain 
+name of a mail server, web server, or any other service that is associated with the IP address.
+Reverse DNS lookups are commonly used for spam filtering, security checks, and logging purposes to ensure that IP addresses and 
+domain names match in a trustworthy way.
+
+Note: 
+A reverse lookup (PTR record) does not always match the original domain name used in a forward lookup (A record)
+But why is this different? 
+We need to understand the concept of forward lookup zone and reverse lookup zone. These are separate zone files.
+An IP address can be associated with multiple services or multiple hostnames, especially in shared hosting environments 
+or when a server hosts several different services. In this case, the PTR record for the IP address might point to one of 
+those hostnames, which may not be the same as the domain used in the forward lookup.
+for ex:
+Forward lookup: www.example.com -> 203.0.113.10
+Reverse lookup: 203.0.113.10 -> mail.example.com
+Here, the forward lookup points to www.example.com, but the reverse lookup points to mail.example.com, which could
+indicate that the same IP address (203.0.113.10) is used by multiple services (like a web server and mail server).
+
+
+
+How do we get the fully qualified domain name? 
+
+You can check FQDN by running the following command on a server
+$ hostname -f 
+test.rtcamp.com
+
+In python, socket.getfqdn returns a fully qualified domain name if it's available. If it is not available it calls socket.gethostname.
+
+We can also use the following commands to do a reverse lookup
 
 $ dig -x 142.250.77.179
 
 Note: The output should have an Answer section with PTR record, i.e a reverse lookup zone file should exist. Otherwise
 you will not be able to reverse lookup an ip address.
-
 
 You can use the host command as well.
 
@@ -162,19 +218,6 @@ $ host 142.250.77.179
 
 'maa05s17-in-f19.1e100.net' is the fully qualified domain name. 
 
-But why is this different from ghs.google.com. We need to understand the concept of forward lookup zone and reverse lookup zone. 
-Forward lookup zone maps names to ip addresses, while reverse lookup zone maps ipaddress to network hosts. 
-
-One important fact to understand about forward and reverse lookup records is that they are separate zone files. Combined with that fact, 
-the relationship of forward to reverse is a many to one, while the relationship between reverse to forward is a one to one.
-Meaning, you can map many different names to a single IP address, and they will resolve correctly. On the other hand, you can only effectively 
-map any given IP address to a singular name. In DNS records, when there are keys with multiple values, 
-DNS uses a functionality called round-robin to randomly return the value.
-
-For example, if you have two reverse records that map 192.168.0.1 to test1.xzy.local and test2.xzy.local, 
-half of the time you do a reverse lookup on 192.168.0.1, it will return test1, and the other half, it will return test2.
-
-All this to say that sometimes the reverse records do not match up perfectly with the forward records, and this is one scenario that describes why.
 
 A Forward-confirmed reverse DNS (FCrDNS), also known as full-circle reverse DNS, double-reverse DNS, or iprev, is a 
 networking parameter configuration in which a given IP address has both forward (name-to-address) and reverse (address-to-name) 
