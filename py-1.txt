@@ -257,7 +257,7 @@ methods:
 	values() -- set of values, 
 	items() -- set of (key, value),
 	get(key, default),	
-        pop(a) -- remove specified key and return corresponding value
+        pop(a,d) -- remove specified key and return corresponding value, if key not found return default d
         popitem() -- remove an entry in LIFO order as (key,value)
         clear() -- clear the dict
 	copy() -- return shallow copy,

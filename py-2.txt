@@ -173,6 +173,8 @@ We can override the __new__ method,
 * if we return the newly created object, then __init__ will be automatically called
 * if we don't then we need to call __init__ by ourselves.
 
+Note: apart from the class, __new__ also needs to have the same arguments that are passed to  __init__
+
 ex: 
 class Person:
     def __new__(cls, name):
@@ -443,31 +445,61 @@ ex:
 	class C(B, A):
 		pass
 	
-Parent class constructors can be invoked using super().__init__() and methods using super().methodname()
 
-Note: Unlike java, python subclasses don't invoke the super class constructor implicitly.
-We need to invoke it explicitly, if we need to.
+If constructors of child classes are not explicitly defined. they invoke their parent's constructors by default.
+ex:
+	class A:
+		def __init__(self):
+			print("A called")
+	
+	class B(A):
+		pass
+	
+	b = B()
+	//output - A called
+
+ex:
+	class A:
+		def __init__(self):
+			self.name = "A class"
+			self.role = "Parent"
+
+	class B:
+		def __str__(self):
+			return f"{self.name, self.role}"
+
+	b = B()
+	//output - A class, Parent
+
+if contructor of child is defined, it needs to explicitly invoke the parent's constructor 
+Parent class constructors can be invoked using super().__init__() and methods using super().methodname()
 
 	class A:
 		def __init__(self):
-			print("Cons A")
-		
-		def printName(self, name):
-			print(name)
+			self.name = "A class"
+			self.role = "Parent"
 	
-	class B(A):
+	class B:
+		def __init__(self):
+			pass
+			
+		def __str__(self):
+			return f"{self.name, self.role}"
+
+	b = B()
+	// error: AttributeError: B has no attribute name
+
+Try
+	class B:
 		def __init__(self):
 			super().__init__()
-			print("Cons B")
-		
-		def printName(self):
-			super().printName()
-			
->>> b = B()
-Cons A
-Cons B
->> b.printName("chunai")
-chunai
+
+		def __str__(self):
+			return f"{self.name, self.role}"
+
+	b = B()
+	//output - A class, Parent
+
 
 
 Python mro and super()
