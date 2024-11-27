@@ -1,0 +1,126 @@
+python struct module
+--------------------
+Used to convert python values to C structs that are represented as 'bytes' objects. 
+Compact format strings describe the intended conversions to/from Python values. The module’s functions and objects
+can be used for two largely distinct applications, data exchange with external sources (files or network connections),
+or data transfer between the Python application and the C layer.
+
+The struct module provides the following functions to pack and unpack values to/from (bytes objects) that represent C structs
+
+    struct.pack()
+    struct.unpack()
+    struct.calcsize()
+    struct.pack_into()
+    struct.unpack_from()
+
+struct.pack(format, v1, v2, …)
+Return a bytes object containing the values v1, v2, … , that are packed according to the given format string
+
+format string:
+The first character of the format string is used to indicate the byte order, size and alignment
+-------------------------------------------------------
+character | Byte order            | Size     | alignment
+-------------------------------------------------------
+@	   native	          native      native	(default)
+=	   native	          standard    none
+<	   little-endian          standard    none
+>	   big-endian             standard    none
+!	   (Network big-endian)   standard    none
+		
+If the first character doesn't contain any of the above, it default to @ i.e native
+
+Format characters:
+-------------------
+format	C type		Python type	Standard size
+x	pad byte	no value	
+c	char		bytes (len 1)	1
+b	signed char	integer		1
+B	unsigned char	integer		1
+?	_Bool		bool		1
+h	short		integer		2
+H	unsigned sht	integer		2
+i	int		integer		4
+I	unsigned int	integer		4
+l	long		integer		4
+L	unsigned long	integer		4
+q	long long	integer		8
+Q	unsigned ll	integer		8
+f	float		float		4
+d	double		float		8
+n	ssize_t		integer
+N	size_t		integer
+s	char[]		bytes
+p	char[]		bytes
+p	void*		integer
+
+
+
+Now let's look at an example 
+
+Let's consider a C struct
+struct A {
+    short x;
+    short y;
+    long z;
+};
+struct A a = {.x = 1, .y = 2, .z=3};
+
+On my machine (little endian) the struct takes 16 bytes (2 + 2 + 4 (padding) + 8)
+
+Let's do the same using struct.pack function.
+First we will use the default native byte order with native size and alignment.
+Note: For the default option,  we can begin the format string with '@' or leave it blank.
+
+import struct 
+b = struct.pack("hhl",1,2,3)
+type(b) --> bytes
+struct.calcsize("hhl") --> 16 bytes
+print(b)  
+b'\x01\x00\x02\x00\x00\x00\x00\x00\x03\x00\x00\x00\x00\x00\x00\x00'
+
+b=struct.pack("iii",1,2,3)
+struct.calcsize("iii") --> 12 bytes
+print(b)
+b'\x01\x00\x00\x00\x02\x00\x00\x00\x03\x00\x00\x00'
+
+Note: Little endian byte order in both the examples
+
+struct.unpack("fmt", bytes)
+
+struct.unpack("iii", b'\x01\x00\x00\x00\x02\x00\x00\x00\x03\x00\x00\x00')
+o/p:
+(1,2,3)
+
+Syntax: struct.pack_into(fmt, buffer, offset, v1, v2, …)
+fmt: data type format
+buffer: writable buffer which starts at offset (optional)
+v1,v2.. : values 
+
+Syntax: struct.unpack_from(fmt, buffer[,offset = 0])
+fmt: data type format
+buffer:writable buffer which starts at offset (optional)
+Returns a tuple, similar to struct.unpack()
+
+size = struct.calcsize('hhl')
+print(siz)
+buff = ctypes.create_string_buffer(siz)
+struct.pack_into('hhl', buff, 0, 2, 2, 3)
+print(struct.unpack_from('hhl', buff, 0))
+
+o/p:
+16
+(2, 2, 3)
+
+More Examples
+--------------
+Big endian 
+pack(">bhl", 1, 2, 3)
+b'\x00\x02\x00\x02\x00\x00\x00\x03'
+
+struct.unpack('>bhl', b'\x01\x00\x02\x00\x00\x00\x03')
+(1, 2, 3)
+
+calcsize('>bhl')
+7
+
+for more info : look at python struct docs
