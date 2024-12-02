@@ -31,7 +31,15 @@ When it comes to text, there are two things that is done
 There are default fonts in OS or user provided ones that the OS must use to map numbers to characters and render it.
 
 -----------------------------------------------------
-How does font rendering actually work??
+How does font rendering actually work in applications like Terminal Emulators??
+
+The terminal emulator first receives text in a certain encoding format (typically UTF-8) from the running process. 
+It then converts this into a series of glyphs using the selected font. (glyphs are shape, design and representation of a character).
+Terminal emulators rely on font files, such as TrueType (TTF) or OpenType (OTF) fonts, which contain the shapes (glyphs) for each character. 
+These font files are stored on your system and can be configured per terminal emulator.
+Terminal emulators typically use font rendering libraries to handle the display of text. The most common library for rendering fonts 
+in Linux is FreeType. FreeType is responsible for loading the font files and converting the font data into bitmap images or 
+vector glyphs that can be displayed on the screen.
 
 In general, applications such as terminals use libraries provided by the OS or a GUI toolkit to do font rendering.
 Typical font engines allow a number of modes of operation. For the simple case, an application can ask for a string of text to be drawn 
@@ -160,6 +168,58 @@ int main(void)
 
     return EXIT_SUCCESS;
 }
+
+Let's write a Custom locale aware print function that uses localeconv for formatting
+
+#include <stdio.h>
+#include <locale.h>
+#include <stdlib.h>
+
+void locale_aware_print(double number) {
+    // Set locale to user's default locale
+    setlocale(LC_NUMERIC, "");
+
+    // Get locale-specific numeric formatting information
+    struct lconv *loc_info = localeconv();
+
+    // Print the thousands separator and decimal separator based on locale
+    printf("Using locale: %s\n", setlocale(LC_NUMERIC, NULL));  // Get current locale
+    printf("Thousands separator: %s\n", loc_info->thousands_sep);
+    printf("Decimal separator: %s\n", loc_info->decimal_point);
+
+    // Format and print the number with locale-specific separators
+    // We'll use the thousands separator and the decimal separator dynamically
+    char buffer[100];
+    char *ptr = buffer;
+    
+    // Convert the number to string (with a locale-aware format)
+    snprintf(ptr, sizeof(buffer), "%'f", number);  // `%f` for floating-point, with thousands separator
+
+    // Output the result
+    printf("Formatted number: %s\n", buffer);
+}
+
+int main() {
+    double number = 1234567.89;
+
+    // Call the function with the number
+    locale_aware_print(number);
+
+    return 0;
+}
+
+Example Output (assuming en_US locale):
+Using locale: en_US.UTF-8
+Thousands separator: ,
+Decimal separator: .
+Formatted number: 1,234,567.890000
+
+Example Output (assuming de_DE locale):
+Using locale: de_DE.UTF-8
+Thousands separator: .
+Decimal separator: ,
+Formatted number: 1.234.567,890000
+
 
 Locale aware functions like printf, strcoll and others use localeconv internally for formatting.
 
