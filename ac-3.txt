@@ -489,16 +489,32 @@ Here's how multibyte sequences are identified in UTF-8:
    - The subsequent bytes (continuation bytes) validate that they follow the UTF-8 rules, ensuring they are not misinterpreted as standalone characters.
 
 ### Example:
-Let's take an example of UTF-8 encoding for the character 'λ' (lambda), which is U+03BB in Unicode.
+Let's take an example of UTF-8 encoding for the character 'λ' (lambda), whose code point is U+03BB in Unicode
 
-- In binary, U+03BB is represented as `00000011 10111011`.
+UTF-8 encodes Unicode characters using 1 to 4 bytes, depending on the code point. The specific rules are:
 
-- UTF-8 encoding:
-  - U+03BB requires two bytes in UTF-8: `11000011 10111011`.
-  - The first byte `11000011` indicates it's a two-byte sequence (`110` prefix).
+    1 byte (0*******)  for code points in the range U+0000 to U+007F (ASCII characters).
+    2 bytes (110***** 10******) for code points in the range U+0080 to U+07FF.
+    3 bytes (1110**** 10****** 10******) for code points in the range U+0800 to U+FFFF.
+    4 bytes (11110*** 10****** 10****** 10******) for code points from U+10000 to U+10FFFF.
+
+[[Note: it is (U+00Eighty to U+07FF for 2 bytes and U+0Eight_Hundred to U+FFFF) for 3 bytes]]
+
+So U+03BB falls in the 2 bytes category and the UTF-8 format for 2-byte encoding is 110xxxxx 10xxxxxx
+
+1. The rule is get the Unicode code point in binary. 
+2. Drop the bits into the buckets 'x' above from the right. 
+3. Missing bits at the start can be filled with 0. 
+
+So we have U+03BB i.e 0000 0011 1011 1011 in binary 
+Drop the bits into the x above from the right
+So 110xxxxx 10xxxxxx becomes 1100 1110 1011 1011 which is 0xCE 0xBB which is the UTF-8 encoding 
+
+The UTF-8 encoding indicates the following:
+  - The first byte `11001110` indicates it's a two-byte sequence (`110` prefix).
   - The second byte `10111011` starts with `10` as a continuation byte.
 
-By examining the first byte (`11000011`), a program or parser can correctly identify that this sequence represents the character 'λ' 
+A program or parser can correctly identify that this sequence represents the character 'λ'
 in UTF-8 encoding and decode it accordingly.
 
 In summary, multibyte UTF-8 sequences are identified based on the structure of their initial byte, which indicates both 
@@ -535,7 +551,9 @@ Now let's look at how UTF-16 encoded string is interpreted.
     to encode values from 0x01-0x10 in four bits. The second code unit encodes the lower 10 bits of the scalar value, as a code unit ranging 
     from 0xDC00-0xDFFF.
 
-Now let's look at this in more detail:
+We can skip the following paragraph to the examples.. if we don't want to go into detail. 
+
+Now let's look at Handling Surrogate pairs in more detail. 
 
 **Handling Surrogate Pairs**:
 
@@ -778,6 +796,4 @@ printf("%zu", len_in_chars);  // 7
 
 Again, that’s a non-portable POSIX extension.
 And, of course, if you want to convert the other way, it’s wcstombs().
-
-
 
