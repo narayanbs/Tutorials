@@ -684,10 +684,10 @@ Python iterable and iterator protocol
 An object is iterable if it implements __iter__(self) method or __getitem__(self, index) method. The __iter__(self) method
 should return an iterator. An iterator is also iterable and needs to implement the __next__(self) method, along with the __iter__ method
 
-clients that use the iterable will first retrieve an iterator using the iter() method, then iterate through it using next() 
+clients that use the iterable will first retrieve an iterator using the iter() function, then iterate through it using next() 
 till StopIteration is raised.
 
-If __iter__ is not present then iter method looks  for __getitem__ and returns the object. next() implementation will 
+If __iter__ is not present then iter function looks  for __getitem__ and returns the object. next() implementation will 
 invoke __getitem__ with an index till it recieves an IndexError, 
 
 ex: 
@@ -761,14 +761,36 @@ for ex: We can index the instance of ExampleIterable class defined above as show
 >>> e[2]	// 6
 >>> e[3]	// IndexError
 
-Extended Iter form
--------------------
-iter() has a 2 argument form , that lets you iterate over objects that don't support the iterable protocol
-The first argument is a callable and takes zero arguments, the second argument is a sentinel value. The return 
-value is an iterator which produces values lby calling the callable argument. 
-The iterator terminates when the callable produces a value equal to the sentinel.
+--------------
+The iter function syntax has an optional argument called sentinel 
+iter(object, sentinel)
 
-ex: here the datetime is printed infinitely since the sentinel is None and the first argument will never return none
+If the first argument is a callable and takes zero arguments, the second argument acts as the sentinel value
+that stops the iteration once the returned value is the same as the sentinel. 
+
+ex: 
+
+with open("file.txt", "r") as f:
+for line in iter(lambda : f.readline().strip(), "END")
+    print(line)
+
+if file.txt has the following contents
+    ONE
+    TWO
+    THREE
+    END
+    FIVE
+    SIX
+    SEVEN
+    EIGHT
+
+the output would be
+    ONE
+    TWO
+    THREE
+
+ex:
+Here the datetime is printed infinitely since the sentinel is None and the first argument will never return none
 
     import datetime
     it = iter(datetime.datetime.now, None)
@@ -779,26 +801,18 @@ ex: here the datetime is printed infinitely since the sentinel is None and the f
     .
     infinity
 
+ex:
+l = [1,2,3,4,5]
+it = iter(l)
+for x in iter(lambda: next(it), 4):
+	print(x)
 
-    with open("file.txt", "r") as f:
-        for line in iter(lambda : f.readline().strip(), "END")
-            print(line)
+o/p: 
 
-if file.txt has the following contents
-    ONE
-    TWO
-    THREE
-    END
-    .
-    .
-    SEVEN
-    EIGHT
+1
+2
+3
 
-the output would be
-    ONE
-    TWO
-    THREE
-    
 
 Generators
 ------------
