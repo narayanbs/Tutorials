@@ -57,6 +57,19 @@ This is given to other parties, e.g. HTTPS client.
 There isn't only one extension. For example you may see certificates with either the .crt or a .pem extension..key is the private key. 
 This is accessible the key owner and no one else.
 
+
+Note: 
+The certificate and private key can be used inside nginx server block configurationj for ssl/tls
+server {
+    listen 443 ssl;
+    server_name yourdomain.com;
+
+    ssl_certificate /etc/ssl/certs/certificate.crt;
+    ssl_certificate_key /etc/ssl/private/private.key;
+    ...
+    ...
+}
+
 --------------------------------
 
 Creating a secure socket communication between a server and client in Python typically involves using the `ssl` module, 
