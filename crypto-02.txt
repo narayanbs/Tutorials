@@ -32,6 +32,25 @@ OpenSSH, GPG (GnuPG), and OpenSSL are all cryptographic tools that serve differe
   - OpenSSH and OpenSSL are often used together in securing network communications and managing cryptographic keys.
   - GPG is used independently but can be integrated with email clients, file managers, and other applications for secure communication and data encryption.
 
+## **Overlapping Functionalities**
+1. **Asymmetric Cryptography:**  
+   - Both GPG and OpenSSH use **public-key cryptography (asymmetric cryptography)**. GPG is often used for encrypting/signing data, while OpenSSH uses it for secure authentication.
+
+2. **File Encryption:**  
+   - GPG and OpenSSL can both encrypt files for confidentiality. GPG uses PGP-style asymmetric encryption, while OpenSSL can use symmetric encryption, asymmetric encryption, or combinations thereof.
+
+3. **Key Management:**  
+   - All three tools deal with cryptographic keys, though in different ways:  
+     - GPG manages keys for PGP encryption/signing.  
+     - OpenSSL is used to generate and manage SSL/TLS certificates and cryptographic keys.  
+     - OpenSSH uses keys primarily for SSH authentication and establishing secure connections.
+
+4. **Secure Communication:**  
+   - OpenSSH provides secure communication over remote shells using encryption.  
+   - OpenSSL is often used to implement encrypted communication using SSL/TLS protocols.  
+   - GPG can encrypt messages or files, although it's not designed for real-time communication.
+
+---
 In summary, these tools each serve specific cryptographic needs: OpenSSH for secure remote access, GPG for encryption and authentication, and OpenSSL as a comprehensive cryptographic library for implementing secure communication protocols and operations.
 
 
