@@ -534,6 +534,19 @@ pointer, function,
 bool -> true or false (false = 0 and anything else is true)
 char -> smallest addressable unit of memory that can contain basic character set (min size - 8 bits)
 
+static keyword
+----------------
+static is used to declare variables and functions at global scope and additionally in c++ namespace scope and class scope.
+static variables can also be declared in local scope. Static duration means that the object or variable is allocated when
+the program starts and is deallocated when the program ends. The static keyword can be used in the following situations (c and c++)
+1. when we declare a static variable/function at global scope (and or namespace scope), it specifies internal linkage. The variable
+has static duration and is initialized to zero unless otherwise specified.
+2. When we declare a static variable inside a function, it retains state in-between calls to that function.
+3. When we declare a static data member inside a class, it is shared between all instances of the class. Note: It must be defined
+at file scope before usage. 
+4. when we declare a static function inside a class, it can't access an instance member because it doesn't have the implicit "this".
+The function is also shared by all instances of the class.
+5. Members of a union cannot be static. 
 
 Type Hierarchy
 --------------
