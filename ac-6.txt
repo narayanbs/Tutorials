@@ -30,6 +30,56 @@ So which should we use? use ptrdiff_t for pointer arithmetic. when subtracting p
 use ptrdiff_t for sizes and array index. use size_t only when interacting with external interfaces where unsignedness might matter. 
 use uintptr_t for converting pointer addresses to integers (since addresses cant be negative) and during bit manipulation.
 
+Converting a pointer to integer or integer to pointer: In C pointer-to-integer and integer-to-pointer conversions are implementation-defined. 
+Rules to remember:
+1. Do not convert an integer type to a pointer type if the resulting pointer is incorrectly aligned, does not point to an entity of the referenced type,
+or is a trap representation.
+2. Do not convert a pointer type to an integer type if the result cannot be represented in the integer type.
+
+Non-Compliant ex: The size of a pointer may be greater than the size of an integer
+void f(void) {
+  char *ptr;
+  /* ... */
+  unsigned int number = (unsigned int)ptr;
+  /* ... */
+}
+
+Compliant ex: Any valid pointer to void can be converted to intptr_t or uintptr_t and back with no change in value. 
+void f(void) {
+  char *ptr;
+  /* ... */
+  uintptr_t number = (uintptr_t)ptr; 
+  /* ... */
+}
+
+Non-compliant ex:  a pointer is set directly to an integer constant, where it is unknown whether the result will be as intended:
+unsigned int *g(void) {
+  unsigned int *ptr = 0xdeadbeef;
+  /* ... */
+  return ptr;
+}
+
+Note: The integer value 0 can be converted to a pointer; it becomes the null pointer.
+
+Compliant ex:
+Any valid pointer to void can be converted to intptr_t or uintptr_t or their underlying types and back again with no change in value. 
+Use of underlying types instead of intptr_t or uintptr_t is discouraged, however, because it limits portability.
+
+#include <assert.h>
+#include <stdint.h>
+  
+void h(void) {
+  intptr_t i = (intptr_t)(void *)&i;
+  uintptr_t j = (uintptr_t)(void *)&j;
+  
+  void *ip = (void *)i;
+  void *jp = (void *)j;
+  
+  assert(ip == &i);
+  assert(jp == &j);
+}
+
+
 ##### Initialization and Assignment 
 Arrays are not assignable. 
 for ex: 
