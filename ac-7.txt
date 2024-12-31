@@ -1,0 +1,285 @@
+IO Basics
+------------
+Even though a disk is a “bunch of bits”, the reality is that no computer program can 
+actually write or read a single byte (let alone a bit) from a disk. Instead Disks are broken 
+up into sectors. Hard disk sector is nothing but a basic storage unit of the drive, which 
+can be addressed. Most physical drives have a sector size of 512 bytes (these days they are 4 KiB in size).
+
+The act of formatting a partition or a disk, is preparing it for use by initializing it with a file system. 
+When a partition or disk is formatted with a file system, the sectors in the harddisk is grouped into blocks. 
+The block size is something that can be specified when a user formats a partition using the command line parameters available.
+$ mkfs -t ext4 -b 4096 /dev/sda1
+Here we have set the block size to 4096 bytes. Block Size for Ext4 can be 1Kb to 64Kb
+These days, a common block size for ext4 is 4 KiB. Indeed, that’s the block size on my system:
+
+$ sudo blockdev --getbsz /dev/sdd1
+4096
+
+The block size you select will impact the following things
+* Maximum File Size
+* Maximum File System Size
+* Performance
+
+A linux Kernal performs all its operations on a file system using block size of the file system. 
+The main important thing to understand here is that the block size can never be smaller than the hard disk's sector size, 
+and will always be in multiple of the hard disk sector size. The linux Kernel also requires the file system block size 
+to be smaller or equal to the system page size. A common page size is 4 KiB, but it’s configurable because page size has
+performance implications.
+
+Linux system page size can be checked by using the below command.
+$ getconf PAGE_SIZE
+4096
+
+Why is this relevant here, though? Well, if you read How Linux really handle writes?, you will see that
+the default write behavior for ext4 is for the kernel to copy the file contents to an intermediary in-memory 
+location called the page cache, and then asynchronously dump the memory page to disk. 
+So, even if the file only has 14 bytes of content in it, we will dump the entire page – all 4 KiB.
+
+Please keep the fact in mind that hard disk sector is the property of the drive. Block size of file systems (that we just discussed above) 
+is a software construct, and is not to be confused with the hard disk sector.
+
+The blocks that we discussed in the previous section are further grouped together to form block groups for
+ease of access during read and writes. This is primarily done to reduce the amount of time taken while reading
+or writing large amounts of data.
+The ext file system divides the entire space of the partition to equal sized block groups (these block groups 
+are arranged one after the other in a sequential manner). 
+Each block group has 8*blocksize (in bytes) number of blocks in it. If we consider the default blocksize, 
+which is 4096 bytes, the number of blocks in blockgroup is given by 8*4096 = 32768 blocks in each group.
+
+Lets see an output of mke2fs command, that displays few of the information that we discussed till now.
+
+$ mke2fs /dev/xvdf
+mke2fs 1.42.9 (4-Feb-2014)
+Filesystem label=
+OS type: Linux
+Block size=4096 (log=2)
+Fragment size=4096 (log=2)
+Stride=0 blocks, Stripe width=0 blocks
+6553600 inodes, 26214400 blocks
+1310720 blocks (5.00%) reserved for the super user
+First data block=0
+Maximum filesystem blocks=4294967296
+800 block groups
+32768 blocks per group, 32768 fragments per group
+8192 inodes per group
+Superblock backups stored on blocks:
+    32768, 98304, 163840, 229376, 294912, 819200, 884736, 1605632, 2654208,
+    4096000, 7962624, 11239424, 20480000, 23887872
+ 
+Allocating group tables: done                            
+Writing inode tables: done                            
+Writing superblocks and filesystem accounting information: done
+
+If you see the above output, it gives you the below details:
+
+Block Size (4096 bytes)
+800 Block Groups
+32768 Blocks per group (which is 8*4096, as mentioned earlier)
+
+What is a File System Superblock?
+The most simplest definition of Superblock is that, it stores the metadata of the file system. 
+As it stores critical information about the file system, preventing corruption of superblocks is of utmost importance.
+
+You can view superblock information of an existing file system using dumpe2fs command
+$ dumpe2fs -h /dev/xvda1
+---------------------------------------------------------------------------------------------------------
+
+Each file system has a table of i-nodes for all files residing in the file system. Just like the superblock contains the 
+metadata of the file system, inode contains the metadata of the file.
+
+The i-node for each file includes the following information:
+* file type (e.g., regular file, socket, or FIFO) 
+* permissions
+* various properties of the file, including its size and timestamps relating to different types of file operations and
+* a pointer to a list of locks held on this file; 
+
+The stat system call returns the file attributes about an inode. (Infact the command ls uses stat to retrieve information on files)
+$ stat test.txt
+
+File: test.txt
+Size: 180       	Blocks: 8          IO Block: 4096   regular file
+Device: 8,2	Inode: 23226373    Links: 1
+
+Access: (0644/-rw-r--r--)  Uid: ( 1000/ phoenix)   Gid: ( 1000/ phoenix)
+Access: 2023-05-15 14:01:17.313051315 +0530
+Modify: 2023-05-15 14:01:17.313051315 +0530
+Change: 2023-05-15 14:01:17.313051315 +0530
+Birth: 2023-05-15 14:01:17.313051315 +0530
+
+Note:
+Difference between modify and change is, modify time is the time when the file contents were changed, it's called mtime. 
+change time is the time when the file inode was changed i.e things like permissions, file name, number of hard links etc.
+It is called ctime
+
+Device: 8,2 --> Major version and Minor version of the device the file is stored in. 
+You can find out the device using
+
+$ ls -l /dev/* | grep 8,    (including the comma at the end)
+.... /dev/sda2 
+
+IO Block: 4096 --> Filesystem specific IO block size is "a hint as to the 'best' unit size for I/O operations (read/write operations). 
+
+Blocks: 8 --> This is the number of 512 byte blocks allocated by the file system for test.txt 
+Why 512 byte block?? This is because of historical reasons as defined by POSIX, the size of a block used to be the size of a disk sector. 
+And stat system call still uses this as the block size. 
+In the case of test.txt, the file size is 180 bytes, but ext4 is allocating 8 blocks ie. 8 * 512 bytes = 4096 bytes for the file.
+Reason is, in linux even if we create a file with just 10 bytes, it occupies 1 block, and the default block size is 4096 bytes. 
+This allows the file to grow without internal fragmentation. So 4096 / 512 = 8. 
+
+A similar case is with the GNU ls command. It displays the block count using 1Kb block size.
+$ ls -s test.txt
+4 test.txt
+
+but when forced to comply with POSIX it uses 512-byte block size (and hence 8 blocks).
+
+$ env POSIXLY_CORRECT=1 ls -s test.txt
+8 test.txt
+---------------------------------------------------------------------------------------------------------------------
+
+Each process has its own file descriptor table, referencing a system wide file description table which references an in-memory inode table
+file descriptor table contains the file descriptors along with file descriptor flag (O_CLOEXEC) and reference to file description table
+The system wide file description table contains file offset, flags(status,creation & access mode), reference to inode object contained in 
+the i-node table. 
+The in-memory inode table contains copy of i-node for files that are accessed,  and this version of i-node 
+records a count of the open file descriptions referring to the i-node, major and minor IDs of the device 
+from which the i-node was copied and various ephemeral attributes associated with a file that are open, like file locks. 
+along with on-disk i-node persistent attributes like type, permissions, timestamps etc.
+
+-----------------------------------------------------------------------------------------------------------
+A file is created/opened using the open system call. 
+
+#include <fcntl.h>
+int fd = open(const char* path, int flags, mode_t perms);
+
+flags = Access mode flags, Creation flags and Open file status flags. If Access mode file is not specified, then
+in gcc it defaults to O_RDONLY. It is better to specify the Access mode flag explicitly. 
+mode_t is permissions that are relevant when we are creating new files.
+
+Access mode flags = O_RDONLY, O_WRONLY, O_RDWR	(can be retrieved by fcntl)
+Creation flags = O_CREAT, O_TRUNC, O_EXCL, O_TMPFILE, O_CLOEXEC ... etc (cannot be set/get by fcntl)
+status flags = O_APPEND, O_SYNC, O_ASYNC, O_NONBLOCK ... etc
+
+mode_t = S_IRUSR, S_IWUSR, S_IXUSR, S_IRGRP, S_IWGRP, S_IXGRP, S_IROTH, S_IWOTH, S_IXOTH
+
+S_IRWXU  - S_IRUSR | S_IWUSR | S_IXUSR
+S_IRWXG - S_IRGRP | S_IWGRP | S_IXGRP
+S_IRWXO - S_IROTH | S_IWOTH | S_IXOTH
+
+
+File creation flags
+--------------------
+
+O_CREAT --> If the file exists, this flag has no effect except as noted under O_EXCL below.
+Otherwise, the file shall be created; the user ID of the file shall be set to the effective user ID
+of the process; the group ID of the file shall be set to the group ID of the file's parent directory
+or to the effective group ID of the process The mode_t file access permission will be a bitwise AND
+with the complement ~ of process file mode creation mask (umask).
+
+O_EXCL --> If O_CREAT and O_EXCL are set, open() shall fail if the file exists
+
+O_TRUNC --> If the file exists and is a regular file, and the file is successfully opened with O_RDWR or O_WRONLY, 
+its length shall be truncated to 0, The result of using O_TRUNC with O_RDONLY is undefined.
+
+O_TMPFILE --> Create an unnamed temporary regular file.  The pathname argument specifies a directory; an unnamed inode will be
+              created in that directory's filesystem.  Anything written to the resulting file will be lost when the last file
+              descriptor is closed, unless the file is given a name.
+			
+      fd = open("/path/to/dir", O_TMPFILE | O_RDWR, S_IRUSR | S_IWUSR); 
+			O_TMPFILE must be specified with one of O_RDWR or O_WRONLY
+
+Note: 
+The mode argument must be supplied if O_CREAT or O_TMPFILE is specified in flags;
+If neither O_CREAT nor O_TMPFILE is specified in flags, then mode is ignored (and can thus be specified as 0, or simply omitted). 
+mode_t has no effect for O_CREAT or O_APPEND if file already exists.
+
+O_CLOEXEC - sets the FD_CLOEXEC bit i.e the close-on-exec flag.  If the FD_CLOEXEC bit is
+       set, the file descriptor will automatically be closed during a
+       successful execve(2).  (If the execve(2) fails, the file
+       descriptor is left open.)  If the FD_CLOEXEC bit is not set, the
+       file descriptor will remain open across an execve(2).
+
+Note:
+There is a creat system call -->  int creat(const char *path, mode_t mode);
+which is equivalent to open(path, O_WRONLY | O_CREAT | O_TRUNC, mode)
+
+Open file status flags
+-----------------------
+
+O_APPEND --> If set, the file offset shall be set to the end of the file prior to each write.
+if not used with O_CREAT, the file needs to exist, if used with O_CREAT, the file is created if it
+doesn't exist.
+
+O_SYNC --> write() system call will be blocked until all file data and metadata have been written to the disk
+
+O_ASYNC --> Enable signal-driven I/O: generate a signal (SIGIO by default, but this can be changed via fcntl(2)) when input
+or output becomes possible on this file descriptor
+
+O_NONBLOCK --> Enables non blocking mode 
+
+---------------------------------------
+
+fcntl() function is defined in the <fcntl.h> header file
+
+The fcntl() function can be used for five different purposes, each purpose defined by an integer constant set as its second argument. 
+The five purposes are 
+1. duplicating an existing descriptor; 
+2. getting or setting file descriptor flags; 
+3. getting or setting file status flags; 
+4. getting or setting asynchronous I/O ownership; and, 
+5. getting or setting record locks.
+
+
+The F_DUPFD command value duplicates the file descriptor that is the first argument to the fcntl() function. 
+The new file descriptor is the return value of the function. It is the lowest numbered descriptor that is not open. 
+However, we can also specify a third numeric argument to fcntl() that defines the floor value for assigning to a file descriptor, 
+so that the file descriptor value will be no less than the number specified.
+
+The F_GETFD and F_SETFD manipulate the flags associated with a file descriptor. currently there is only one flag FD_CLOEXEC.
+fcntl(fd, F_GETFD) and fcntl(fd, F_SETFD)
+
+The F_GETFL command specifier returns the file status flags as the value of the function. These are the same file status flags used with the open() function. 
+In addition we can also check the access modes. 
+
+The F_SETFL command macro sets the file status flags to the value of the third argument. We can use logical OR to combine the bit values of 
+two separate sets of flags; likewise we can use logical AND to remove the bit values from sets of flags.
+The only file status flags that can be changed with fcntl() are O_APPEND, O_NONBLOCK, O_SYNC and O_ASYNC.
+
+---------------------------------------------------
+C file creation mode and system calls
+
+#include <stdio.h>
+FILE *fopen(const char* pathname, const char* mode);
+
+mode --> 
+
+       r      Open text file for reading.  The stream is positioned at
+              the beginning of the file. i.e open(pathname, O_RDONLY);
+
+       r+     Open for reading and writing.  The stream is positioned at
+              the beginning of the file. i.e open(pathname, O_RDWR);
+
+       w      Truncate file to zero length or create text file for
+              writing.  The stream is positioned at the beginning of the
+              file. i.e open(pathname, O_CREAT | O_TRUNC | O_WRONLY, 0666);
+
+       w+     Open for reading and writing.  The file is created if it
+              does not exist, otherwise it is truncated.  The stream is
+              positioned at the beginning of the file. i.e open(pathname, O_CREAT | O_TRUNC | O_RDWR, 0666);
+
+       a      Open for appending (writing at end of file).  The file is
+              created if it does not exist.  The stream is positioned at
+              the end of the file. i.e open(pathname, O_CREAT | O_APPEND | O_WRONLY, 0666);
+
+       a+     Open for reading and appending (writing at end of file).
+              The file is created if it does not exist.  Output is
+              always appended to the end of the file.  POSIX is silent
+              on what the initial read position is when using this mode.
+              For glibc, the initial file position for reading is at the
+              beginning of the file, but for Android/BSD/MacOS, the
+              initial file position for reading is at the end of the
+              file. i.e open(pathname, O_CREAT | O_APPEND | O_RDWR, 0666);
+
+
+Any created file will have the mode 0666 -->  S_IRUSR | S_IWUSR | S_IRGRP |
+       S_IWGRP | S_IROTH | S_IWOTH  as modified by the process's
+       umask value
