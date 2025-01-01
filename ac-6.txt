@@ -567,6 +567,41 @@ Current value = 0b00000000 00000000 00000000 01111000  (still 120 in decimal)
 Let's shift by 5, The result would be 
 value = 0b00000000 00000000 00001111 00000000  (which is 3840 in decimal)
 
+-----------------------------------------------------------
+execlp 
+The execlp function is part of the POSIX standard and is used in C and C++ programming to execute a program. 
+It is a variant of the exec family of functions that replaces the current process image with a new process image. 
+The execlp function specifically searches for the program in the directories listed in the PATH environment variable
+
+int execlp(const char *file, const char *arg, ..., (char *) NULL);
+
+
+ìs a variable argument function. It takes 2 const char *. The rest of the arguments, if any, are the additional arguments
+to hand over to program we want to run - also char * - all these are C strings (and the last argument must be a NULL pointer)
+
+So, the file argument is the path name of an executable file to be executed. arg is the string we want to appear as argv[0] in the
+executable. By convention, argv[0] is just the file name of the executable, normally it's set to the same as file.
+
+example:
+
+#include <stdio.h>
+#include <unistd.h>
+
+int main() {
+    // Execute the "ls" command with the argument "-l"
+    execlp("ls", "ls", "-l", NULL);
+    
+    // If execlp fails, print an error message
+    perror("execlp failed");
+    return 1;
+}
+
+"ls": The command to execute (it searches for ls in directories listed in PATH).
+"ls": The first argument to ls (this is typically the program name, so it's passed as the first argument).
+"-l": An additional argument for the ls command to list files in long format.
+NULL: Marks the end of the argument list.
+
+
 -----------------------------------------------------------------------------------------------------
 -----------------------------------------------------------------------------------------------------
 -----------------------------------------------------------------------------------------------------
