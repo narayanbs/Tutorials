@@ -205,9 +205,9 @@ which is equivalent to open(path, O_WRONLY | O_CREAT | O_TRUNC, mode)
 Open file status flags
 -----------------------
 
-O_APPEND --> If set, the file offset shall be set to the end of the file prior to each write.
+O_APPEND --> If set, the file offset shall be set to the end of the file prior to each write. It is like lseek(SEEK_END) before write. 
 if not used with O_CREAT, the file needs to exist, if used with O_CREAT, the file is created if it
-doesn't exist.
+doesn't exist. O_APPEND is used with O_WRONLY or O_RDWR. Using O_APPEND with O_RDONLY is illogical. 
 
 O_SYNC --> write() system call will be blocked until all file data and metadata have been written to the disk
 
