@@ -153,7 +153,7 @@ int fd = open(const char* path, int flags, mode_t perms);
 
 flags = Access mode flags, Creation flags and Open file status flags. If Access mode file is not specified, then
 in gcc it defaults to O_RDONLY. It is better to specify the Access mode flag explicitly. 
-mode_t is permissions that are relevant when we are creating new files.
+mode_t is permissions that are relevant when we are creating new files. If O_CREAT is not used, mode_t is ignored.
 
 Access mode flags = O_RDONLY, O_WRONLY, O_RDWR	(can be retrieved by fcntl)
 Creation flags = O_CREAT, O_TRUNC, O_EXCL, O_TMPFILE, O_CLOEXEC ... etc (cannot be set/get by fcntl)
