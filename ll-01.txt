@@ -146,8 +146,8 @@ The compilation step includes an extra directive as shown below.
 $ gcc -c -fPIC add.c -o add.o
 $ gcc -c -fPIC subtract.c -o subtract.o
 
-Where
-	-fPIC: Generates position-independent code, necessary for shared libraries.
+Where -fPIC: Generates position-independent code, necessary for shared libraries. 
+Note: shared libraries can be loaded anywhere, so we are instructing compiler to generate position independent code
 
 Now create the dynamic library 'libmath.so' from the compiled object files
 
