@@ -25,11 +25,14 @@ The dynamic linker performs several tasks:
  
 In other words, the interpreter specified by the PT_INTERP entry in the Program Header Table manages the shared libraries at run-time on behalf of the executable.
 
-The dynamic linker is by default set to /usr/lib64/ld-linux-x86-64.so.2 by gcc. We can check its presence using the readelf command:
+The dynamic linker is by default set to /usr/lib64/ld-linux-x86-64.so.2 by gcc. 
+Note: 
+So to recap ld is the static linker and ld-linux-x86-64.so.2 is the dynamic linker.
+
+We can check the presence of the dynamic linker using the readelf command:
 ```
 $ readelf -l /usr/bin/ls | head -20
 ```
-
 
 ```
 Elf file type is DYN (Shared object file)
