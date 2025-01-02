@@ -80,6 +80,64 @@ Output
 	Addition: 15
 	Subtraction: 5
 
+
+Note: In the above case, even though we use a static library libnath.a, during linking the C standard library (libc) is dynamically linked by default. 
+You can check the dynamically loaded shared libraries using ldd command.
+$ ldd ./main
+
+If we want to make the entire program statically linked, including the C standard library. The we use the -static flag during the linking 
+phase as shown below.
+
+Static Executable
+---------------------
+Creating a static executable using GCC involves linking all necessary libraries statically into the executable file itself, 
+instead of relying on dynamic linking to external libraries. This can be useful for creating self-contained executables 
+that do not depend on external library files (.so files). Here’s a step-by-step guide along with an example:
+
+Here is a sample application that uses the functions from the custom static library we created earlier 'libmath.a'
+
+// main.c
+#include <stdio.h>
+
+// Declare functions from libmath.a
+extern int add(int a, int b);
+extern int subtract(int a, int b);
+
+int main() {
+    int x = 10, y = 5;
+    printf("Addition: %d\n", add(x, y));
+    printf("Subtraction: %d\n", subtract(x, y));
+    return 0;
+}
+
+Now compile the source file into an object file
+$ gcc -c main.c -o main.o
+
+Link main.o with libmath.a and standard libraries('libc.a') 
+$ gcc -static main.o -L. -lmath -o static_main
+
+where
+	-static: Instructs GCC to link libraries statically.
+	-L.: Specifies to search for libmath.a in the current directory (.).
+	-lmath: Links against libmath.a.
+
+Running the static executable
+$ ./static_main
+Output
+	Addition: 15
+	Subtraction: 5
+
+Note:
+* When linking statically, GCC will include all necessary library code directly into the executable, resulting 
+in a larger executable file size compared to dynamically linked executables.
+* On Linux systems, even when creating a static executable, it typically still depends on libc (the C standard library), 
+albeit in a statically linked form
+* Even in a statically linked executable, libc functions are typically used for standard C operations such as memory allocation, 
+I/O operations (printf, scanf), string manipulation (strcpy, strlen), and more.
+* When you link statically, the necessary parts of libc are included in the executable itself. This means the code of libc 
+functions gets copied into your executable, reducing the dependency on external shared objects (lib*.so files).
+
+
 Create dynamic libraries
 ---------------------------
 Let's use the same source files add.c and subtract.c as shown above
@@ -154,61 +212,6 @@ $ ./main
 Output
 Addition: 15
 Subtraction: 5
-
-
-Static Executable
----------------------
-Creating a static executable using GCC involves linking all necessary libraries statically into the executable file itself, 
-instead of relying on dynamic linking to external libraries. This can be useful for creating self-contained executables 
-that do not depend on external library files (.so files). Here’s a step-by-step guide along with an example:
-
-Here is a sample application that uses the functions from the custom static library we created earlier 'libmath.a'
-
-// main.c
-#include <stdio.h>
-
-// Declare functions from libmath.a
-extern int add(int a, int b);
-extern int subtract(int a, int b);
-
-int main() {
-    int x = 10, y = 5;
-    printf("Addition: %d\n", add(x, y));
-    printf("Subtraction: %d\n", subtract(x, y));
-    return 0;
-}
-
-Now compile the source file into an object file
-$ gcc -c main.c -o main.o
-
-Link main.o with libmath.a and standard libraries('libc.a') 
-$ gcc -static main.o -L. -lmath -o static_main
-
-where
-	-static: Instructs GCC to link libraries statically.
-	-L.: Specifies to search for libmath.a in the current directory (.).
-	-lmath: Links against libmath.a.
-
-Running the static executable
-$ ./static_main
-Output
-	Addition: 15
-	Subtraction: 5
-
-Note:
-* When linking statically, GCC will include all necessary library code directly into the executable, resulting 
-in a larger executable file size compared to dynamically linked executables.
-* On Linux systems, even when creating a static executable, it typically still depends on libc (the C standard library), 
-albeit in a statically linked form
-* Even in a statically linked executable, libc functions are typically used for standard C operations such as memory allocation, 
-I/O operations (printf, scanf), string manipulation (strcpy, strlen), and more.
-* When you link statically, the necessary parts of libc are included in the executable itself. This means the code of libc 
-functions gets copied into your executable, reducing the dependency on external shared objects (lib*.so files).
-* It is possible to create fully static executables that have no external dependencies at runtime, including libc. 
-However, achieving this can be challenging due to potential dependencies on system calls and other low-level operations 
-provided by the kernel and libc. Some specialized tools and techniques may be needed to create such fully static executables, 
-often involving custom configurations and potentially sacrificing some functionalities that rely on dynamic linking features.
-
 
 
 
