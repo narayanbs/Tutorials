@@ -201,7 +201,7 @@ where
 	dlclose: Closes the library after usage.
 
 Compile and link the application
-$ gcc main.c -o main -ldl
+$ gcc main.c -o main -L. -lmath -ldl
 
 where
 	-ldl: Links against the dl library which provides dynamic linking support (dlopen, dlsym, etc.).
