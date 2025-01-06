@@ -207,6 +207,12 @@ leave (pthread_mutex_t *lock, sem_t *can_enter, int counter)
   pthread_mutex_unlock (unlock);
 }
 
+In the above code, concurrent threads of type A invoke enter, the first thread will wait and decrement (lock) the semaphore, thus allowing 
+other threads of the same type to execute concurrently. Now if concurrent threads of type B tries to invoke, it needs to wait till
+the last thread of type A, increments (unlocks) the semaphore. 
+
+We can use the following code, when we have threads that need to be executing concurrently and threads that need mutual exclusion
+
 /* Code Listing 8.6:
    Using a lightswitch in asymmetric concurrency
  */
