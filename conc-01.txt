@@ -295,41 +295,6 @@ the operating system awakes one of them.
 POSIX named semaphores are identified by names that correspond to pathnames in the file system. These files are 
 created in the /dev/shm directory. The file names are in the form of sem.name where name is the semaphore’s name.
 
-Ex: System V Semaphore
-
-#include <stdio.h>
-#include <unistd.h>
-#include <sys/sem.h>
-
-#define SEM_KEY 0x12345
-
-union semun {
-    int val;
-    struct semid_ds *buf;
-    ushort *array;
-};
-
-int main()
-{
-    union semun arg;
-
-    // Create the semaphore
-    int semid = semget(SEM_KEY, 1, IPC_CREAT | 0666);
-
-    // Initialize the semaphore
-    arg.val = 1;
-    semctl(semid, 0, SETVAL, arg);
-  
-    printf("Will sleep\n");
-    sleep(60);
-    printf("Woke up\n");
-
-    // Remove the semaphore set
-    semctl(semid, 0, IPC_RMID);
-
-    return 0;
-}
-
 Ex: Posix Named Semaphore
 
 include <stdio.h>
@@ -355,13 +320,6 @@ int main()
 
     return 0;
 }
-
-The ipcs command to get information about the active System V semaphore sets
-
-$ ipcs -s  
-
------- Semaphore Arrays --------
-keys       semid      owner      perms      nsems
 
 
 To check Posix Named Semaphores, look under /dev/shm folder
@@ -419,7 +377,50 @@ int main()
     return 0; 
 }
 
-----------------------------
+Ex: System V Semaphore
+
+#include <stdio.h>
+#include <unistd.h>
+#include <sys/sem.h>
+
+#define SEM_KEY 0x12345
+
+union semun {
+    int val;
+    struct semid_ds *buf;
+    ushort *array;
+};
+
+int main()
+{
+    union semun arg;
+
+    // Create the semaphore
+    int semid = semget(SEM_KEY, 1, IPC_CREAT | 0666);
+
+    // Initialize the semaphore
+    arg.val = 1;
+    semctl(semid, 0, SETVAL, arg);
+  
+    printf("Will sleep\n");
+    sleep(60);
+    printf("Woke up\n");
+
+    // Remove the semaphore set
+    semctl(semid, 0, IPC_RMID);
+
+    return 0;
+}
+
+The ipcs command to get information about the active System V semaphore sets
+
+$ ipcs -s  
+
+------ Semaphore Arrays --------
+keys       semid      owner      perms      nsems
+
+
+---------------------------------------------------------------
 
 Futex Implementation in Linux
 --------------------------------
