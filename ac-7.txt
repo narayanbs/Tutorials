@@ -77,7 +77,7 @@ Block Size (4096 bytes)
 32768 Blocks per group (which is 8*4096, as mentioned earlier)
 
 What is a File System Superblock?
-The most simplest definition of Superblock is that, it stores the metadata of the file system. 
+A Superblock is a data structure that stores the metadata of the file system. It is different from a block or block groups. 
 As it stores critical information about the file system, preventing corruption of superblocks is of utmost importance.
 
 You can view superblock information of an existing file system using dumpe2fs command
