@@ -257,6 +257,8 @@ mode -->
 
        r+     Open for reading and writing.  The stream is positioned at
               the beginning of the file. i.e open(pathname, O_RDWR);
+      
+        Note: for r and r+, file needs to exist
 
        w      Truncate file to zero length or create text file for
               writing.  The stream is positioned at the beginning of the
