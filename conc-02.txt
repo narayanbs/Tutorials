@@ -172,8 +172,6 @@ main (int argc, char **argv)
 
 Lightswitches
 --------------
-When providing concurrent access to a resource, it is sometimes necessary to distinguish between the type of threads that are allowed access. For instance, consider a web-based application that allows multiple people to edit a document collaboratively. Each user is assigned a separate thread for modifying the contents of the document. In addition, a separate thread is responsible for storing a backup copy automatically. Other threads might be running to check the spelling or grammar. When there are different types of threads, it may be necessary for one type of thread to lock out other types while still allowing concurrent access for the same type.
-
 The lightswitch allows the first thread of a particular type to perform some initialization as needed. The name derives 
 from the idea of a group of people entering a room; the first person to enter turns on the lights by flipping the lightswitch
 and the last person to leave turns the lights off.
