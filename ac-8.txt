@@ -1,3 +1,6 @@
+### About fork, exec, clone and wait 
+--------------------------------------
+
 fork()
 -----------
 In unix it starts new processes. The process executing the fork() call is called a parent 
@@ -348,6 +351,60 @@ resources associated with the child; if a
 wait is not performed, then the terminated child remains in a "zombie" state.
 
 ----------------------------
+# Here is an example of waitpid, where the parent waits for a change of state that is
+# the child being resumed by a signal
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <sys/types.h>
+#include <sys/wait.h>
+#include <unistd.h>
+#include <signal.h>
+
+int main() {
+    pid_t pid = fork();
+
+    if (pid == -1) {
+        perror("fork failed");
+        return 1;
+    }
+
+    if (pid == 0) {  // Child process
+        printf("Child process started, pid: %d\n", getpid());
+        sleep(10);  // Simulate some work, then exit
+        printf("Child process exiting\n");
+        exit(0);  // Exit the child process after some time
+    } else {  // Parent process
+        sleep(2);  // Let the child process run for 2 seconds
+
+        // Send SIGSTOP to the child process (stop it)
+        printf("Parent: Sending SIGSTOP to child (pid %d)\n", pid);
+        kill(pid, SIGSTOP);
+
+        // Wait for the child to stop
+        int status;
+        waitpid(pid, &status, WUNTRACED);  // WUNTRACED ensures we get status on stopped children
+        if (WIFSTOPPED(status)) {
+            printf("Parent: Child process stopped (pid %d)\n", pid);
+        }
+
+        sleep(2);  // Wait for a while before resuming the child
+
+        // Send SIGCONT to continue the child process
+        printf("Parent: Sending SIGCONT to child (pid %d)\n", pid);
+        kill(pid, SIGCONT);
+
+        // Wait for the child to terminate
+        waitpid(pid, &status, 0);
+        if (WIFEXITED(status)) {
+            printf("Parent: Child exited with status %d\n", WEXITSTATUS(status));
+        }
+    }
+
+    return 0;
+}
+
+
 # Here is an example of waitpid, where the parent waits for all the child processes to exit.
 # We use WNOHANG to make the waiting  non-blocking.
 
