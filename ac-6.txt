@@ -568,13 +568,20 @@ Let's shift by 5, The result would be
 value = 0b00000000 00000000 00001111 00000000  (which is 3840 in decimal)
 
 -----------------------------------------------------------
-execlp 
-The execlp function is part of the POSIX standard and is used in C and C++ programming to execute a program. 
-It is a variant of the exec family of functions that replaces the current process image with a new process image. 
-The execlp function specifically searches for the program in the directories listed in the PATH environment variable
+execve and execlp:
+
+Both these functions are part of the POSIX standard and is used in C and C++ programming to execute a program. 
+They replace the current process image with a new process image. 
+execve demands the complete file path, where as the execlp function specifically searches for the program in the directories
+listed in the PATH environment variable
+
+int execve(const char *pathname, const char *arg[], const char *envp[]);
+execve() executes the program referred to by pathname. 
+argv is an array of pointers to strings passed to the new program as its command-line arguments. The array must be 
+terminated by a null pointer.
+envp is an array of pointers to strings passed to the new program as its environment, also terminated by a null pointer.
 
 int execlp(const char *file, const char *arg, ..., (char *) NULL);
-
 
 ìs a variable argument function. It takes 2 const char *. The rest of the arguments, if any, are the additional arguments
 to hand over to program we want to run - also char * - all these are C strings (and the last argument must be a NULL pointer)
