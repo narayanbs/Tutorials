@@ -1,4 +1,4 @@
-### About fork, exec, clone and wait 
+### About fork, exec family, clone and wait 
 --------------------------------------
 
 fork()
@@ -98,8 +98,13 @@ exec
 The exec() system function runs a new process in the context of an existing process and 
 replaces it. This is also referred to as an overlay.
 The function doesn’t create a new process, so the PID doesn’t change. However, the 
-new process replaces the data, heap, stack, and machine code of the current process. It 
-loads the new process into the current process space and executes it from the entry 
+new process replaces the text, data, heap, and stack sections of the current process. 
+The file descriptors and signal handlers of the parent will be inherited by the new process, unless 
+we use O_CLOEXEC flag in the file descriptor, which will close the file descriptor when exec is called. 
+Similarly some signals such as SIGCHLD are reset to the default behavior when exec is called.
+The environment variables of the parent process are also inherited unless overridden. 
+
+exec loads the new process into the current process space and executes it from the entry 
 point. Control never returns to the original process unless there’s an exec() error. 
 This system function belongs to a family functions that includes execl(), execlp(), 
 execv(), execvp(), execle(), and execve().
