@@ -1,6 +1,5 @@
 ### About fork, exec family, clone and wait 
 --------------------------------------
-
 fork()
 -----------
 In unix it starts new processes. The process executing the fork() call is called a parent 
@@ -194,13 +193,29 @@ int main() {
 NULL: Marks the end of the argument list.
 
 
-clone
----------
-The clone() system call is an upgraded version of the fork call. It’s powerful since it 
-creates a child process and provides more precise control over the data shared between 
-the parent and child processes. The caller of this system call can control the table of 
-file descriptors, the table of signal handlers, and whether the two processes share the 
-same address space.
+### Processes, threads, Clone system call, 
+-------------------------------------------------------------
+In linux kernel there's absolutely no difference between what userspace sees as processes (the result of fork) 
+and as threads (the result of pthread_create). Both are represented by the same data structures and scheduled similarly. 
+In kernel nomenclature this is called tasks (the main structure representing a task in the kernel is task_struct)
+In Linux, threads are just tasks that share some resources, most notably their memory space; 
+processes, on the other hand, are tasks that don't share resources. 
+
+clone system call
+-------------------
+Clone is the unifying implementation shared between processes and threads. In Linux, both processes and threads can use 
+the `clone()` system call for creation. Whatever perceived difference there is between processes and threads on Linux is 
+achieved through passing different flags to clone. 
+
+For example, in the implementation of fork(), clone() is typically called with the following flags:
+
+    CLONE_VM (false): The child gets its own memory space, not shared with the parent.
+    CLONE_PARENT: The child gets the parent as its parent (i.e., they appear to be related processes).
+    CLONE_FILES: Inherit file descriptors from the parent.
+    CLONE_SIGHAND: Inherit signal handlers.
+
+Read Articles/launching-linux-thread-and-processes-with-clone
+
 
 clone() system call allows the child process to be placed in different namespaces. With 
 the flexibility that comes with using the clone() system call, we can choose to share an 
@@ -296,7 +311,7 @@ But, when we pass in the vm argument, CLONE_VM is active and the child process s
 parent’s process memory. We can see it writing into buffer:
 
 
-
+---------------------------------------------------------------------------------------
 waiting calls --- wait(), waitpid()
 ------------------------------------
 First of all, you should know something of process behavior under Unix. When a process 
