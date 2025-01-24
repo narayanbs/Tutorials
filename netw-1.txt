@@ -465,6 +465,9 @@ Primary Network Interface:
 In a Linux system, there can be only one primary active connection to the network. As a result, only a single primary interface
 will be present. The kernel routing table will help us identify the primary interface.
 
+For example, even if we have a multiple interfaces (wifi, ethenet etc), only one is chosen for tasks such as network connection,
+routing and ip addressing. 
+
 As we already know, the primary interface is the one with the default route, which means the primary interface should be able 
 to reach the default gateway. That is to say, the kernel routing table’s gateway entry should be linked to the primary active 
 interface of the system.
