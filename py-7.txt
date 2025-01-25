@@ -139,20 +139,46 @@ String1 = "{1} {0} {2}".format('Geeks', 'For', 'Life')
 Keyword Formatting
 String1 = "{l} {f} {g}".format(g='Geeks', f='For', l='Life')
 
+f-strings 
+g = geeks
+f = for
+l = life
+String1 = f"{g} {f} {l}" 
+
+
 Formatting of Integers
+----------------------
 String1 = "{0:b}".format(16) --> 10000
 
+x = 16
+String1 = f"{x:b}" ---> 10000
+
 Formatting of Floats
+---------------------
 String1 = "{0:e}".format(165.6458) --> 1.656458e+02
+
+x = 165.6458
+String1 = f"{x:e}" ---> 1.656458e+02
 
 Rounding off Floats
 String1 = "{0:.2f}".format(1/6) --> 0.17
 
-left(<), center(^) and right(>) justification
+x = 1/6
+String1 = f"{x:.2f}" --> 0.17
 
+left(<), center(^) and right(>) justification
+----------------------------------------------
 String1 = "|{:<10}|{:^10}|{:>10}|".format('Geeks', 'for', 'Geeks') -->  |Geeks     |   for    |     Geeks|
 
+g, f, l = ("geeks", "for", "geeks")
+String1 = f"|{g:<10}|{f:^10}|{l:>10}|" -->  |Geeks     |   for    |     Geeks|
+
 String1 = "\n{0:^16} was founded in {1:<4}!".format("GeeksforGeeks", 2009) --> GeeksforGeeks   was founded in 2009 !
+
+x = "GeeksforGeeks"
+y = 2009
+String1 = f"\n{x:^16} was founded in {y:<4}!" --> GeeksforGeeks   was founded in 2009 !
+
 
 Old style formatting
 
