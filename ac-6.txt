@@ -300,6 +300,38 @@ to the target type include the following:
 * It could point to an object returned by aligned_alloc(), calloc(), malloc(), or realloc(),
 
 
+Difference between malloc, calloc and realloc
+----------------------------------------------
+Ex: 
+MAXELEMS = 4
+
+ptr = malloc(MAXELEMS * sizeof(int));
+
+ptr1 = calloc(MAXELEMS, sizeof(int));
+
+calloc() gives you a zero-initialized buffer, while malloc() leaves the memory uninitialized.
+
+realloc reallocates the given area of memory.
+Ex:
+ptr = malloc(sizeof(int));
+ptr1 = realloc(ptr, count * sizeof(int));
+
+There are 3 cases:
+1. If realloc cannot find enough space at all, it returns a null pointer, and leaves the previous region allocated.
+2. It points to the same memory. 
+3. It points to a different area of memory
+
+if (ptr1 == NULL) // case 1 
+{       
+    printf("\nExiting!!");
+    free(ptr);    // free the previous region
+    exit(0);
+} else { case 2 and 3
+  ptr = ptr1;
+}
+
+--------------------------------------------------------
+
 casting, strict aliasing, type punning rules of pointers in C
 -----------------------------------------------------------------
 If a pointer is known to be correctly aligned to the target type, then a cast to that type is permitted. 
