@@ -1,6 +1,6 @@
 Input/Output:
 -------------
-Primarily involves Reading and Writing bytes. for ex: in the case of Text IO, the bytes will be interpreted according to the character
+Primarily involves Reading and Writing bytes. for example, in the case of Text IO, the bytes will be interpreted according to the character
 encoding rules and returned back. But bottom line is, its just reading and writing bytes with the additional step of interpretation. 
 
 Linux provides two system calls for reading and writing.
