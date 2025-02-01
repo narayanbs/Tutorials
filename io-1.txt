@@ -60,6 +60,8 @@ int main() {
 
 
 
+
+
 This is the point of Buffered I/O in languages in golang. 
 Normal Reader and Writer, provide Read and Write methods, that lets you choose the size of the buffer you provide. sometimes if the buffer
 size is too less then there may be many system calls, By default bufio uses a buffer of 4096 and makes your job easier. 
@@ -134,3 +136,35 @@ We notice a single system call where the size of the buffer is 4k.
 read(3, "some random sentence to fill\nsom"..., 4096) = 116
 
 This is where buffered io helps.
+
+------------------------------------------
+
+In C programming, standard input/output streams can be buffered in different ways. 
+The buffering behavior depends on the type of stream and how it’s used.
+
+### 1. **Line Buffered Streams:**
+   - **Standard Input (`stdin`)** is **line buffered** when connected to a terminal. This means that input 
+   is buffered until a newline (`\n`) character is encountered. The data is then passed to the program.
+
+   - **Standard Output (`stdout`)** is **line buffered** when connected to a terminal. This means that output 
+   is buffered until a newline character is written, at which point the output is sent to the terminal.
+
+   - **Standard Error (`stderr`)** is **unbuffered**, meaning that it doesn't get buffered, and output is 
+   immediately written to the terminal.
+
+### 2. **Fully Buffered Streams:**
+   - Files opened for reading and writing are typically **fully buffered**. This means that data is buffered 
+   and only written to or read from the file when the buffer is full (or when you explicitly flush it).
+
+   - **Standard Output (`stdout`)** is **fully buffered** when redirected to a file or a pipe. In this case, 
+   data is buffered and written in chunks when the buffer fills up.
+
+   - **Standard Input (`stdin`)** is also fully buffered if redirected from a file.
+
+### Key Differences:
+- **Line buffered:** Buffering happens when a newline character is encountered (usually associated with terminal input/output).
+- **Fully buffered:** Buffering happens until the buffer is full (usually associated with file I/O).
+
+You can also change the buffering behavior using functions like `setbuf()` or `setvbuf()`.
+
+
