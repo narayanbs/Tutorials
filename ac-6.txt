@@ -1,5 +1,63 @@
 C language Keynotes
 ===========================
+##### Pointer and arrays
+
+Arrays can be represented as pointers in C language. In fact the name of the array is a pointer to the 
+first element of the array.
+for example, 
+  int arr[] = {1,2,3},  Here arr is equal to &arr[0];
+  arr[1] is nothing but *(arr + 1), similarly arr[2] is *(arr + 2)
+
+Likewise for a multi-dimensional array 
+  int arr[][3] = { {1,2,3}, {4,5,6}  }; // here arr is equal to &arr[0];
+  arr[1][2] is nothing but *(arr[1] + 2) or *(*(arr + 1) + 2)
+
+Example:
+
+int main(void) {
+  int arr[] = {1, 2, 3};
+  printf("%s\n", (arr == &arr[0]) ? "true" : "False");
+  printf("%s\n", (arr[1] == *(arr + 1)) ? "true" : "False");
+
+  int brr[][3] = {{1, 2, 3}, {4, 5, 6}};
+  printf("%s\n", (brr == &brr[0]) ? "true" : "False");
+  printf("%s\n", (brr[1][2] == *(*(brr + 1) + 2)) ? "true" : "False");
+  return 0;
+}
+
+Arrays cannot be directly passed as parameters to a C function. The Arrays decay into pointer to 
+the first element when it is passed as a parameter to the function.
+
+int arr[] decays to int *arr; 
+
+int arr[][3] decays into pointer to the first element, which in this case is an array of 3 elements.
+so it decays to int (*)[3], (not int **arr)
+
+// functions with different array passing syntax
+void function1(int array[])
+{
+  printf("The second element is %d\n", array[1]);
+}
+
+void function2(int* array)
+{
+  printf("The second element is %d\n", array[1]);
+}
+
+void function3(int array[][3]) {
+  printf("The second element is %d\n", (*array)[1]);
+}
+
+int main() {
+    int arr[] = {1,2,3};
+    function1(arr);
+    function2(arr);
+
+    int brr[][3] = { {1,2,3}, {4,5,6}};
+    function3(brr);
+  }
+
+
 ##### Note about intptr_t, uintptr_t, ptrdiff_t and size_t 
 
 intptr_t and uintptr_t can can hold pointer values meaning they are large enough to hold all the addresses.
