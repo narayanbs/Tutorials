@@ -2,15 +2,17 @@ C language Keynotes
 ===========================
 ##### Pointer and arrays
 
+A pointer stores the address of a variable. An array is a contiguos sequence of elements. 
 Arrays can be represented as pointers in C language. In fact the name of the array is a pointer to the 
-first element of the array.
+first element of the array i.e the name represents the address of the first element in the array. 
 for example, 
   int arr[] = {1,2,3},  Here arr is equal to &arr[0];
   arr[1] is nothing but *(arr + 1), similarly arr[2] is *(arr + 2)
 
+
 Likewise for a multi-dimensional array 
   int arr[][3] = { {1,2,3}, {4,5,6}  }; // here arr is equal to &arr[0];
-  arr[1][2] is nothing but *(arr[1] + 2) or *(*(arr + 1) + 2)
+  arr[1][2] is nothing but *(*(arr + 1) + 2) or *(arr[1] + 2) 
 
 Example:
 
@@ -28,10 +30,10 @@ int main(void) {
 Arrays cannot be directly passed as parameters to a C function. The Arrays decay into pointer to 
 the first element when it is passed as a parameter to the function.
 
-int arr[] decays to int *arr; 
+int arr[] decays to a pointer to the first element i.e pointer to an int which is  int *arr; 
 
 int arr[][3] decays into pointer to the first element, which in this case is an array of 3 elements.
-so it decays to int (*)[3], (not int **arr)
+so it decays to pointer to an array which is int (*)[3], (not int **arr)
 
 // functions with different array passing syntax
 void function1(int array[])
