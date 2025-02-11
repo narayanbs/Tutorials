@@ -1,3 +1,40 @@
+Services and Protocols
+-------------------------
+Internet Services are defined on top of transport protocols. services are defined in /etc/services file.  
+It is a mapping b/w textual names and their assigned port number / transport protocol.
+Every networking program should look into this file to get the port number (and protocol) for its service.
+Port numbers are assigned by the IANA.
+
+$ cat /etc/servicese
+
+ssh		22/tcp				# SSH Remote Login Protocol
+telnet		23/tcp
+smtp		25/tcp		mail
+http		80/tcp		www
+fsp		21/udp		fspd
+and so on.
+
+In python we can use socket.getservbyname("http") to get the port number 80, likewise
+we can use socket.getservbyport(80) to get the name http.
+
+Protocols are defined in /etc/protocols file. The internet services are built on top
+of these protocols. 
+
+$ cat /etc/protocols
+
+ip	0	IP		# internet protocol, pseudo protocol number
+icmp	1	ICMP		# internet control message protocol
+igmp	2	IGMP		# Internet Group Management
+tcp	6	TCP		# transmission control protocol
+udp	17	UDP		# user datagram protocol
+
+and so on
+
+In python we can use socket.getprotobyname("tcp") to get the associated protocol number
+
+-----------------------------------------------------------------------------------------
+-----------------------------------------------------------------------------------------
+
 Things to remember while developing a web server.
 
 * create and open a TCP socket
