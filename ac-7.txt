@@ -3,7 +3,17 @@ IO Basics
 Even though a disk is a “bunch of bits”, the reality is that no computer program can 
 actually write or read a single byte (let alone a bit) from a disk. Instead Disks are broken 
 up into sectors. Hard disk sector is nothing but a basic storage unit of the drive, which 
-can be addressed. Most physical drives have a sector size of 512 bytes (these days they are 4 KiB in size).
+can be addressed. Historically the sector size was 512 bytes. Most storage devices these days use
+4k physical sector size. But they maintain 512-logical sectors for compatiblity. This is known as
+(512e) 512 emulation. 
+We can query the sector size of a disk as follows.
+
+$ fdisk -l /dev/sda
+Disk /dev/sda: 465.76 GiB, 500107862016 bytes, 976773168 sectors
+Disk model: CT500MX500SSD1  
+Units: sectors of 1 * 512 = 512 bytes
+Sector size (logical/physical): 512 bytes / 4096 bytes
+
 
 The act of formatting a partition or a disk, is preparing it for use by initializing it with a file system. 
 When a partition or disk is formatted with a file system, the sectors in the harddisk is grouped into blocks. 
