@@ -10,12 +10,20 @@ When a partition or disk is formatted with a file system, the sectors in the har
 The block size is something that can be specified when a user formats a partition using the command line parameters available.
 $ mkfs -t ext4 -b 4096 /dev/sda1
 Here we have set the block size to 4096 bytes. Block Size for Ext4 can be 1Kb to 64Kb
-These days, a common block size for ext4 is 4 KiB. Indeed, that’s the block size on my system:
 
-$ sudo blockdev --getbsz /dev/sdd1
+We can query the block size as shown below. On my system 
+
+For vfat (/boot/efi)
+
+$ sudo blockdev --getbsz /dev/sda1 
+512
+
+For ext4 (/) 
+
+$ sudo blockdev --getbsz /dev/sda2
 4096
 
-The block size you select will impact the following things
+The block size will impact the following things
 * Maximum File Size
 * Maximum File System Size
 * Performance
