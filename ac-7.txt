@@ -65,8 +65,9 @@ Each block group has 8*blocksize (in bytes) number of blocks in it. If we consid
 which is 4096 bytes, the number of blocks in blockgroup is given by 8*4096 = 32768 blocks in each group.
 
 Lets see an output of mke2fs command, that displays few of the information that we discussed till now.
+Note: This command will erase all existing data in current partition, so use it with caution
 
-$ mke2fs /dev/xvdf
+$ mke2fs /dev/sda1
 mke2fs 1.42.9 (4-Feb-2014)
 Filesystem label=
 OS type: Linux
