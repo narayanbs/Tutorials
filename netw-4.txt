@@ -1,3 +1,18 @@
+Sockets
+-------------------------------------------------
+Sockets are the means by which programs on Linux way talk to the internet. The socket system call 
+creates a file descriptor that can be written to and read from.
+There are two main types of sockets, stream sockets, and datagram sockets. These are both 
+transport-level protocols that follow the network-level IP protocol.
+If you are interested in writing your own implementations of one of these protocols, or need to
+use a different transport-layer protocol, you’ll need to use raw sockets. Raw sockets operate
+at the network OSI level, which means that transport-level headers such as TCP or UDP headers will 
+not be automatically decoded. If you are implementing a a transport-level protocol, 
+you’ll have to write code to decode and encode the transport-level headers in your application.
+
+For more information see Articles/Networking/Raw_Sockets folder
+
+
 Summary: Basics, Transport Layer: TCP/UDP
 =============================================
 
