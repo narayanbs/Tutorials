@@ -1,5 +1,14 @@
 C language Keynotes
 ===========================
+##### Pointers
+Pointers store addresses. for ex: int* p, here p stores the address of a variable of type int. 
+char* c, here c stores the address of a variable of type char. 
+An int takes 4 bytes, so p + 1 will be an address 4 bytes from p.
+c takes 1 byte, so c + 1 will be an address 1 byte from c. 
+
+In c language, a byte buffer is declared as unsigned char* buf;
+buf represents the address of a variable that can have values b/w 0 and 255. Hence unsigned char *
+
 ##### Pointer and arrays
 
 A pointer stores the address of a variable. An array is a contiguos sequence of elements. 
