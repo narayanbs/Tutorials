@@ -157,7 +157,7 @@ While getElementsByName() and querySelectorAll() return a NodeList, getElementBy
 -----------------------
 	Creation 
 -----------------------
-To create DOM nodes, there are two methods: 
+To create an element we can use
 
 document.createElement(tag) -- Creates a new element node with the given tag:
 ex:
@@ -165,6 +165,8 @@ ex:
 	div.className = "alert";
 	div.innerHTML = "<strong>Hi there!</strong> You've read an important message.";
 	
+To create other DOM nodes, these are the methods: 
+
 document.createTextNode(text) -- Creates a new text node with the given text: (Rarely used)
 	let textNode = document.createTextNode('Here I am');
 document.createAttribute()
@@ -174,7 +176,7 @@ document.createProcessingInstruction..
 
 
 --------------------------
- 	Add Content
+ 	Add and Retrieve Content
 -------------------------- 		
 
 innerHTML – get and set the HTML content of an element. We can also modify it. It's only valid for element nodes.

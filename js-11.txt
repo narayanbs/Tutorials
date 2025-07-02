@@ -257,11 +257,3 @@ boxWrapper.appendChild(div);
 console.log(boxes.length); // 4
 console.log(document.querySelectorAll(".box").length); // 5
 
-
-
-
-
-
-
-
-
