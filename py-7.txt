@@ -128,6 +128,22 @@ String1 = "This is \x47\x65\x65\x6b\x73 in \x48\x45\x58"
 String1 = r"This is \x47\x65\x65\x6b\x73 in \x48\x45\x58"
 --> "This is \x47\x65\x65\x6b\x73 in \x48\x45\x58"
 
+--------------------
+Note: Point to remember
+Suppose we have a raw string and a pattern as shown below 
+s = r'foo\bar' 
+pattern = '\\'
+if we use re module to match the pattern inside the string an error is thrown. 
+The raw string becomes 'foo\\bar' in regular string and pattern becomes '\' in regular string
+So when we search using re module as below
+re.search(pattern, s)
+this becomes
+re.search('\', s) which is invalid, since '\' is an invalid regular string.  So the fix is to use 
+pattern = '\\\\'
+or
+pattern = r'\\'
+----------------------
+
 String formatting
 ------------------
 Default order
