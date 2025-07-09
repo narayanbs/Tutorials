@@ -63,6 +63,19 @@ ex: Z = -48.1928569
 Floats can be represented in scientific notation using e or E.
 X = 1e-2  Y = 4e5  Z = 2.5e105
 
+In C floats can be represented in hexadecimal format, as shown below
+0x1.4p+3 is equal to (1+4/16)*(2**3) which is 10
+
+We can't use hexadecimal literals in python, but we can convert hexadecimal values to and from floats as shown below
+
+hex_rep = 0x1.4p+3
+float.from_hex(hex_rep) --> 10.0
+
+Similarly 
+f = 10.0 
+hex_rep = f.hex()
+print(hex_rep) --> 0x1.4p+3
+
 The max and min values for float are as show below. 
 import sys
 sys.float_info --> sys.float_info(max=1.7976931348623157e+308, max_exp=1024, max_10_exp=308,
