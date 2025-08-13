@@ -660,6 +660,8 @@ Applying this to U+1F600:
 	High surrogate = 0xD800 + ((0x1F600 - 0x10000) >> 10) = 0xD83D
 	Low surrogate = 0xDC00 + ((0x1F600 - 0x10000) & 0x3FF) = 0xDE00
 
+Note: (mod x is nothing but & (x-1) in bitwise operation, hence mod 0x400 == & 0x3ff) in the above example.
+
 So, the surrogate pair for the 😀 emoji in UTF-16 is:
 	High surrogate: 0xD83D
 	Low surrogate: 0xDE00
