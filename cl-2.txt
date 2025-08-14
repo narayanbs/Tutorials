@@ -243,6 +243,8 @@ Ex:
 cat < sample.txt --> sample.txt is opened for reading using stdin, same as cat 0< sample.txt
 exec 10< sample.txt --> sample.txt is opened for reading and fd 10 is associated with it
 
+Note: exec makes the redirection apply to the current shell
+
 **Redirecting output**
 `[n]>word`
 * This causes the file denoted by word to be opened for writing on file descriptor n.
