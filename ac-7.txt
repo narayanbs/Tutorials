@@ -100,7 +100,7 @@ A Superblock is a data structure that stores the metadata of the file system. It
 As it stores critical information about the file system, preventing corruption of superblocks is of utmost importance.
 
 You can view superblock information of an existing file system using dumpe2fs command
-$ dumpe2fs -h /dev/sda1
+$ dumpe2fs -h /dev/sda2
 Filesystem volume name:   <none>
 Last mounted on:          /
 Filesystem UUID:          2abb014d-cb68-4c9e-b8e0-4d2dbde5d5b7
