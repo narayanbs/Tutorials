@@ -26,13 +26,14 @@ to respect the foreground process group's exclusive access to terminal I/O opera
 secure terminal interaction in Unix-like systems.
 
 ----------------------------------
-The `stty tostop` command is used in Unix-like operating systems to configure terminal settings related to job control.
+**`stty` Command**: The `stty` command is used to manipulate terminal settings. It stands for "set terminal options".
+
+The `stty tostop` command is to configure terminal settings related to job control.
 
  **Job Control**: In Unix systems, job control refers to the ability to manage multiple processes interacting with a terminal.
  This includes foreground and background processes, where only the foreground process group is allowed to read from or write 
  to the terminal.
 
- **`stty` Command**: The `stty` command is used to manipulate terminal settings. It stands for "set terminal options".
 
  **`tostop` Option**: When you use `stty tostop`, you are setting a terminal option that specifies the default behavior for 
  background processes attempting to write to the terminal. Specifically, it causes these processes to be automatically 
