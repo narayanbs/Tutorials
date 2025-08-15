@@ -1,7 +1,7 @@
 C language Keynotes
 ===========================
 ##### Pointers
-Pointers store addresses. for ex: int* p, here p stores the address of a variable of type int. 
+Pointers store addresses. for exmp: int* p, here p stores the address of a variable of type int. 
 char* c, here c stores the address of a variable of type char. 
 An int takes 4 bytes, so p + 1 will be an address 4 bytes from p.
 c takes 1 byte, so c + 1 will be an address 1 byte from c. 
@@ -325,9 +325,13 @@ aligned for any kind of object, meaning it should be aligned according to the
 requirements of the most restrictive data type supported by the implementation. This 
 typically means that the memory is aligned to the size of the largest data type (like 
 double or long long) that the platform supports.
-On most systems, malloc returns memory aligned to at least the size of void * or the 
-maximum alignment required by the most restrictive data type. This ensures that you can 
-safely use the allocated memory for any type without worrying about alignment issues.
+
+According to C11 standard, `The returned pointer is aligned at least to alignof(max_align_t), which is 
+the strictest alignment requirement for any scalar type supported by the implementation.`
+
+void *ptr = malloc(size);
+* ptr is aligned to at least alignof(max_align_t)
+* This means it is safe to store any object at ptr
 
 Consider the following example:
 
