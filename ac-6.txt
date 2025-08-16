@@ -681,7 +681,7 @@ value = 0b00000000 00000000 00001111 00000000  (which is 3840 in decimal)
 C datatypes and conversion revision
 --------------------------------------
 
-bool, char, short, int, long, long lonG
+bool, char, short, int, long, long long
 float, double, long double
 enum, void
 array, struct, union
