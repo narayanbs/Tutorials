@@ -683,6 +683,7 @@ C datatypes and conversion revision
 
 bool, char, short, int, long, long long
 float, double, long double
+complex
 enum, void
 array, struct, union
 pointer, function,
