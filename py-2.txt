@@ -177,11 +177,8 @@ Note: apart from the class, __new__ also needs to have the same arguments that a
 
 ex: 
 class Person:
-    def __new__(cls, name):
+    def __new__(cls, *args, **kwargs):
         print(f'Creating a new {cls.__name__} object...{name}')
-        //obj = object.__new__(cls)
-        //return obj
-        	or
         return super().__new__(cls)
 
     def __init__(self, name):
@@ -195,7 +192,7 @@ Output:
 Creating a new Person object...John
 Initializing the person object with John
 
-Note: obj.__new__(cls) only takes class parameter, where as the __new__ we define can take a cls as well as other args that we pass to constructor.
+Note: obj.__new__(cls) only takes class parameter, where as the __new__ we define can take a cls as well as positional and keyword args that we pass to constructor.
 
 We can create and initialize the object in __new__ itself as shown below, but we rarely do this. 
 
@@ -223,6 +220,17 @@ John Doe
 {'first_name': 'John', 'last_name': 'Doe', 'full_name': 'John Doe'}
 
 Note: If __new__ doesn't return an obj, we have to invoke __init__ ourselves.
+
+One usecase of overriding __new__ is to create subclasses of immutable types like str, int or tuple
+Example: subclassing str to force uppercase: Here we need to use __new__ to customize creation (since __init__ can’t modify them).
+
+class UpperStr(str):
+    def __new__(cls, value):
+        value = value.upper()
+        return super().__new__(cls, value)
+
+s = UpperStr("hello")
+print(s)  # Output: HELLO
 
 
 Properties -- Getter and Setter
