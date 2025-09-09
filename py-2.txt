@@ -192,7 +192,7 @@ Output:
 Creating a new Person object...John
 Initializing the person object with John
 
-Note: obj.__new__(cls) only takes class parameter, where as the __new__ we define can take a cls as well as positional and keyword args that we pass to constructor.
+Note: object.__new__(cls) only takes class parameter, where as the __new__ we define can take a cls as well as positional and keyword args that we pass to constructor.
 
 We can create and initialize the object in __new__ itself as shown below, but we rarely do this. 
 
