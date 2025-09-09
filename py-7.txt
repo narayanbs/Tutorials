@@ -184,6 +184,15 @@ String1 = f"{x:.2f}" --> 0.17
 
 left(<), center(^) and right(>) justification
 ----------------------------------------------
+String1 = f"{123:<10} is the number"
+print(String1) --> 123        is the number
+
+String1 = f"{123:0<10} is the number"
+print(String1) --> 1230000000 is the number
+
+String1 = f"{123:x<10} is the number"
+print(String1) --> 123xxxxxxx is the number
+
 String1 = "|{:<10}|{:^10}|{:>10}|".format('Geeks', 'for', 'Geeks') -->  |Geeks     |   for    |     Geeks|
 
 g, f, l = ("geeks", "for", "geeks")
