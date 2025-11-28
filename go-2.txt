@@ -65,20 +65,34 @@ ex:
 	a = b	 
 	b = a
 
-* Pointer specific rule - if types dont share the same underlying type, but both of them are unnamed pointers whose base have the 
-same underlying type, then they can be explicitly converted.
-In Go, an unnamed pointer type can be represented with *T , where T can be an arbitrary type. Type T is called the base type of pointer type *T .
-Named pointer is represented by a type definition. ex: type IntPtr *int 
+* Pointer specific rule - 
+1) If both are unnamed pointers, if their base have the same underlying type , they can be explicitly converted
 ex:
-	type MyInt int
+  type MyInt int64
 
-	var a *MyInt 	// a is value of unnamed pointer type	(MyInt is the base type)
-	var b *int 	// b is value of unnamed pointer type  (int is the base type)
+  var a *int64 
+  var b *MyInt 
 
-	while the base of the two pointers are different i.e (*MyInt is MyInt and *int is int), but their underlying types is int, so
+  both a and b are unnamed types (pointers) with base types int64 and MyInt respectively whose underlying type is int64. so they 
+  can be explicitly converted
+  a = (*int64)(b)
+  or
+  b = (*MyInt)(a)
 
-	a = (*MyInt)(*int)
-	b = (*int)(*MyInt)
+2) if both the pointers have the same underlying type, they can be explicitly converted
+ex:
+  type MyInt int64
+  type Ta *int64
+  type Tb *MyInt
+
+  
+ -  values of type *int64 can be implicitly converted to type Ta, and vice versa, for their underlying types are both *int64.
+ -  values of type *MyInt can be implicitly converted to type Tb, and vice versa, for their underlying types are both *MyInt.
+ -  values of type *MyInt can be explicitly converted to type *int64, and vice versa, for they are both unnamed 
+ and the underlying types of their base types are both int64.
+ -  values of type Ta can't be directly converted to type Tb, even if explicitly. However, by the just listed first three facts, 
+ a value pa of type Ta can be indirectly converted to type Tb by nesting three explicit conversions, Tb((*MyInt)((*int64)(pa))).
+
 
 
 * Interface rule - A value v with type T that implements interface I, then value can be implicitly converted to I
