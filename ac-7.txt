@@ -14,6 +14,8 @@ Disk model: CT500MX500SSD1
 Units: sectors of 1 * 512 = 512 bytes
 Sector size (logical/physical): 512 bytes / 4096 bytes
 
+The act of partitioning a disk means to divide the disk into seperate logical sections called partitions,
+each of which the OS treats as an independent disk. 
 
 The act of formatting a partition or a disk, is preparing it for use by initializing it with a file system. 
 When a partition or disk is formatted with a file system, the sectors in the harddisk is grouped into blocks. 
