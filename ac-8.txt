@@ -217,10 +217,14 @@ achieved through passing different flags to clone.
 
 For example, in the implementation of fork(), clone() is typically called with the following flags:
 
-    CLONE_VM (false): The child gets its own memory space, not shared with the parent.
     CLONE_PARENT: The child gets the parent as its parent (i.e., they appear to be related processes).
     CLONE_FILES: Inherit file descriptors from the parent.
     CLONE_SIGHAND: Inherit signal handlers.
+
+Without CLONE_VM, the child get its own memory space, not shared with the parent. Memory is duplicated using copy-on-write. 
+
+
+If CLONE_VM flag is set, the child shares the same address space. No copy on write memory seperation. 
 
 Read Articles/launching-linux-thread-and-processes-with-clone
 
