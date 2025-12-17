@@ -108,6 +108,14 @@ point. Control never returns to the original process unless there’s an exec() 
 This system function belongs to a family functions that includes execl(), execlp(), 
 execv(), execvp(), execle(), and execve().
 
+All exec*() functions eventually call execve(), which is the actual system call. The others are
+libc wrappers for convenience. 
+
+execl, execv, execle, execlp, execvp, execvpe
+              ↓
+           execve   ← kernel syscall
+
+
 ex: Let’s create the first program named exec_test1.c:
 
 	include <stdio.h>
@@ -116,7 +124,7 @@ ex: Let’s create the first program named exec_test1.c:
 
 	int main(int argc, char *argv[]) {
 	    printf("PID of exec_test1.c = %d\n", getpid());
-	    char *args[] = {"Hello", "From", "Parent", NULL};
+	    char *args[] = {"exec_test2", "Hello", "From", "Parent", NULL};
 	    execv("./exec_test2", args);
 	    printf("Back to exec_test1.c");
 	    return 0;
