@@ -201,6 +201,14 @@ int main() {
 NULL: Marks the end of the argument list.
 
 
+fork exec and exit
+-------------------
+If you `fork()` and the child does not `exec()` successfully, use `_exit()` — always, 
+exit() runs cleanup code that belongs to the parent process, which can cause bugs, duplicated output, or corruption.
+If exec succeeds, that process can use `exit()`, not a problem.
+
+
+
 ### Processes, threads, Clone system call, 
 -------------------------------------------------------------
 In linux kernel there's absolutely no difference between what userspace sees as processes (the result of fork) 
