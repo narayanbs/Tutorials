@@ -116,6 +116,7 @@ execl, execv, execle, execlp, execvp, execvpe
            execve   ← kernel syscall
 
 
+
 ex: Let’s create the first program named exec_test1.c:
 
 	include <stdio.h>
@@ -159,6 +160,13 @@ program’s process. Furthermore, the last print statement from exec_test1.c fil
 wasn’t printed. This is because executing the execv() system call replaced the 
 currently running process, and we haven’t included a way of returning back to the first 
 process.
+
+execl -- exec that requires full path and  with list of arguments
+execle -- execl along with provision for envirument variable arguments
+execlp -- exec that searches path and with list of arguments
+execv -- exec that requires full path and with vector(array of arguments)
+execvp -- exec (searches path) and with vector (array of arguments)
+execve -- core system call that requires full path, also with provision for environmental variable arguments
 
 execve and execlp:
 
