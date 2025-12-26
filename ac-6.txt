@@ -9,6 +9,9 @@ c takes 1 byte, so c + 1 will be an address 1 byte from c.
 In c language, a byte buffer is declared as unsigned char* buf;
 buf represents the address of a variable that can have values b/w 0 and 255. Hence unsigned char *
 
+Note: arithmetic on void* is not allowed. This is because void has no size, so the compiler doesn't
+know how to move the pointer. so better to cast a region of memory to char* or appropriate type. 
+
 ##### Pointer and arrays
 
 A pointer stores the address of a variable. An array is a contiguos sequence of elements. 
