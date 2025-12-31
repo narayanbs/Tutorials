@@ -117,7 +117,12 @@ $ sudo -l
 
 ------------
 In ubuntu, the su command is used to become another user during a login session. Invoked without a username,
-su defaults to becoming the superuser. The optional argument - may be used to provide an environment similar 
+su tries to switch to root by default. Since root has no usable password, login fails. 
+sudo means 'run a command as another user (root by default) but use your password not root's. 
+So when we say `sudo su` sudo runs su as root, since su is already running as root, it doesn't ask for a password.
+su swithes to root. you get a root shell (# prompt)
+
+If we use su - ,The optional argument - may be used to provide an environment similar 
 to what the user would expect had the user logged in directly.
 The - argument changes the session to the new user with his home directory as the current working directory. 
 
