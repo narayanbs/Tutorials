@@ -232,7 +232,20 @@ hello this is narayan
 ----------------------------------------------------------------------------
 
 ##### Redirection
------------------
+-----------------------------------------------------------------------------
+
+Summary:
+
+<  -- Redirect input from a file
+>  -- Redirect output to a file
+
+<& -- Redirect input from another file descriptor
+>& -- Redirect output to another file descriptor
+
+<&-  -- Closing a file descriptor
+
+
+---------------------------------
 
 **Redirecting input**
 `[n]<word`
@@ -263,16 +276,16 @@ ls >> sample.txt - sample.txt is opened (or created) for appending using stdout,
 exec 10>> sample.txt - sample.txt is opened (or created) for appending and fd 10 is associated with it
 
 **Duplicating File Descriptors**
-`[n]<&word`
+`[n]<&m
 * This is used to duplicate input file descriptors. 
-* The fd denoted by n is made a copy of the fd denoted by the word. If n is not specified then stdin (fd 0) is used.
+* The fd denoted by n is made a copy of the fd denoted by m. If n is not specified then stdin (fd 0) is used.
 
 Ex:
 `exec 10<&0` --> fd 10 is a copy of the fd 0 (stdin). So reading from 10 is similar to reading from stdin
 
-`[n]>&word`
+`[n]>&m`
 * This is used to duplicate output file descriptors.
-* The fd denoted by n is made a copy of the fd denoted by the word. If n is not specified then stdout (fd 1) is used.
+* The fd denoted by n is made a copy of the fd denoted by m. If n is not specified then stdout (fd 1) is used.
 
 Ex:
 exec 2>&1 --> fd 2 is a copy of fd 1 (stdout). So writing to 2 is similar to writing to stdout. 
