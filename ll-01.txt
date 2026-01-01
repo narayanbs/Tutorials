@@ -138,6 +138,7 @@ I/O operations (printf, scanf), string manipulation (strcpy, strlen), and more.
 functions gets copied into your executable, reducing the dependency on external shared objects (lib*.so files).
 
 
+
 Create dynamic libraries
 ---------------------------
 Let's use the same source files add.c and subtract.c as shown above
@@ -213,7 +214,17 @@ Output
 Addition: 15
 Subtraction: 5
 
+Note:
+What will happen if we have both static and dynamic library available for ex: libmath.a and libmath.so.
+The linker will look for dynamic library (.so) first, unless we tell it to prefer static. 
 
+For ex:
+$ gcc main.c -o main.o -L. -l:libmath.a 
 
+* -l:libmath.a → explicitly tell the linker to use exactly this file
+* The colon syntax -l:filename bypasses the normal libNAME.so/libNAME.a search rules.
+* Other libraries (like libc) will still be linked dynamically unless you also use -static.
 
+Pros: you can selectively link some libraries statically while keeping the system libraries dynamic
+Cons: need to know the exact library filename
 

@@ -172,168 +172,143 @@ main (int argc, char **argv)
 
 Lightswitches
 --------------
-The lightswitch allows the first thread of a particular type to perform some initialization as needed. The name derives 
-from the idea of a group of people entering a room; the first person to enter turns on the lights by flipping the lightswitch
-and the last person to leave turns the lights off.
-When providing concurrent access to a resource, it is sometimes necessary to distinguish between the type of threads that are 
-allowed access. For instance, consider a web-based application that allows multiple people to edit a document collaboratively.
-Each user is assigned a separate thread for modifying the contents of the document. In addition, a separate thread is responsible
-for storing a backup copy automatically. Other threads might be running to check the spelling or grammar. When there are different 
-types of threads, it may be necessary for one type of thread to lock out other types while still allowing concurrent access for the same type.
+The LightSwitch threading pattern is a classic concurrency control pattern used in operating systems and multithreaded programming. 
+It’s mainly used to solve readers–writers–style problems, where:
 
-/* Code Listing 8.5:
-   Functions for creating an asymmetric lightswitch
- */
+* Many threads of the same type should be allowed to enter a critical section together
+* But different types of threads must be mutually exclusive
 
-void
-enter (pthread_mutex_t *lock, sem_t *can_enter, int counter)
-{
-  pthread_mutex_lock (lock);
-  /* First thread waits to be able to enter */
-  if (++counter == 1)
-    sem_wait (can_enter);
-  pthread_mutex_unlock (lock);
+The core idea is , Think of a light switch in a room: The first person entering the room turns the light ON
+The last person leaving turns the light OFF.  People can enter and leave freely while the light is on
+
+In threading:
+The first thread of a group acquires a shared lock
+The last thread releases that lock
+
+Without LightSwitch: Every thread must individually lock and unlock a shared resource. This causes unnecessary blocking
+With LightSwitch: Threads of the same category cooperate, Locking happens once per group, not per thread
+
+Pseudo-Code
+
+class LightSwitch:
+    counter = 0
+    mutex = Semaphore(1)
+
+    lock(shared_lock):
+        mutex.wait()
+        counter += 1
+        if counter == 1:
+            shared_lock.wait()   # first one goes through but locks others as Semaphore becomes zero
+        mutex.signal()
+
+    unlock(shared_lock):
+        mutex.wait()
+        counter -= 1
+        if counter == 0:
+            shared_lock.signal() # last one unlocks
+        mutex.signal()
+
+Shared resource:
+    roomEmpty = Semaphore(1)   # writers use this
+    readSwitch = LightSwitch()
+
+Reader Thread: 
+    readSwitch.lock(roomEmpty)
+    read_data()
+    readSwitch.unlock(roomEmpty)
+
+Writer Thread:
+    roomEmpty.wait()
+    write_data()
+    roomEmpty.signal()
+
+Lightswitch Implementation in C
+---------------------------------
+
+
+#include <pthread.h>
+#include <semaphore.h>
+
+typedef struct {
+    int counter;
+    pthread_mutex_t mutex;
+} LightSwitch;
+
+void lightswitch_init(LightSwitch *ls) {
+    ls->counter = 0;
+    pthread_mutex_init(&ls->mutex, NULL);
 }
 
-void
-leave (pthread_mutex_t *lock, sem_t *can_enter, int counter)
-{
-  pthread_mutex_lock (lock);
-  /* Last thread waits to be able to enter */
-  if (--counter == 0)
-    sem_post (can_enter);
-  pthread_mutex_unlock (unlock);
-}
-
-In the above code, concurrent threads of type A invoke enter, the first thread will wait and decrement (lock) the semaphore, thus allowing 
-other threads of the same type to execute concurrently. Now if concurrent threads of type B tries to invoke, it needs to wait till
-the last thread of type A, increments (unlocks) the semaphore. 
-
-We can use the following code, when we have threads that need to be executing concurrently and threads that need mutual exclusion
-
-/* Code Listing 8.6:
-   Using a lightswitch in asymmetric concurrency
- */
-
-void *
-concurrent_thread (void * _args)
-{
-  /* Cast the args struct to get the data fields */
-  struct args *args = (struct args *) _args;
-  enter (args->lock, args->can_enter, args->counter);
-  /* Critical section for concurrent access */
-  leave (args->lock, args->can_enter, args->counter);
-  /* Do other work and exit thread */
-}
-
-void *
-mutex_thread (void * _args)
-{
-  /* Cast the args struct to get the data fields */
-  struct args *args = (struct args *) _args;
-  sem_wait (args->can_enter);
-  /* Critical section for concurrent access */
-  sem_post (args->can_enter);
-  /* Do other work and exit thread */
-}
-
-The code above works for an asymmetric approach in which one type of thread allows concurrent access while another does not. 
-The enter() and leave() functions would be used by the thread type that allows concurrency. The thread type that requires 
-mutual exclusion would work directly with the can_enter semaphore without using the lock. 
-
-The code above is not safe if all types of threads allow for concurrent access to their respective critical sections. 
-Consider the case where a thread of type A has previously entered. After that point, a thread of type B tries to enter, 
-but is blocked by the semaphore within the if statement. Note, though, that this thread still retains the lock as it gets blocked. 
-When any type A thread tries to leave, they will get blocked trying to acquire the lock. Consequently, none of the type A threads 
-can post to the semaphore according to the leave() function. The system would then enter a state of deadlock, as the type A threads 
-are waiting on the type B thread that has the lock while the type B thread is waiting on a type A thread to post to the semaphore.
-
-If the concurrency is not asymmetric—that is, multiple types of threads allow concurrent access—then the if statement would need to be modified.
-the enter() function could be modified to release the lock prior to calling sem_wait(can_enter), then re-acquiring it.
-Note that the leave() function remains unchanged, as sem_post(can_enter) would never block.
-
-/* Code Listing 8.7:
-   A lightswitch for concurrency of all thread types
- */
-
-void
-enter (pthread_mutex_t *lock, sem_t *can_enter, int counter)
-{
-  pthread_mutex_lock (lock);
-  /* First thread waits to be able to enter */ 
-  if (++counter == 1)
-    {
-      pthread_mutex_unlock (lock);
-      sem_wait (can_enter);
+void lightswitch_lock(LightSwitch *ls, sem_t *shared) {
+    pthread_mutex_lock(&ls->mutex);
+    ls->counter++;
+    if (ls->counter == 1) {
+        sem_wait(shared);   // first thread locks shared resource
     }
-  else
-    pthread_mutex_unlock (lock);
+    pthread_mutex_unlock(&ls->mutex);
 }
 
-As an alternative, the lightswitch could be modified to use condition variables as shown below. In this case, a bool variable 
-is added to indicate whether or not a new type of thread can enter its respective critical section. When the first thread of a
-new type enters the critical section, it would set can_enter to false, blocking out other threads that would try to enter until
-the last leaving thread sets can_enter back to true.
-
-/* Code Listing 8.8:
-   Adapting the lightswitch for condition variables
- */
-
-void
-enter (pthread_mutex_t *lock, pthread_cond_t *leave,
-       bool can_enter, int counter)
-{
-  pthread_mutex_lock (lock);
-  /* First thread waits to be able to enter */ 
-  if (++counter == 1)
-    {
-      while (! can_enter)
-        pthread_cond_wait (leave, lock);
-      can_enter = false;
+void lightswitch_unlock(LightSwitch *ls, sem_t *shared) {
+    pthread_mutex_lock(&ls->mutex);
+    ls->counter--;
+    if (ls->counter == 0) {
+        sem_post(shared);   // last thread unlocks shared resource
     }
-  pthread_mutex_unlock (lock);
+    pthread_mutex_unlock(&ls->mutex);
 }
 
-void
-leave (pthread_mutex_t *lock, pthread_cond_t *leave,
-       bool can_enter, int counter)
-{
-  pthread_mutex_lock (lock);
-  /* Last thread waits to be able to enter */
-  if (--counter == 0)
-    {
-      can_enter = true;
-      pthread_cond_signal (leave);
-    }
-  pthread_mutex_unlock (unlock);
+Readers–Writers using LightSwitch -----------------------------------------
+
+#include <stdio.h>
+#include <unistd.h>
+
+sem_t roomEmpty;
+LightSwitch readSwitch;
+
+void* reader(void* arg) {
+    int id = *(int*)arg;
+
+    lightswitch_lock(&readSwitch, &roomEmpty);
+    printf("Reader %d is reading\n", id);
+    sleep(1);
+    printf("Reader %d finished\n", id);
+    lightswitch_unlock(&readSwitch, &roomEmpty);
+
+    return NULL;
 }
 
-Given that the lightswitch pattern is more complex than the other patterns, it is a good design choice to encapsulate the 
-variables into a single struct that can then be passed around. Any thread needing access to the same lightswitch could be passed 
-a pointer to the struct instance in the thread arguments
-Note that this assumes the interface for enter() and leave() have been adapted to receive the struct parameter instead of the individual fields.
+void* writer(void* arg) {
+    int id = *(int*)arg;
 
-/* Code Listing 8.9:
-   A modular approach to lightswitches
- */
+    sem_wait(&roomEmpty);
+    printf("Writer %d is writing\n", id);
+    sleep(2);
+    printf("Writer %d finished\n", id);
+    sem_post(&roomEmpty);
 
-typedef struct lightswitch {
-  pthread_mutex_t *lock;
-  sem_t *can_enter;
-  int counter;
-} ls_t;
-
-void *
-lightswitch_user (void * _args)
-{
-  /* Cast the args struct to get the data fields */
-  ls_t *lightswitch = (struct args *) _args;
-  enter (lightswitch);
-  /* Critical section */
-  leave (lightswitch);
-  /* Do other work and exit thread */
+    return NULL;
 }
 
+
+main ------------------------------
+
+int main() {
+    pthread_t r1, r2, w1;
+    int id1 = 1, id2 = 2, id3 = 1;
+
+    sem_init(&roomEmpty, 0, 1);
+    lightswitch_init(&readSwitch);
+
+    pthread_create(&r1, NULL, reader, &id1);
+    pthread_create(&r2, NULL, reader, &id2);
+    pthread_create(&w1, NULL, writer, &id3);
+
+    pthread_join(r1, NULL);
+    pthread_join(r2, NULL);
+    pthread_join(w1, NULL);
+
+    return 0;
+}
 
 Synchronization Problems
 =========================
