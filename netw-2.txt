@@ -26,7 +26,52 @@ the bridge forwards the frame only to that specific segment, not to all segments
 Thus by creating separate segments for each port (and hence for each connected device), a bridge effectively reduces the 
 size of collision domains. Collisions are limited to devices connected to the same segment, rather than being possible across
 all devices on a single network segment.But bridges do not seperate broadcast domains. they typically forward broadcast traffic 
-to all segments they connect. These days bridges are considered outdated technology that was used primarily for connecting 
+to all segments they connect. 
+
+For ex: 
+
+
+           +----------------+
+           |      Bridge    |
+           |  (Layer 2)    |
+           +----------------+
+           | Port 1  Port 2  Port 3 |
+           +------------------------+
+                |        |        |
+           Segment A  Segment B  Segment C
+           (PC1, PC2)  (PC3)    (PC4, PC5)
+
+How traffic flows
+
+1) PC1 wants to send data to PC2 (same segment/port):
+* Bridge sees destination MAC is on Port 1 (same as source).
+* Bridge does NOT forward traffic to Port 2 or Port 3.
+*Traffic stays in Segment A. ✅
+
+2) PC1 wants to send data to PC3 (different segment/port):
+* Bridge sees destination MAC is on Port 2.
+* Bridge forwards frame only to Port 2, not to Port 3. ✅
+
+3) PC1 sends a broadcast (like “Who’s online?”):
+* Bridge forwards it to all ports (Port 2 & 3) because broadcasts go everywhere
+
+Note: 
+In the diagram, Segment A connects to Port 1.
+In the above diagram, you might be wondering why PC1 ans PC2 use the same port? 
+A port on a bridge can connect to another network segment, not just a single device.
+That “segment” could be:
+A hub or old-fashioned repeater with multiple devices.
+A small LAN cable that has multiple devices attached (like a switch or a group of PCs using a hub).
+
+
+Key Points
+Port = physical interface on bridge
+Segment = devices behind that port
+Collisions are limited to devices in the same segment, because bridge doesn’t flood traffic unnecessarily.
+Broadcasts still reach all segments.
+
+
+These days bridges are considered outdated technology that was used primarily for connecting 
 LAN segments and their functionality has largely been integrated into modern network switches.
 
 4. Switch - A switch is a networking device that operates at the data link layer (Layer 2) of the OSI model. 
