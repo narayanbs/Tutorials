@@ -46,14 +46,20 @@ bridges and become the primary networking technology for interconnecting network
 5. Router - Switches and bridges connect multiple devices to create a network. A Router connects multiple switches and their 
 respective networks, to form a larger network. Routers operate at the network layer of the OSI model and connect different networks. 
 They direct data packets between networks, making decisions based on IP addresses. Routers play a crucial role in determining the most 
-efficient path for data to travel between devices on different subnets.
+efficient path for data to travel between devices on different subnets. 
 
-6. Gateway: It is a device or software that serves as a "gate" between two networks, allowing them to communicate with each other. 
-It acts as a translator between different protocols, ensuring that data can flow smoothly between networks that may use different 
-communication methods. They play a crucial role in ensuring interoperability in heterogeneous network environments.
+
+6. Gateway: While routers can connect different networks that use the same protocol, a gateway can connect networks that uses 
+different protocols. It acts as a translator between different protocols, ensuring that data can flow smoothly between networks
+that may use different communication methods. For ex: a system that lets a computer network talk to a mainframe,
+an email gateway translating smtp etc. 
+They play a crucial role in ensuring interoperability in heterogeneous network environments.
 Additionally, gateways often act as security checkpoints, implementing firewalls and other security measures.
 There are various types, including application gateways, default gateways (often a router in a home network), and cloud gateways 
 that connect local networks to cloud services.
+
+Note: while routers are typically hardware devices, gateways can be either software or hardware. (For instance, they can actually be 
+a software service inside a router that do translating)
 
 7. NAT - Network Address Translation. It's a way to map multiple private addresses inside a local network to a 
 public IP address before transferring the information onto the internet. An external address, usually routable, 
