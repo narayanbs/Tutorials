@@ -385,6 +385,9 @@ The format of Here documents is:
         here-document
 delimiter
 ```
+
+The delimiter can be anything but by convention we use EOF
+
 Ex:
 Suppose we need to send a set of strings to the cat command, we could write the strings in the file and send it to cat
 so file1.txt could contain 
@@ -418,7 +421,25 @@ we can replace it with a heredoc:
 	touch log2.txt
 	EOF
 
-Here string is a kind of string that is used for input redirection from a text or variable.
+In here doc Variable expansion happens by default:
+
+name="Chunai"
+cat <<EOF
+Hello $name
+EOF
+
+output: Hello Chunai
+
+We can prevent expansion by quoting the delimiter
+
+name="Chunai"
+cat <<'EOF'
+Hello $name
+EOF
+
+
+
+Here string is a simpler way of feeding a string as stdin to a command.
 Ex:
 
 cat <<< "This is a string"
