@@ -266,7 +266,7 @@ ex:
 
 	// We have to define the _GNU_SOURCE to get access to clone(2) and the CLONE_*
 
-	define _GNU_SOURCE
+	#define _GNU_SOURCE
 	#include <sched.h>
 	#include <sys/syscall.h>
 	#include <sys/wait.h>
