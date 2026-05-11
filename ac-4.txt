@@ -200,9 +200,14 @@ to inform your system when an I/O operation has completed.
 (struct aiocb makes the connection between an async I/O request and a signal number.)
 
 A signal becomes pending when it is generated but cannot be delivered to the process immediately. 
-This usually happens if the target process is uninterruptable. Standard signals are represented in
-processes as a bitmap. It follows that they are either set or not, regardless of how often the signal 
-has been sent without being handled by the process.
+This usually happens if the target process is uninterruptable i.e either 
+
+a) signal is blocked
+b) process is already handling that signal
+c) process is in certain kernel states temporarily 
+
+Standard signals are represented in processes as a bitmap. It follows that they are either set or not, regardless of how often the signal has been sent without being handled by the process.
+for ex: say SIGINT is blocked, and the user sends SIGINT 5 times, since the bit for SIGINT is set, the process only knows that SIGINT is set, not how many times SIGINT was sent, since there is no count. 
 
 Real-time signals, on the other hand, are queued. If multiple instances of a real-time signal are sent 
 to a process, they are queued in the order of arrival. This queuing system allows for accumulating 
