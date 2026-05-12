@@ -208,7 +208,17 @@ Some commands like grep and cat can take input either from stdin or command line
 take input as command line arguments. xargs converts input from stdin into command line arguments. 
 
 Ex:
-Lets say I have 5 files on a directory and I want to do a search/replace operation from foo to bar. I’d do this:
+1) Passing arguments to echo from standard input
+$ cat | xargs echo
+one
+two 
+three
+(ctrl+d)
+
+output: one two three
+cat takes the input from stdin and passes it to xargs, that turns them into arguments for echo.
+
+2) Lets say I have 5 files on a directory and I want to do a search/replace operation from foo to bar. I’d do this:
 
 $ ls | xargs sed -i 's/foo/bar/g' 
 
@@ -225,10 +235,14 @@ Ex:
 $ find /path -type f  | xargs rm    --> takes filenames and passes it as arguments to the rm command
 
 Ex:
-from stdin: This becomes echo hello this is narayan 
+from stdin: We can actually use xargs like this to convert stdin to arguments
 $  xargs echo
-hello this is narayan
---> hello this is narayan
+hello 
+this
+is 
+narayan
+(ctrl+d)
+output--> hello this is narayan
 ----------------------------------------------------------------------------
 
 ##### Redirection
