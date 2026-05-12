@@ -17,11 +17,12 @@ The spaces serve only as seperators and hence the above string is split into 4 w
 so our command line contains a command followed by three distinct arguments.
 
 If the words are enclosed by quotes(double/single) then it is considered a single entity, word splitting is not done. 
-ex: "this is a      test" --> this is a single entity. It is not split into 4 words.  If the words are enclosed by single quote 
-then expansions and substitutions are not done. 
+ex: "this is a      test" --> this is a single entity. It is not split into 4 words.  
 
 Additionally bash performs several expansions and substitutions upon the text. These include parameter expansion, 
 pathname expansion, arithmetic expansion, brace expansion and command line substitution.
+
+Note that if the words are enclosed by single quote then expansions and substitutions are not done. 
 
 Now let us look at some expansions and substitutions. 
 
@@ -34,26 +35,39 @@ ${men} --> Jordan: command not found
 echo $men or echo ${men} --> echo Jordan   Note: It's better to use ${} for parameter expansion
 echo $USER or echo ${USER} --> echo mordor
 
+Parameters with multiple words need to be enclosed within quotes, otherwise word splitting will occur. 
+
 MYVAR="Hello World"
 echo $MYVAR
-
-MYWAR represents a single word "Hello World", since it is enclosed in quotes. 
 
 Another example, 
 test="this is                bunny", 
 echo ${test}. 
 
-${test} will involve a parameter expansion,  to this is           bunny. Now bash will split it into three words using space as a seperator. 
-
-But what about echo "${test}"
-Again parameter expansion will occur and ${test} will be expanded, but inside quotes. 
-i.e echo "this is           bunny" so the output, this is                 bunny will be printed on the screen.
+${test} will involve a parameter expansion,  to this is           bunny. 
+Now bash will split it into three words using space as a seperator. so the output will be echo this is a bunny
 
 similarly if test="this
 		is
 		bunny"
+
+this is equivalent to test="this\nis\nbunny"
+if we do echo $test 
+
 ${test} will be parameter expanded to this\nis\nbunny. Again bash splits it into three words. since \n newline is a seperator. 
 Hence we see --> this is bunny
+
+But what about echo "${test}"
+Again parameter expansion will occur and ${test} will be expanded, but inside quotes. word splitting is suppressed. 
+i.e echo "this is           bunny" so the output, this is                 bunny will be printed on the screen.
+
+Likewise for test="this\nis\nbunny" echo "$test" would print 
+
+this
+is
+bunny
+
+as test would be expanded inside quotes and word splitting would be suppressed. 
 
 another example is echo the price is $100 --> echo the price is 00, shell performs parameter expansion on $1 and substitutes an empty string.
 (In bash $1 implies first argument, hence it is substituted instead of $100 as a whole)
