@@ -157,6 +157,10 @@ $ gcc -shared -o libmath.so add.o subtract.o
 where
 	-shared: Instructs GCC to create a shared object (dynamic library).
 
+In fact we could have done all the above in a single step
+
+$ gcc -shared -fPIC -o libmath.so add.c subtract.c
+
 Now let's use the above shared library in a program
 
 // main.c
