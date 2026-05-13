@@ -322,7 +322,7 @@ Subnet masks and IP Addresses Mask
 
 Host Interfaces
 ------------
-It a compact way to describe, both a host IP address and a network that it sits in. Note: This has nothing to do with Network interfaces (NIC).
+It is a compact way to describe, both a host IP address and a network that it sits in. Note: This has nothing to do with Network interfaces (NIC).
 That is discussed at the end of this tutorial.
 
 >>> from ipaddress import IPv4Interface
@@ -355,36 +355,22 @@ True
 
 In the context of IPV6, a specific block of addresses in the fc00::/7 (specifically fc00::/8 to fdff::/8) range are considered private. 
 
-A second special address type is a link-local address, which is reachable only from within a given subnet. They are not guaranteed
-to be unique beyond their network segment. Therefore routers do not forward packets with link-local source or destination addresses.
+A second special address type is a link-local address, which are in the range 169.254.0.0 to 169.254.255.255.
+Hosts with link local address cannot cross a router. That is they are part of the same subnet communicating at Layer 2 (the Data Link layer) 
+using MAC addresses rather than IP routing. They are called as being part of the same broadcast domain. 
+Routers do not pass broadcast traffic. Therefore routers do not forward packets with link-local source or destination addresses.
 
-How are they different from private addresses? private addresses can be routed within the private network and are not routable on
-the public network. Where as link local can only communicate wihin a subnet, i.e Link local addreses can only be valid on the link,
-not beyond the link. They cannot be forwarded by routers.
+How are they different from private addresses? 
+* private addresses can be routed within the private network and are not routable on the public network. Where as link local can only 
+communicate wihin a subnet, being valid on the link,not beyond the link. They cannot be forwarded by routers.
+* private addresses are allocated administratively, by a local network administrator either statically or dynamically from a 
+central server (DHCP), a link-local address is created by the device itself.
+    IPv4: If your computer can’t find a DHCP server, it picks a random number starting with 169.254.x.x.
+    IPv6: Your device always creates one starting with fe80::. 
+    It doesn't even wait for a server; it just makes one the moment the network card turns on.
 
-Important clarification
-Subnet is an IP (Layer-3) concept, while link is a physical/logical (Layer-2) concept.
-Being in the same subnet does not automatically mean:
-Same physical network (link) Or that devices can communicate without routing
-They can communicate directly only if: They are on the same link (Layer 2) and No router separates them
-
-So 192.168.1.0/24
-All addresses from 192.168.1.0 to 192.168.1.255 , Belong to the same IP subnet (Layer 3)
-But that does NOT guarantee they are on the same link (Layer 2).
-
-
-private addresses are allocated administratively:  by a local network administrator either statically or automatically allocated by 
-a suitably configured DHCP server. But link-local addresses are allocated automatically, often using the MAC address for stateless
-configuration. when a computer has not been configured with a static-ip address and cannot find a DHCP server.
 Many routers are supplied pre-configured with DHCP service for a commonly used private address range such as 192.168.0.0/16. 
 If a LAN does not have such a router present, the PCs will use link-local addresses
-
-
-IPv4 link local addresses are assigned from the address block 169.254.0.0 to 169.254.255.255. IPv6 are assigned from the block fe80::/10
-In IPv4, link-local addresses are normally only used when no external, stateful mechanism of address configuration exists, such as the DHCP,
-or when another primary configuration method has failed. In IPv6, link-local addresses are always assigned, along with addresses of other scopes, 
-and are required for the internal functioning of various protocol components.
-Link-local addresses may be assigned manually by an administrator or by automatic operating system procedures.
 
 >>> IPv4Address("169.254.169.123").is_link_local
 True
