@@ -356,9 +356,13 @@ True
 In the context of IPV6, a specific block of addresses in the fc00::/7 (specifically fc00::/8 to fdff::/8) range are considered private. 
 
 A second special address type is a link-local address, which are in the range 169.254.0.0 to 169.254.255.255.
-Hosts with link local address cannot cross a router. That is they are part of the same subnet communicating at Layer 2 (the Data Link layer) 
-using MAC addresses rather than IP routing. They are called as being part of the same broadcast domain. 
-Routers do not pass broadcast traffic. Therefore routers do not forward packets with link-local source or destination addresses.
+A link-local address (IPv4 range 169.254.0.0/16) is a self-assigned address used for communication within a single network segment. 
+Unlike global addresses, link-local traffic is non-routable; routers are programmed to never forward packets where the source or destination 
+is a link-local address.
+Communication using these addresses occurs strictly at Layer 2 (the Data Link Layer) within a single broadcast domain. Because all devices 
+on the same link (e.g., connected to the same switch or access point) can see each other's MAC addresses, they can exchange data directly
+without requiring an IP router to facilitate the connection. Consequently, if two devices are separated by a router, they are on different 
+links and cannot communicate via link-local addresses, even if they are manually configured to be in the same IP subnet range.
 
 How are they different from private addresses? 
 * private addresses can be routed within the private network and are not routable on the public network. Where as link local can only 
