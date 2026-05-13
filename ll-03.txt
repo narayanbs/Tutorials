@@ -11,10 +11,28 @@ gcc hello.c -o hello
 
 Or we can explictly specify the compilation and linking steps by invoking the linker as shown below.
 
+on 32-bit system
+
 gcc -c hello.c
 
 ld -dynamic-linker /lib/ld-linux.so.2 /usr/lib/crt1.o  /usr/lib/crti.o /usr/lib/gcc-lib/i686/3.3.1/crtbegin.o  -L/usr/lib/gcc-lib/i686/3.3.1 
 hello.o -lgcc -lgcc_eh -lc -lgcc -lgcc_eh /usr/lib/gcc-lib/i686/3.3.1/crtend.o /usr/lib/crtn.o
+
+
+on 64-bit system 
+
+gcc -c hello.c
+
+ld \
+  -dynamic-linker /lib64/ld-linux-x86-64.so.2  /usr/lib/x86_64-linux-gnu/crt1.o  /usr/lib/x86_64-linux-gnu/crti.o \
+  /usr/lib/gcc/x86_64-linux-gnu/$(gcc -dumpversion)/crtbegin.o \
+  -L/usr/lib/gcc/x86_64-linux-gnu/$(gcc -dumpversion) \
+  -L/usr/lib/x86_64-linux-gnu \
+  hello.o \
+  -lgcc -lgcc_eh -lc \
+  /usr/lib/gcc/x86_64-linux-gnu/$(gcc -dumpversion)/crtend.o \
+  /usr/lib/x86_64-linux-gnu/crtn.o
+
 
 Similarly nasm also compiles a asm file into object file. We can then use the linker ld or gcc to create an executable from this. 
 Check online for more details, if you want to create a custom linker script. 
