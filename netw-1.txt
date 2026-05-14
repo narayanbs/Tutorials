@@ -426,11 +426,13 @@ from time to time, as they are allocated by the DHCP server in the network.
 
 Note: Zone Information in IPV6
 ------------------------------
-In the context of IPv6, "zone information" refers to the scope or zone index that is used to specify the local network scope 
+IPv6 link-local addresses are only required to be unique per interface link, not across all interfaces on a host. 
+so two interfaces may get the same link-local address on the same host. When a host has multiple interfaces (Wi-Fi, Ethernet, VPN, etc.), 
+the same link-local address can exist on each interface. In order to distinguish between different interfaces when using link-local addresses,
+IPv6 utilizes zone identifiers (also called zone indices).
 for link-local addresses. Link local addresses are typically only valid within the same network segment or link, and when they are used, 
 the system needs to know which specific network interface the address corresponds to, especially in situations where multiple 
-network interfaces exist on a device.
-In order to distinguish between different interfaces when using link-local addresses, IPv6 utilizes zone identifiers (also called zone indices).
+network interfaces exist on a device. 
 A zone identifier is a number or a string that refers to a specific network interface, ensuring that the link-local address is associated with 
 the correct interface on a multi-interface device.
 For example, a link-local IPv6 address might be written as:
