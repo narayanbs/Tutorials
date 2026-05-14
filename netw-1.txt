@@ -390,9 +390,8 @@ True
 
 Another interesting address range is the addresses for multicast. A multicast address is used to send packets to multiple hosts simultaneously.
 Unlike unicast addresses (which are used to send packets to a single host) and broadcast addresses (which are used to send packets to all hosts
-on a network segment), 
-multicast addresses are used to send packets to a specific group of hosts that have joined a multicast group. Multicast groups have 
-addresses which span ipv4 address range 224.0.0.0 through 239.255.255.255.  Each address identifies a multicast group.
+on a network segment), multicast addresses are used to send packets to a specific group of hosts that have joined a multicast group. 
+Multicast groups have addresses which span ipv4 address range 224.0.0.0 through 239.255.255.255.  Each address identifies a multicast group.
 The group members are hosts or processes that choose to join that group. Multicast messages are most commonly used over UDP. 
 If a UDP message is sent to a group, routers ensure that every host that has joined the group receives a copy. 
 These addresses are treated specially by network routers and switches,so messages sent to the group can be distributed over the Internet 
