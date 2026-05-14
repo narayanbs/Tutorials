@@ -355,14 +355,16 @@ True
 
 In the context of IPV6, a specific block of addresses in the fc00::/7 (specifically fc00::/8 to fdff::/8) range are considered private. 
 
+Private addresses are routable within private networks, but they are not globally routable on the public Internet.
+What happens is the Core Internet routers are configured to drop or ignore packets whose source or destination is in private ranges.
+The only way for private devices to access internet is through NAT. 
+
+
 A second special address type is a link-local address, which are in the range 169.254.0.0 to 169.254.255.255.
-A link-local address (IPv4 range 169.254.0.0/16) is a self-assigned address used for communication within a single network segment. 
-Unlike global addresses, link-local traffic is non-routable; routers are programmed to never forward packets where the source or destination 
-is a link-local address.
+A link-local address is an IP address that is valid only on a single local network segment (“link”) and is not routed by routers at all.
 Communication using these addresses occurs strictly at Layer 2 (the Data Link Layer) within a single broadcast domain. Because all devices 
 on the same link (e.g., connected to the same switch or access point) can see each other's MAC addresses, they can exchange data directly
-without requiring an IP router to facilitate the connection. Consequently, if two devices are separated by a router, they are on different 
-links and cannot communicate via link-local addresses, even if they are manually configured to be in the same IP subnet range.
+without requiring an IP router to facilitate the connection. link-local traffic is non-routable; routers are programmed to never forward packets where the source or destination is a link-local address.
 
 How are they different from private addresses? 
 * private addresses can be routed within the private network and are not routable on the public network. Where as link local can only 
@@ -371,12 +373,13 @@ communicate wihin a subnet, being valid on the link,not beyond the link. They ca
 central server (DHCP), a link-local address is created by the device itself.
     IPv4: If your computer can’t find a DHCP server, it picks a random number starting with 169.254.x.x.
     IPv6: Your device always creates one starting with fe80::. 
-    It doesn't even wait for a server; it just makes one the moment the network card turns on.
+It doesn't even wait for a server; it just makes one the moment the network card turns on.
 
 Many routers are supplied pre-configured with DHCP service for a commonly used private address range such as 192.168.0.0/16. 
-If a LAN does not have such a router present, the PCs will use link-local addresses
+If a LAN does not have such a router present, the PCs will use link-local addresses. So link-local address allow devices on the same LAN to communicate without any DHCP server or manual configuration.
 
->>> IPv4Address("169.254.169.123").is_link_local
+
+>> IPv4Address("169.254.169.123").is_link_local
 True
 
 Another special address is the loopback address, 127.0.0.1 
