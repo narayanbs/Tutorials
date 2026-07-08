@@ -344,9 +344,8 @@ A rune is not a character. A rune is an integer value identifying a Unicode code
 in which case 1 character is 1 rune. But a single character may span multiple runes. 
 
 for ex:
-'é́́' may be represented by the code point \u00e9 which is just a single rune, but it may also be represented by 
-e followed by 'e' and '◌́' (acute "\u0301") i.e "e\u0301" which is two runes. 
-
+'é́́' may be represented by the code point \u00e9 which is just a single rune, but it may also be represented as e + ◌́
+that is 'e' and '◌́' (acute "\u0301") i.e "e\u0301" which is two runes , Internally Rune 1: U+0065 and Rune 2: U+0301
 
 s := "é́́"
 fmt.Println(s, []rune(s))
