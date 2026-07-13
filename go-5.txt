@@ -35,9 +35,11 @@ type IPMask []byte -- The type that represents a Netmask. It identifies the netw
 CIDR Notation -- 127.0.0.1/23 		--> says that the first 23 bits represent the network portion in the IP address. 
 
 To create a netmask using the cidr notation --> func CIDRMask(ones, bits int) IPMask
-for ex: net.CIDRMask(24, 32) --> ffffff00
-IPV6 must use net.CIDRMask, for ex: net.CIDRMask(64,128)
+bits argument is restricted to (32 for IPv4 and 128 for IPv6, any other makes the function return nil)
 
+for ex: net.CIDRMask(24, 32) --> ffffff00
+
+IPV6 must use net.CIDRMask, for ex: net.CIDRMask(64,128)
 IPV4 can also use the function func IPv4Mask(a, b, c, d byte) IPMask 	--> create a mask such as 255.255.255.0
 Also, there is a method of IP that returns the default mask for IPv4: func (ip IP) DefaultMask() IPMask
 
@@ -156,7 +158,8 @@ the location, i.e., the hostname and port number, of servers for specified servi
 
 func LookupSRV(service, proto, name string) (cname string, addrs []*SRV, err error)
 
-cname, srvs, err := net.LookupSRV("xmpp-server", "tcp", "google.com")
+cname, srvs, err := net.LookupSRV("ldap", "tcp", "example.com")
+
 fmt.Printf("\ncname: %s \n\n", cname)
 
 for _, srv := range srvs {
@@ -164,14 +167,11 @@ for _, srv := range srvs {
 }
 
 o/p:
-cname: _xmpp-server._tcp.google.com. 
+cname: _ldap._tcp.google.com. 
 
-xmpp-server.l.google.com.:5269:5:0
-alt1.xmpp-server.l.google.com.:5269:20:0
-alt3.xmpp-server.l.google.com.:5269:20:0
-alt2.xmpp-server.l.google.com.:5269:20:0
-alt4.xmpp-server.l.google.com.:5269:20:0
+ldap.google.com.:389:5:0
 
+On linux you can use dig to check this, --> dig _ldap._tcp.example.com SRV
 
 The function LookupTXT returns DNS TXT records for the domain name.
 func LookupTXT(name string) ([]string, error)
@@ -204,8 +204,9 @@ It is a struct which contains an IP and zone (which may be needed for ipv6 addre
 A primary use of this type is to perform DNS lookups on IP hostnames. The zone may be needed for
 ambiguous IPv6 addresses with multiple network interfaces.
 
-The ResolveIPAddr functiom parses addr as an IP address of the form "host" or "ipv6-host%zone" and resolves the domain name on 
-the network net, which must be "ip", "ip4" or "ip6". The ResolveIPAddr function will perform a DNS lookup on a hostname and return a single IP address. How it does this depends on the operating system and its configuration. For example, a Linux/UNIX system may
+
+THe net.ResolveIPAddr converts a host name or IP string into a *net.IPAddr, performing DNS resolution if necessary. 
+How it does the dns resolution this depends on the operating system and its configuration. For example, a Linux/UNIX system may
 use /etc/resolv.conf or /etc/hosts with the order of the search set in /etc/nsswitch.conf.
 
 func ResolveIPAddr(net, addr string) (*IPAddr, error) --  Where net is one of ip, ip4, or ip6. 
