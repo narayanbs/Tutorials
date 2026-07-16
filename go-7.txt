@@ -120,5 +120,906 @@ Duration can also be represented as follows
 
 
 
+=============================================================================
+Go's `time` package is one of the most important standard libraries you'll use. It handles timestamps, time zones, formatting, parsing, durations, timers, and scheduling.
 
+This tutorial goes from beginner to advanced with practical examples.
+
+---
+
+# Go Time & Date Tutorial
+
+```go
+import (
+    "fmt"
+    "time"
+)
+```
+
+---
+
+# 1. Getting Current Time
+
+The simplest operation:
+
+```go
+package main
+
+import (
+    "fmt"
+    "time"
+)
+
+func main() {
+    now := time.Now()
+
+    fmt.Println(now)
+}
+```
+
+Example output:
+
+```
+2026-07-16 15:24:31.123456 +0530 IST
+```
+
+---
+
+# 2. Accessing Individual Components
+
+```go
+now := time.Now()
+
+fmt.Println(now.Year())
+fmt.Println(now.Month())
+fmt.Println(now.Day())
+
+fmt.Println(now.Hour())
+fmt.Println(now.Minute())
+fmt.Println(now.Second())
+
+fmt.Println(now.Nanosecond())
+
+fmt.Println(now.Weekday())
+fmt.Println(now.Location())
+```
+
+Output:
+
+```
+2026
+July
+16
+15
+24
+31
+123456789
+Thursday
+IST
+```
+
+---
+
+# 3. Creating a Specific Date
+
+Use `time.Date`.
+
+```go
+birthday := time.Date(
+    1998,
+    time.December,
+    5,
+    14,
+    30,
+    0,
+    0,
+    time.UTC,
+)
+
+fmt.Println(birthday)
+```
+
+Output:
+
+```
+1998-12-05 14:30:00 +0000 UTC
+```
+
+Parameters:
+
+```
+Year
+Month
+Day
+Hour
+Minute
+Second
+Nanoseconds
+Location
+```
+
+---
+
+# 4. Time Zones
+
+UTC:
+
+```go
+utc := time.Now().UTC()
+```
+
+Load another timezone:
+
+```go
+loc, err := time.LoadLocation("America/New_York")
+if err != nil {
+    panic(err)
+}
+
+nyTime := time.Now().In(loc)
+
+fmt.Println(nyTime)
+```
+
+Another example:
+
+```go
+tokyo, _ := time.LoadLocation("Asia/Tokyo")
+
+fmt.Println(time.Now().In(tokyo))
+```
+
+---
+
+# 5. Unix Timestamp
+
+Current Unix time:
+
+```go
+fmt.Println(time.Now().Unix())
+```
+
+Milliseconds:
+
+```go
+fmt.Println(time.Now().UnixMilli())
+```
+
+Microseconds:
+
+```go
+fmt.Println(time.Now().UnixMicro())
+```
+
+Nanoseconds:
+
+```go
+fmt.Println(time.Now().UnixNano())
+```
+
+Create time from Unix:
+
+```go
+t := time.Unix(1752670000, 0)
+
+fmt.Println(t)
+```
+
+---
+
+# 6. Formatting Time
+
+Unlike many languages, Go uses a reference date:
+
+```
+Mon Jan 2 15:04:05 MST 2006
+```
+
+Every format is created using this exact date.
+
+Example:
+
+```go
+now := time.Now()
+
+fmt.Println(now.Format("2006-01-02"))
+```
+
+Output
+
+```
+2026-07-16
+```
+
+Date + time:
+
+```go
+fmt.Println(now.Format("2006-01-02 15:04:05"))
+```
+
+Output
+
+```
+2026-07-16 15:24:31
+```
+
+12-hour clock:
+
+```go
+fmt.Println(now.Format("03:04 PM"))
+```
+
+Output
+
+```
+03:24 PM
+```
+
+Pretty format:
+
+```go
+fmt.Println(now.Format("Monday, January 2, 2006"))
+```
+
+Output
+
+```
+Thursday, July 16, 2026
+```
+
+---
+
+# 7. Common Layouts
+
+RFC3339
+
+```go
+fmt.Println(time.Now().Format(time.RFC3339))
+```
+
+Example
+
+```
+2026-07-16T15:24:31+05:30
+```
+
+RFC822
+
+```go
+fmt.Println(time.Now().Format(time.RFC822))
+```
+
+Kitchen
+
+```go
+fmt.Println(time.Now().Format(time.Kitchen))
+```
+
+Example
+
+```
+3:24PM
+```
+
+---
+
+# 8. Parsing Dates
+
+Convert string → time.
+
+```go
+date := "2026-07-16"
+
+t, err := time.Parse("2006-01-02", date)
+
+if err != nil {
+    panic(err)
+}
+
+fmt.Println(t)
+```
+
+Another example:
+
+```go
+timestamp := "2026-07-16 14:30:15"
+
+t, _ := time.Parse(
+    "2006-01-02 15:04:05",
+    timestamp,
+)
+
+fmt.Println(t)
+```
+
+---
+
+# 9. Adding Time
+
+Add hours
+
+```go
+future := time.Now().Add(3 * time.Hour)
+```
+
+Add days
+
+```go
+future := time.Now().Add(24 * time.Hour)
+```
+
+Subtract
+
+```go
+past := time.Now().Add(-48 * time.Hour)
+```
+
+---
+
+# 10. AddDate
+
+Better for months and years.
+
+```go
+today := time.Now()
+
+fmt.Println(today.AddDate(1, 0, 0))
+```
+
+One year later.
+
+Months:
+
+```go
+today.AddDate(0, 3, 0)
+```
+
+Three months later.
+
+---
+
+# 11. Comparing Times
+
+```go
+a := time.Now()
+
+b := a.Add(time.Hour)
+
+fmt.Println(a.Before(b))
+fmt.Println(a.After(b))
+fmt.Println(a.Equal(b))
+```
+
+Output
+
+```
+true
+false
+false
+```
+
+---
+
+# 12. Duration
+
+Duration represents elapsed time.
+
+```go
+d := 5 * time.Second
+
+fmt.Println(d)
+```
+
+Output
+
+```
+5s
+```
+
+Other units
+
+```go
+time.Nanosecond
+time.Microsecond
+time.Millisecond
+time.Second
+time.Minute
+time.Hour
+```
+
+Example
+
+```go
+timeout := 30 * time.Second
+```
+
+---
+
+# 13. Measuring Execution Time
+
+```go
+start := time.Now()
+
+// Do work
+
+time.Sleep(2 * time.Second)
+
+elapsed := time.Since(start)
+
+fmt.Println(elapsed)
+```
+
+Output
+
+```
+2.000234s
+```
+
+---
+
+# 14. Sleeping
+
+```go
+fmt.Println("Start")
+
+time.Sleep(3 * time.Second)
+
+fmt.Println("Done")
+```
+
+---
+
+# 15. Countdown Example
+
+```go
+for i := 5; i > 0; i-- {
+    fmt.Println(i)
+    time.Sleep(time.Second)
+}
+
+fmt.Println("Go!")
+```
+
+---
+
+# 16. Timer
+
+Runs once.
+
+```go
+timer := time.NewTimer(5 * time.Second)
+
+<-timer.C
+
+fmt.Println("Timer expired")
+```
+
+---
+
+# 17. Ticker
+
+Runs repeatedly.
+
+```go
+ticker := time.NewTicker(time.Second)
+
+defer ticker.Stop()
+
+for range ticker.C {
+    fmt.Println("Tick")
+}
+```
+
+Output
+
+```
+Tick
+Tick
+Tick
+...
+```
+
+---
+
+# 18. Time Until
+
+```go
+deadline := time.Now().Add(10 * time.Minute)
+
+fmt.Println(time.Until(deadline))
+```
+
+---
+
+# 19. Truncate
+
+Round down.
+
+```go
+now := time.Now()
+
+fmt.Println(now.Truncate(time.Minute))
+```
+
+Milliseconds
+
+```go
+now.Truncate(time.Millisecond)
+```
+
+---
+
+# 20. Round
+
+```go
+fmt.Println(time.Now().Round(time.Minute))
+```
+
+---
+
+# 21. Parsing with Time Zone
+
+```go
+t, err := time.Parse(
+    time.RFC3339,
+    "2026-07-16T10:30:00Z",
+)
+
+fmt.Println(t)
+```
+
+---
+
+# 22. Local Time
+
+```go
+fmt.Println(time.Now().Local())
+```
+
+---
+
+# 23. Difference Between Two Times
+
+```go
+start := time.Now()
+
+end := start.Add(3*time.Hour + 15*time.Minute)
+
+diff := end.Sub(start)
+
+fmt.Println(diff)
+```
+
+Output
+
+```
+3h15m0s
+```
+
+---
+
+# 24. Useful Duration Methods
+
+```go
+d := 90 * time.Minute
+
+fmt.Println(d.Hours())
+fmt.Println(d.Minutes())
+fmt.Println(d.Seconds())
+```
+
+Output
+
+```
+1.5
+90
+5400
+```
+
+---
+
+# 25. Is Zero Time?
+
+```go
+var t time.Time
+
+fmt.Println(t.IsZero())
+```
+
+Output
+
+```
+true
+```
+
+---
+
+# 26. JSON Support
+
+Go automatically marshals `time.Time` as RFC3339.
+
+```go
+type User struct {
+    CreatedAt time.Time `json:"created_at"`
+}
+```
+
+JSON
+
+```json
+{
+  "created_at":"2026-07-16T15:30:12Z"
+}
+```
+
+---
+
+# 27. Common Pitfalls
+
+### 1. Formatting
+
+Incorrect:
+
+```go
+time.Format("YYYY-MM-DD")
+```
+
+Correct:
+
+```go
+time.Format("2006-01-02")
+```
+
+Go layouts always use the reference date `2006-01-02 15:04:05`.
+
+### 2. Use `AddDate` for Calendar Arithmetic
+
+Avoid adding `30 * 24 * time.Hour` to represent "one month"; months have different lengths.
+
+```go
+t.AddDate(0, 1, 0)
+```
+
+### 3. Time Zones
+
+When parsing or displaying user-facing dates, be explicit about the location if it matters. `time.Parse` without a time zone assumes UTC for layouts without zone information.
+
+---
+
+# Cheat Sheet
+
+| Task               | Method                           |
+| ------------------ | -------------------------------- |
+| Current time       | `time.Now()`                     |
+| Create date        | `time.Date()`                    |
+| Format             | `Format()`                       |
+| Parse              | `Parse()`                        |
+| Unix timestamp     | `Unix()`                         |
+| Add duration       | `Add()`                          |
+| Add calendar date  | `AddDate()`                      |
+| Compare            | `Before()`, `After()`, `Equal()` |
+| Difference         | `Sub()`                          |
+| Time since         | `time.Since()`                   |
+| Time until         | `time.Until()`                   |
+| Sleep              | `time.Sleep()`                   |
+| Timer              | `time.NewTimer()`                |
+| Repeating interval | `time.NewTicker()`               |
+| Time zone          | `LoadLocation()`, `In()`         |
+
+## Best Practices
+
+* Store timestamps internally in UTC whenever practical, and convert to local time only when presenting data to users.
+* Prefer `AddDate` for months and years, and `Add` with `time.Duration` for fixed intervals like hours or seconds.
+* Use the predefined layouts (such as `time.RFC3339`) when exchanging timestamps with APIs.
+* Always check errors from `time.Parse` and `time.LoadLocation`, since invalid input or unknown time zones can fail.
+
+Once you're comfortable with the basics, a natural next step is learning how `context.Context` uses deadlines and timeouts, since it builds directly on Go's time APIs and is widely used in networking, databases, and concurrent programs.
+
+-------------------------------------
+
+Execution Time in Golang
+
+
+Measuring execution time in Go is straightforward using the `time` package. The most common pattern is:
+
+```go
+start := time.Now()
+
+// Code to measure
+doSomething()
+
+elapsed := time.Since(start)
+
+fmt.Println("Execution time:", elapsed)
+```
+
+Example:
+
+```go
+package main
+
+import (
+	"fmt"
+	"time"
+)
+
+func main() {
+	start := time.Now()
+
+	time.Sleep(2 * time.Second)
+
+	elapsed := time.Since(start)
+
+	fmt.Printf("Execution time: %v\n", elapsed)
+}
+```
+
+Output:
+
+```
+Execution time: 2.000123456s
+```
+
+---
+
+## Using `Sub()`
+
+`time.Since(start)` is simply a convenience for:
+
+```go
+start := time.Now()
+
+// Work
+
+end := time.Now()
+
+elapsed := end.Sub(start)
+
+fmt.Println(elapsed)
+```
+
+Equivalent to:
+
+```go
+elapsed := time.Since(start)
+```
+
+---
+
+## Getting Time in Different Units
+
+A `time.Duration` can be converted into different units:
+
+```go
+start := time.Now()
+
+time.Sleep(1500 * time.Millisecond)
+
+elapsed := time.Since(start)
+
+fmt.Printf("Nanoseconds: %d\n", elapsed.Nanoseconds())
+fmt.Printf("Microseconds: %d\n", elapsed.Microseconds())
+fmt.Printf("Milliseconds: %d\n", elapsed.Milliseconds())
+fmt.Printf("Seconds: %.3f\n", elapsed.Seconds())
+```
+
+Output:
+
+```
+Nanoseconds: 1500123456
+Microseconds: 1500123
+Milliseconds: 1500
+Seconds: 1.500
+```
+
+---
+
+## Timing a Function
+
+A common helper function:
+
+```go
+func slowFunction() {
+	time.Sleep(500 * time.Millisecond)
+}
+
+func main() {
+	start := time.Now()
+
+	slowFunction()
+
+	fmt.Println(time.Since(start))
+}
+```
+
+---
+
+## Using `defer` (Very Common)
+
+This pattern is widely used for logging how long a function takes:
+
+```go
+func measure(name string) func() {
+	start := time.Now()
+
+	return func() {
+		fmt.Printf("%s took %v\n", name, time.Since(start))
+	}
+}
+
+func processData() {
+	defer measure("processData")()
+
+	time.Sleep(750 * time.Millisecond)
+}
+
+func main() {
+	processData()
+}
+```
+
+Output:
+
+```
+processData took 750.123456ms
+```
+
+The `defer` statement ensures the timing is printed when the function returns, regardless of which return path is taken.
+
+---
+
+## Benchmarking Small Operations
+
+If you're measuring a very fast operation (microseconds or nanoseconds), run it many times to get a more stable average:
+
+```go
+start := time.Now()
+
+for i := 0; i < 1_000_000; i++ {
+	_ = i * i
+}
+
+elapsed := time.Since(start)
+
+fmt.Printf("Total: %v\n", elapsed)
+fmt.Printf("Average: %v\n", elapsed/time.Duration(1_000_000))
+```
+
+---
+
+## For Accurate Performance Testing
+
+For measuring the performance of Go functions, prefer the built-in benchmarking framework in the `testing` package instead of manual timing.
+
+```go
+func BenchmarkMyFunction(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		myFunction()
+	}
+}
+```
+
+Run it with:
+
+```bash
+go test -bench=.
+```
+
+This framework automatically:
+
+* Runs the function many times (`b.N` iterations).
+* Adjusts the number of iterations to get reliable results.
+* Reports metrics such as nanoseconds per operation (`ns/op`), and optionally memory allocations (`B/op`, `allocs/op`).
+
+### Which approach should you use?
+
+| Scenario                                | Recommended approach                        |
+| --------------------------------------- | ------------------------------------------- |
+| Measure a block of code while debugging | `start := time.Now()` + `time.Since(start)` |
+| Log how long a function takes           | `defer` + `time.Since()`                    |
+| Compare algorithm performance           | Manual timing with multiple runs            |
+| Benchmark production code               | `go test -bench`                            |
+| Measure memory allocations too          | `go test -bench -benchmem`                  |
+
+For day-to-day development, `time.Now()` and `time.Since()` are the idiomatic choice. When you need reproducible performance measurements, Go's benchmark framework is the standard tool.
 
