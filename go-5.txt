@@ -30,9 +30,23 @@ o/p
 <nil>
 
 
-type IPMask []byte -- The type that represents a Netmask. It identifies the network portion in an IP address. 
-
 CIDR Notation -- 127.0.0.1/23 		--> says that the first 23 bits represent the network portion in the IP address. 
+
+func ParseCIDR(s string) (IP, *IPNet, error)
+It returns the IP address and network implied by the IP and prefix length.
+
+Ex: ip, ipnet, _ := net.ParseCIDR("192.0.2.1/24") 
+fmt.Println(ip) 
+fmt.Println(ipnet.IP)
+fmt.Println(ipnet.Mask)
+
+o/p
+192.168.0.1 --> ip address
+192.168.0.0 --> network address
+ffffff00 --> mask 
+
+
+type IPMask []byte -- The type that represents a Netmask. It identifies the network portion in an IP address. 
 
 To create a netmask using the cidr notation --> func CIDRMask(ones, bits int) IPMask
 bits argument is restricted to (32 for IPv4 and 128 for IPv6, any other makes the function return nil)
@@ -60,12 +74,6 @@ ex:
 	mask := addr.DefaultMask()		--> ffffff00
 	network := addr.Mask(mask)		--> 192.168.1.0
 	ones,bits := mask.Size()		--> 24, 32
-
-
-func ParseCIDR(s string) (IP, *IPNet, error)
-It returns the IP address and network implied by the IP and prefix length.
-
-Ex: net.ParseCIDR("192.0.2.1/24") returns IP 192.0.2.1 and network 192.0.2.0/24
 
 Look at examples to get subnets in repos
 
