@@ -17,8 +17,8 @@ we can also create an ipv4 address using net.IPv4() function. ex: net.IPV4(10,25
 
 To create an IP from a string we use the ParseIP function -- func ParseIP(s string) IP 
 
-ParseIP parses s as an IP address, returning the result. The string s can be in IPv4 dotted decimal ("192.0.2.1"), 
-IPv6 ("2001:db8::68"), or IPv4-mapped IPv6 ("::ffff:192.0.2.1") form. If s is not a valid textual representation of an IP address, 
+ParseIP parses s as an IP address, returning the result. The string s can be in IPv4 dotted decimal "192.0.2.1", 
+IPv6 "2001:db8::68", or IPv4-mapped IPv6 "::ffff:192.0.2.1" form. If s is not a valid textual representation of an IP address, 
 ParseIP returns nil.
 
 fmt.Println(net.ParseIP("192.0.2.1"))
