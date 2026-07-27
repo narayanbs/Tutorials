@@ -321,6 +321,9 @@ This will set the default permissions on a directory to 750 (that is, 777 - 027 
 
 Fourth access level - Special Permission	
 -----------------------------------------
+Note: On modern Linux systems, setuid on scripts (shell scripts, Python scripts, etc.) is generally ignored for security reasons. 
+Setuid is intended for compiled executables (ELF binaries).
+
 Special permissions make up a fourth access level in addition to user, group, and other.
 
 SUID also known as setuid, SGID also known as setgid and sticky bit.
