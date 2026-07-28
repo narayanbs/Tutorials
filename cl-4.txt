@@ -6,7 +6,8 @@ For example, if you run the following command:
 
 find . -name "*.txt"
 
-It will list all `.txt` files in the current directory and its subdirectories, with each file name on a new line. 
+It will list all `.txt` files in the current directory and its subdirectories, with one result per line i.e each file name on a new line
+
 The output will look something like this:
 
 ```
@@ -23,11 +24,18 @@ with `find` to make it output file names separated by null characters (`\0`) ins
 This avoids issues with files that contain spaces, newlines, or other special characters.
 
 For example:
+
+find .name "*.txt" -print 
+will return results as we saw above with each file name on a new line
+
+But 
 find . -name "*.txt" -print0
 
 This will output file names like this:
 
 ./file1.txt\0./subdir/file2.txt\0./subdir/otherdir/file3.txt\0
+
+i.e -print0 changes the separator from newline to a null character (\0):
 
 Then, you can safely pipe this output to `xargs` with the `-0` option to ensure that file names are correctly handled, 
 even if they contain spaces or newlines:
