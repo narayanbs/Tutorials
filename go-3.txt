@@ -373,7 +373,7 @@ func main() {
     for  {
         line, err := reader.ReadString('\n')
         if err != nil {
-            fmt.Println("%s", line)
+            fmt.Printf("%s", err)
             return
         }
         f.WriteString(line)
