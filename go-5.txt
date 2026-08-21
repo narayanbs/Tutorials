@@ -99,6 +99,21 @@ func LookupHost(host string) (addrs []string, err error)
 
 LookupIP is preferred over the Hosts method to resolve a name to IP.
 
+on linux we can use dig to check this : 
+$ dig +short www.google.com 
+142.251.152.119
+142.251.150.119
+142.251.154.119
+142.251.157.119
+
+$ dig +short www.google.com AAAA
+2001:4860:482c:7700::
+2001:4860:482d:7700::
+2001:4860:482b:7700::
+2001:4860:4827:7700::
+2001:4860:4829:7700::
+
+
 PTR record: 
 The function LookupAddr performs a reverse lookup for the given address, returning a list of names mapping to that address.
 func LookupAddr(addr string) (names []string, err error)
@@ -110,6 +125,13 @@ for _, name := range names {
 
 o/p: dns.google.
 
+on linux we can use dig to check this.
+$ dig -x 8.8.8.8
+or
+$ dig -x +short 8.8.8.8
+dns.google.
+
+CNAME: 
 A host may also have multiple hostnames, acting as aliases. An alias will have an entry in a CNAME record. 
 One of these addresses will be labeled as the “canonical” hostname.A canonical name is the final name after 
 following zero or more CNAME records
