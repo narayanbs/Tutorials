@@ -151,6 +151,45 @@ A ptr record will typically look like  <IP-address-in-reverse>.in-addr.arpa.    
 
 for ex:
 
+Suppose you have this IP: 192.0.2.10
+Normally, DNS does:
+
+hostname → IP
+server.example.com → 192.0.2.10
+
+That's an A record lookup. Reverse DNS does the opposite:
+
+IP → hostname
+192.0.2.10 → server.example.com
+
+
+For an IPv4 reverse lookup, DNS takes the IP address and reverses its octets:
+
+192.0.2.10
+ ↓
+10.2.0.192
+
+Then it appends the special reverse-DNS domain: 10.2.0.192.in-addr.arpa. 
+
+Let's try this with dig 
+
+$ dig -x 192.0.2.10
+
+You'll get the PTR record,  something roughly like:
+
+;; QUESTION SECTION:
+;10.2.0.192.in-addr.arpa.    IN    PTR
+
+
+;; ANSWER SECTION:
+10.2.0.192.in-addr.arpa.  3600  IN  PTR  server.example.com.
+
+
+$ dig -x 192.0.2.10 +short
+server.example.com
+
+Another example
+
 $ dig -x 8.8.8.8
 
 8.8.8.8.in-addr.arpa.    IN    PTR   google-public-dns-a.google.com.	--> for ipv4
@@ -165,7 +204,7 @@ $ dig -x 203.0.113.45
 
 45.113.0.203.in-addr.arpa.   IN	   PTR   mail.example.com.
 
-Kere, PTR record points to mail.example.com, which would indicate that the IP address 203.0.113.45 is associated with 
+Here, PTR record points to mail.example.com, which would indicate that the IP address 203.0.113.45 is associated with 
 the mail server for the domain example.com.
 
 The Fully Qualified Domain Name (FQDN) in the PTR record indicates the hostname or domain name associated with the given IP address. 
