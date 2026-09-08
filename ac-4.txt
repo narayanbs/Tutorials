@@ -46,7 +46,6 @@ $
 In this case, we set a handler for the SIGINT signal in which we just echo the signal name. 
 After that, we send the signal by passing kill the shell process ID (PID) $$.
 Furthermore, using this method, we can set and invoke handlers for any and all available signals (here, 64):
-$ kill -SIGCONT $$
 $ trap 'echo "TRAP"' $(seq 1 64)
 $ kill -SIGCONT $$
 TRAP
