@@ -482,6 +482,12 @@ int main() {
         printf("Parent: Sending SIGCONT to child (pid %d)\n", pid);
         kill(pid, SIGCONT);
 
+        // wait for child to signify continue
+        waitpid(pid, &status, WCONTINUED);
+        if (WIFCONTINUED(status)) {
+            printf("Parent: Child process continued (pid %d)\n", pid);
+        }
+
         // Wait for the child to terminate
         waitpid(pid, &status, 0);
         if (WIFEXITED(status)) {
