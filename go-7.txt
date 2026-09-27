@@ -631,15 +631,26 @@ Tick
 deadline := time.Now().Add(10 * time.Minute)
 
 fmt.Println(time.Until(deadline))
+
+The above is equal to 
+duration := deadline.Sub(time.Now())
+
 ```
 
 ---
 
 # 19. Truncate
 
-Round down.
+time.Truncate rounds a time.Time down to the nearest multiple of a duration. 
+Think of it as: "remove the smaller time units than this duration i.e "Round down"
+```go
+t := time.Date(2026, 9, 27, 14, 37, 52, 123000000, time.UTC)
+fm.Println(t.Truncate(time.Hour))
+```
+output is 2026-09-27 14:00:00 +0000 UTC
 
 ```go
+
 now := time.Now()
 
 fmt.Println(now.Truncate(time.Minute))
@@ -654,6 +665,14 @@ now.Truncate(time.Millisecond)
 ---
 
 # 20. Round
+
+time.Round is similar to time.Truncate, but instead of always rounding down, it rounds to the nearest multiple of a duration.
+```go
+t := time.Date(2026, 9, 27, 14, 37, 52, 0, time.UTC)
+fmt.Println(t.Round(time.Hour))
+````
+output is 2026-09-27 15:00:00 +0000 UTC , Because 14:37 is closer to 15:00 than 14:00.
+
 
 ```go
 fmt.Println(time.Now().Round(time.Minute))
