@@ -15,6 +15,10 @@ A Time instance that represents a custom date and time can be created as shown b
 	ttime := time.Date(2006, 06, 20, 19, 30, 0, 0, time.Local)
 where time.Local represents the timezone and is an instance of the type time.Location
 
+Let's get a time instance where the timezone i.e time.Location is "Europe/London"
+	uk_location, _ := time.LoadLocation("Europe/London")
+	ttime := time.Date(2006, 06, 20, 19, 30, 0, 0, uk_location)
+
 Representation
 -----------------
 ttime = time.Now() 		// or time.Date(...)
