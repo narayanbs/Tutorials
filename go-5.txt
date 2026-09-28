@@ -355,6 +355,11 @@ tcpAddr, err := net.ResolveTCPAddr("tcp", address)
 listener, err := net.ListenTCP("tcp", tcpAddr)
 
 3. Accept a connection and communicate
+// returns a concrete *net.TCPConn, giving you TCP-specific methods/options.
+// when you need TCP-specific functionality such as SetKeepAlive, SetNoDelay, or SetLinger
+// conn, err := listener.AcceptTCP() 
+
+// This returns a generic connection 
 conn, err := listener.Accept()
 
 client
