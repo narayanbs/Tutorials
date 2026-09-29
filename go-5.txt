@@ -182,9 +182,8 @@ ns4.google.com.
 On linux you can use dig to check this, -->  dig +short google.com ns
 
 
-The function LookupSRV attempts to resolve an SRV query of the service, protocol (tcp or udp), and domain name, 
-sorted by priority and randomized by weight within a priority. A Service record (SRV record) is a specification of data in DNS defining 
-the location, i.e., the hostname and port number, of servers for specified service
+The function LookupSRV attempts to resolve SRV (Service) DNS Records, records that tell you which host and port provide a particular
+Network service.
 
 func LookupSRV(service, proto, name string) (cname string, addrs []*SRV, err error)
 
