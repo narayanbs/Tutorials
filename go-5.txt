@@ -128,7 +128,7 @@ o/p: dns.google.
 on linux we can use dig to check this.
 $ dig -x 8.8.8.8
 or
-$ dig -x +short 8.8.8.8
+$ dig +short -x 8.8.8.8
 dns.google.
 
 CNAME: 
