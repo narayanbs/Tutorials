@@ -111,21 +111,21 @@ Difference b/w time instances are represented as instances of time.Duration.
 	
 	diff := now.Sub(then)
 	fmt.Println(reflect.TypeOf(diff)) // time.Duration
+
 	fmt.Println(diff)
 	fmt.Println(diff.Hours())
 	fmt.Println(diff.Minutes())
 	fmt.Println(diff.Seconds())
 
-	fmt.Println(then.Add(diff))
-	fmt.Println(then.Add(-diff))
+  fmt.Println(then.Add(-diff))
 
 Duration can also be represented as follows
+
 	toAddDuration := 1 * time.Second // add a duration of a second
 	toAddHourDuration := 1 * time.Hour // add a duration of an hour
 
 	fmt.Println(toAddDuration)
 	fmt.Println(toAddHourDuration)
-
 
 
 =============================================================================
