@@ -124,8 +124,8 @@ Duration can also be represented as follows
 	toAddDuration := 1 * time.Second // add a duration of a second
 	toAddHourDuration := 1 * time.Hour // add a duration of an hour
 
-	fmt.Println(toAddDuration)
-	fmt.Println(toAddHourDuration)
+	fmt.Println(then.Add(toAddDuration))
+	fmt.Println(then.Add(toAddHourDuration))
 
 
 =============================================================================
