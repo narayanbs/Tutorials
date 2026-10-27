@@ -117,7 +117,7 @@ Difference b/w time instances are represented as instances of time.Duration.
 	fmt.Println(diff.Minutes())
 	fmt.Println(diff.Seconds())
 
-  fmt.Println(then.Add(-diff))
+	fmt.Println(then.Add(-diff))
 
 Duration can also be represented as follows
 
