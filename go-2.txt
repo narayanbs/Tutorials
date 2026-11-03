@@ -100,7 +100,7 @@ Suppose we have
 	- A string value can be explicitly converted to a slice type whose underlying type is []rune (a.k.a., []int32), and vice versa
 	- If the type (or default type) of a value is an integer type, then the value can be explicitly converted to string types.
 
-* slices - slice may be converted to an array. if the length of the array type is larger than the length of the slice, a panic occurs.
+* slices - slice may be converted (explicitly) to an array. if the length of the array type is larger than the length of the slice, a panic occurs.
 	
 * functions
 	import "fmt"
@@ -413,6 +413,14 @@ converting floats to integers
 
 The conversion involves dropping the decimal place.
 
+  // Compile-time constant conversion
+  // var a int = int(1.23452) // Compilation error
+
+  // Runtime conversion
+  var b float64 = 1.23452
+  var c int = int(b)
+
+  
 	var f float64 = 390.8
 	var i int = int(f)
 	fmt.Printf("f = %.2f\n", f)
