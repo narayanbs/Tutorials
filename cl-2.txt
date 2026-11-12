@@ -51,6 +51,7 @@ ls -ld Revision/*  --> lists details of all the files/directories (not contents)
 ls -ld Revision/*/ --> lists details of all the directories in the Revision folder. (but not contents)
            
 ls -lF --> classify directory with / at the end or * for files
+ls -lX --> list files sorted by extension and then filename
 ls -lh --> human readable file size (K,M,G)
 ls -lt --> list files in recent modification time order
 ls -lS --> list files in order of size
